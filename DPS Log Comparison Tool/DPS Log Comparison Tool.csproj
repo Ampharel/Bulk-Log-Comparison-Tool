@@ -1,0 +1,30 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>DPS_Log_Comparison_Tool</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="GW2EIBuilders">
+      <HintPath>lib\GW2EIBuilders.dll</HintPath>
+    </Reference>
+    <Reference Include="GW2EIEvtcParser">
+      <HintPath>lib\GW2EIEvtcParser.dll</HintPath>
+    </Reference>
+    <Reference Include="GW2EIGW2API">
+      <HintPath>lib\GW2EIGW2API.dll</HintPath>
+    </Reference>
+    <Reference Include="GW2EIJSON">
+      <HintPath>lib\GW2EIJSON.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+</Project>
