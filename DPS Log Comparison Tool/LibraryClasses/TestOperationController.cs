@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DPS_Log_Comparison_Tool
+namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
     public class TestOperationController : ParserController
     {
