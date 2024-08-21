@@ -15,12 +15,8 @@ namespace Bulk_Log_Comparison_Tool
         static void Main(string[] args)
         {
             var Parser = new LogParser(new LibraryParser(false));
-            Parser?.BulkLog.Logs.ForEach(log =>
-            {
-                Console.WriteLine(log.GetPlayerDps("Ampharel.6432"));
-            });
-            //CsvBuilder csvBuilder = new();
-            //csvBuilder.CsvString(new(), $"CSV/{DateTime.Now.ToString("yyyyMMdd-HHmmss")}");
+            CsvBuilder csvBuilder = new();
+            csvBuilder.CsvString(Parser.BulkLog, $"CSV/{DateTime.Now.ToString("yyyyMMdd-HHmmss")}");
             //Console.WriteLine("Press any key to exit");
             //Console.ReadKey();
         }

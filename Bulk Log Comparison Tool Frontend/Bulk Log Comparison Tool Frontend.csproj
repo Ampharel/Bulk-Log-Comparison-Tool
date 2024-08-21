@@ -5,8 +5,12 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <RootNamespace>Bulk_Log_Comparison_Tool_Frontend</RootNamespace>
     <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DPS Log Comparison Tool\Bulk Log Comparison Tool.csproj" />
+  </ItemGroup>
 
 </Project>

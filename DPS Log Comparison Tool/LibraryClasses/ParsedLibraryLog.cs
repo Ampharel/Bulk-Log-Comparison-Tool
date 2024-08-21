@@ -13,6 +13,8 @@ using static GW2EIEvtcParser.ParserHelper;
 using System.Collections;
 using static GW2EIEvtcParser.ArcDPSEnums;
 using Bulk_Log_Comparison_Tool.Util;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Xml.Linq;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
@@ -130,6 +132,33 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return 0;
         }
 
+        public double GetBoon(int group, string boonName, string phaseName = "")
+        {
+            var phase = GetPhaseFromName(phaseName);
+            if (phase == null)
+                return 0;
+            return GetBoon(group, boonName, phase.Start, phase.End);
+        }
+
+        public double GetBoon(int group, string boonName, long start, long end)
+        {
+            var groupMembers = _log.PlayerList.Where(x => x.Group == group);
+            var boons = new List<double>();
+            foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
+            {
+                foreach (var player in groupMembers)
+                {
+                    var Buffs = player.GetBuffs(BuffEnum.Self, _log, start, end);
+                    Buffs.TryGetValue(Boon.ID, out var value);
+                    if (value != null)
+                    {
+                        boons.Add(value.Uptime);
+                    }
+                }
+            }
+            return boons.Average();
+        }
+
         private BuffStackTyping ConvertStackTypeEnum(BuffStackType type)
         {
             switch (type)
@@ -174,13 +203,17 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     continue;
                 }
                 List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedEvents = _log.CombatData.GetBuffRemoveAllData(10269).Where(x => x.Time >= Invis.EndTime && x.Time <= Invis.EndTime + 20000).ToList();
+                if (RemovedEvents.Count == 0)
+                {
+                    continue;
+                }
                 double mean = RemovedEvents.Average(x => x.Time);
                 var median = RemovedEvents[(int)Math.Floor(RemovedEvents.Count / 2f)];
                 foreach (var RemovedEvent in RemovedEvents)
                 {
                     var error = "";
 
-                    if (median.Time - RemovedEvent.Time > 1000f)
+                    if (RemovedEvent.To.Name.Contains(accountName) && median.Time - RemovedEvent.Time > 1000f)
                     {
                         var dmgData = _log.CombatData.GetDamageData(RemovedEvent.To).Where(x => x.Time > Invis.EndTime && x.Time < Invis.EndTime + 6000);
                         var StealthTime = RemovedEvent.Time - Invis.EndTime;
@@ -194,12 +227,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                             error = skill.Skill.Name;
                         }
                     }
-                    var name = RemovedEvent.To.Name.Split(':').LastOrDefault();
-                    if (name == null)
+                    if (error != "")
                     {
-                        name = RemovedEvent.To.Name;
+                        StealthResult.Add((FromPhase.Name, $"{-(int)(median.Time - RemovedEvent.Time) / 1000f}s {error}"));
                     }
-                    StealthResult.Add((FromPhase.Name, $"{name} revealed {(int)(median.Time - RemovedEvent.Time) / 1000f}s early because of {error}"));
                 }
             }
             return StealthResult;
@@ -218,6 +249,16 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 phase = _log.FightData.GetPhases(_log).Where(x => x.Name == phaseName).FirstOrDefault();
             }
             return phase;
+        }
+
+        public string[] GetPlayers()
+        {
+            return _log.PlayerList.Select(x => x.Account).Distinct().ToArray();
+        }
+        
+        public int[] GetGroups()
+        {
+            return _log.PlayerList.Select(x => x.Group).Distinct().ToArray();
         }
     }
 }

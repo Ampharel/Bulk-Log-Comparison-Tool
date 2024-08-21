@@ -25,6 +25,7 @@ namespace Bulk_Log_Comparison_Tool
                     var fInfo = new FileInfo(file);
                     var log = Parser.ParseLog(file);
                     _bulklog.AddLog(log);
+                    Console.WriteLine($"Finished parsing {fInfo.Name}");
                 }
             }
             else

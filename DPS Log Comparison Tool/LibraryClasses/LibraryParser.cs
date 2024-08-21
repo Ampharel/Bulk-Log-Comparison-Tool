@@ -10,22 +10,24 @@ using System.Threading.Tasks;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
-    internal class LibraryParser : IEvtcParser
+    public class LibraryParser : IEvtcParser
     {
         private EvtcParser _parser;
-        private bool _multiThreadAccelerationForBuffs = false;
+        private bool _multiThreadAccelerationForBuffs = true;
 
         internal readonly string SkillAPICacheLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "/Content/SkillList.json";
         internal readonly string SpecAPICacheLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "/Content/SpecList.json";
         internal readonly string TraitAPICacheLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "/Content/TraitList.json";
 
+        internal EvtcParserSettings parserSettings;
+        internal GW2APIController APIController;
+
         public LibraryParser(bool multiThreadAccelerationForBuffs)
         {
             _multiThreadAccelerationForBuffs = multiThreadAccelerationForBuffs;
-            EvtcParserSettings parserSettings = new EvtcParserSettings(false, false, true, true, true, 2200, true);
-            var APIController = new GW2APIController(SkillAPICacheLocation, SpecAPICacheLocation, TraitAPICacheLocation);
-            _parser = new EvtcParser(parserSettings, APIController);
 
+            parserSettings = new EvtcParserSettings(false, false, true, true, true, 2200, true);
+            APIController = new GW2APIController(SkillAPICacheLocation, SpecAPICacheLocation, TraitAPICacheLocation);
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
         public IParsedEvtcLog ParseLog(ParserController operation, FileInfo evtc, out ParsingFailureReason parsingFailureReason, bool multiThreadAccelerationForBuffs = false)
@@ -35,6 +37,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         public IParsedEvtcLog ParseLog(string filePath)
         {
+            _parser = new EvtcParser(parserSettings, APIController);
             var fInfo = new FileInfo(filePath);
             ParsingFailureReason parsingFailureReason;
             var Log = ParseLog(new TestOperationController(), fInfo, out parsingFailureReason, _multiThreadAccelerationForBuffs);

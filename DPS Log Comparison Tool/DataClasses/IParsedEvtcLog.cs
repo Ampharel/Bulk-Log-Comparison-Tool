@@ -20,7 +20,12 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public string[] GetTargets(string phaseName = "");
         public double GetBoon(string target, string boonName, string phaseName = "");
         public double GetBoon(string target, string boonName, long start, long end);
+        public double GetBoon(int group, string boonName, string phaseName = "");
+        public double GetBoon(int group, string boonName, long start, long end);
         public BuffStackTyping GetBoonStackType(string boonName);
         public List<(string, string)> GetStealthResult(string accountName);
+
+        public string[] GetPlayers();
+        public int[] GetGroups();
     }
 }

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Text.RegularExpressions;
 using System.Numerics;
 using Bulk_Log_Comparison_Tool.DataClasses;
+using GW2EIEvtcParser.EIData;
 
 namespace Bulk_Log_Comparison_Tool
 {
@@ -14,12 +15,12 @@ namespace Bulk_Log_Comparison_Tool
 
         private string[] FilteredPhases = { };
         private string[] SpecificPhase = { };
-        public void CsvString(List<IParsedEvtcLog> logs, string OutputDirectory)
+        public void CsvString(BulkLog logs, string OutputDirectory)
         {
             LoadFiles();
             var ms = new MemoryStream();
             var sw = new StreamWriter(ms);
-            //ParseLogs(logs, OutputDirectory);
+            ParseLogs(logs, OutputDirectory);
         }
 
         private void LoadFiles()
@@ -38,7 +39,7 @@ namespace Bulk_Log_Comparison_Tool
             SpecificPhase = File.ReadAllLines("SpecificPhase.txt").Where(x => !x.StartsWith('#')).ToArray();
         }
 
-        public void ParseLogs(List<IParsedEvtcLog> logs, string OutputDirectory)
+        public void ParseLogs(BulkLog logs, string OutputDirectory)
         {
             //var phasesPerLog = logs.Select(x => x.FightData.GetPhases(x)).ToList();
             //var allPhases = logs.Select(x => x.FightData.GetPhases(x)).SelectMany(x => x).OrderBy(x => x.Start).ToList();
@@ -46,36 +47,105 @@ namespace Bulk_Log_Comparison_Tool
             //PhaseNames.AddRange(SpecificPhase.Select(y => new PhaseInformation { Name = y.Split('~').FirstOrDefault() ?? "", Description = y.Split('~').ElementAtOrDefault(1) ?? "", StartTime = y.Split('~').ElementAtOrDefault(2).TryParse() * 1000, EndTime = y.Split('~').ElementAtOrDefault(3).TryParse() * 1000 }));
             //var PlayerNames = logs.Select(x => x.PlayerList).SelectMany(x => x).Select(x => (x.Account, x.Spec, x.Group)).OrderBy(x => x.Group).Distinct().ToList();
 
-            //Console.WriteLine("Writing report");
-            //StringBuilder sb = new StringBuilder();
+            Console.WriteLine("Writing report");
+            StringBuilder sb = new StringBuilder();
 
-            //sb.Append("Log");
+            sb.Append("Log");
 
-            //foreach(var fileName in logs.Select(x => x.GetFileName()))
-            //{
-            //    sb.Append("," + fileName);
-            //}
+            foreach (var fileName in logs.Logs.Select(x => x.GetFileName()))
+            {
+                sb.Append("," + fileName);
+            }
 
-            //sb.Append("\n");
-            //sb.Append("\n");
+            sb.Append("\n");
+            sb.Append("\n");
 
-            //WriteMechanics(ref sb, logs);
+            WriteMechanics(ref sb, logs);
 
-            //sb.Append("\n");
+            sb.Append("\n");
 
-            //foreach (var phaseName in PhaseNames)
-            //{
-            //    WritePhase(phaseName, ref sb, logs, PlayerNames);
-            //}
-            //if (sb.Length > 0)
-            //{
-            //    if (!Directory.Exists(OutputDirectory))
-            //    {
-            //        Directory.CreateDirectory(OutputDirectory);
-            //    }
-            //    Console.WriteLine($"Saving file {OutputDirectory}/result.csv");
-            //    File.WriteAllText($"{OutputDirectory}/result.csv", sb.ToString());
-            //}
+            var Players = logs.GetPlayers();
+
+            foreach (var phaseName in logs.GetPhases())
+            {
+                if (FilteredPhases.Contains(phaseName))
+                {
+                    continue;
+                }
+                sb.Append($"{phaseName}\n");
+
+                for (int i = 0; i < logs.Logs.Count + 1; i++)
+                {
+                    sb.Append($",");
+                }
+                sb.Append(",Trimmed mean\n");
+                var totalDps = new Dictionary<string, int>();
+                foreach(var Player in Players)
+                {
+                    List<int> playerDps = new();
+                    sb.Append($"{Player},");
+                    foreach (var log in logs.Logs)
+                    {
+                        if(!totalDps.ContainsKey(log.GetFileName()))
+                        {
+                            totalDps[log.GetFileName()] = 0;
+                        }
+                        var dps = log.GetPlayerDps(Player, phaseName);
+                        playerDps.Add(dps);
+                        totalDps[log.GetFileName()] += dps;
+                        sb.Append($"{dps},");
+                    }
+
+                    sb.Append($",");
+                    if (playerDps.Count > 0)
+                    {
+                        sb.Append($"{TrimmedAverage(playerDps).Average()},");
+                    }
+                    sb.Append($"\n");
+                }
+                sb.Append("Total,");
+                List<int> totalDpsNumbers = new();
+                foreach (var dpsKvp in totalDps)
+                {
+                    totalDpsNumbers.Add(dpsKvp.Value);
+                    sb.Append(dpsKvp.Value + ",");
+                }
+                sb.Append($",");
+                sb.Append($"{TrimmedAverage(totalDpsNumbers).Average()}");
+
+                sb.Append("\n");
+                sb.Append("\n");
+
+                var groups = logs.GetGroups();
+                string[] boons = ["Might", "Quickness", "Alacrity"];
+
+                foreach (var boon in boons)
+                {
+                    foreach (var group in groups)
+                    {
+                        sb.Append($"G{group} {boon},");
+                        foreach (var log in logs.Logs)
+                        {
+                            var boonUptime = log.GetBoon(group, boon);
+                            sb.Append($"{boonUptime},");
+                        }
+                        sb.Append("\n");
+                    }
+                }
+                sb.Append("\n");
+                sb.Append("\n");
+            }
+
+
+            if (sb.Length > 0)
+            {
+                if (!Directory.Exists(OutputDirectory))
+                {
+                    Directory.CreateDirectory(OutputDirectory);
+                }
+                Console.WriteLine($"Saving file {OutputDirectory}/result.csv");
+                File.WriteAllText($"{OutputDirectory}/result.csv", sb.ToString());
+            }
 
             //foreach (var PlayerInfo in PlayerNames)
             //{
@@ -83,88 +153,22 @@ namespace Bulk_Log_Comparison_Tool
             //}
         }
 
-        //private void WriteMechanics(ref StringBuilder sb, List<ParsedEvtcLog> logs)
-        //{
-        //    Dictionary<ParsedEvtcLog, List<(string, string, int, string)>> PlayerStealthTimingOffset = new();
-        //    foreach (var log in logs)
-        //    {
-        //        var MassInvis = log.CombatData.GetAnimatedCastData(10245);
-        //        var buffRemoved = log.CombatData.GetBuffRemoveAllData(10269);
-        //        var buffInfoEvent = log.CombatData.GetBuffInfoEvent(10269);
-        //        if (!PlayerStealthTimingOffset.ContainsKey(log))
-        //        {
-        //            PlayerStealthTimingOffset[log] = new List<(string, string, int, string)>();
-        //        }
-        //        foreach (var Invis in MassInvis)
-        //        {
-        //            var phases = log.FightData.GetPhases(log);
-        //            PhaseData? FromPhase = null;
-        //            PhaseData? ToPhase = null;
-        //            foreach (var ph in phases)
-        //            {
-        //                ToPhase = ph;
-        //                if (ph.Start != 0 && ph.End > Invis.EndTime)
-        //                {
-        //                    break;
-        //                }
-        //                FromPhase = ph;
-        //            }
-        //            if (ToPhase == null)
-        //                continue;
-        //            List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedEvents = log.CombatData.GetBuffRemoveAllData(10269).Where(x =>x.Time >= Invis.EndTime && x.Time <= Invis.EndTime + 20000).ToList();
-        //            double mean = RemovedEvents.Average(x => x.Time);
-        //            var median = RemovedEvents[(int)Math.Floor(RemovedEvents.Count / 2f)];
-        //            foreach(var RemovedEvent in RemovedEvents)
-        //            {
-        //                var error = "";
+        private void WriteMechanics(ref StringBuilder sb, BulkLog logs)
+        {
 
-        //                if (median.Time - RemovedEvent.Time > 1000f)
-        //                {
-        //                    var dmgData = log.CombatData.GetDamageData(RemovedEvent.To).Where(x => x.Time > Invis.EndTime && x.Time < Invis.EndTime + 6000);
-        //                    var StealthTime = RemovedEvent.Time - Invis.EndTime;
-        //                    var skill = dmgData.FirstOrDefault(x => x.Skill.Name != "Nourishment");
-        //                    if (skill == null)
-        //                    {
-        //                        error = "Unknown";
-        //                    }
-        //                    else { 
-        //                        error = skill.Skill.Name;
-        //                    }
-        //                }
-        //                var name = RemovedEvent.To.Name.Split(':').LastOrDefault();
-        //                if(name == null)
-        //                {
-        //                    name = RemovedEvent.To.Name;
-        //                }
-        //                PlayerStealthTimingOffset[log].Add(($"{FromPhase.Name}", name, (int)(median.Time - RemovedEvent.Time),error));
-        //            }
-        //        }
-        //    }
-        //    sb.Append($"Stealth anayltics:\n");
-        //    var AllPhases = PlayerStealthTimingOffset.Values.Select(x => x.Select(y => y.Item1)).SelectMany(x => x);
-        //    AllPhases = AllPhases.Distinct().ToList();
-        //    foreach (var phase in AllPhases)
-        //    {
-        //        sb.Append($"{phase}:,");
-        //        foreach (var TimingOffset in PlayerStealthTimingOffset)
-        //        {
-        //            if (TimingOffset.Value.Count() == 0)
-        //            {
-        //                sb.Append(" ,");
-        //                continue;
-        //            }
-        //            foreach (var StealthTiming in TimingOffset.Value)
-        //            {
-        //                if (!phase.Equals(StealthTiming.Item1)) continue;
-        //                if (StealthTiming.Item4 == "") { sb.Append(" ");  continue; }
-        //                sb.Append($"{StealthTiming.Item2} revealed {StealthTiming.Item3 / 1000f}s early because of {StealthTiming.Item4} | ");
-        //            }
-        //            sb.Append(",");
-        //        }
-        //        sb.Append($"\n");
-        //    }
-        //    sb.Append($"\n");
-        //}
+            sb.Append($"Stealth anayltics:\n");
+            string[] phases = logs.GetStealthPhases();
+            foreach(var phase in phases)
+            {
+                sb.Append($"{phase},");
+                foreach(var log in logs.Logs)
+                {
+                    var StealthResult = logs.GetStealthResult(log.GetFileName(), phase);
+                    sb.Append($"{StealthResult},");
+                }
+                sb.Append("\n");
+            }
+        }
 
         //private static void WritePlayerLog(List<ParsedEvtcLog> logs, string OutputDirectory, List<PhaseInformation> PhaseNames, (string Account, Spec Spec, int Group) PlayerInfo)
         //{
@@ -562,16 +566,16 @@ namespace Bulk_Log_Comparison_Tool
         //    sb.Append($"\n");
         //}
 
-        //public List<int> TrimmedAverage(List<int> ints)
-        //{
-        //    if (ints.Count == 0)
-        //    {
-        //        return ints;
-        //    }
-        //    var sortedInts = ints.OrderBy(x => x).ToList();
-        //    var Max = sortedInts.Max();
-        //    return sortedInts.Where(x => x >= Max * 0.6).ToList();
-        //}
+        public List<int> TrimmedAverage(List<int> ints)
+        {
+            if (ints.Count == 0)
+            {
+                return ints;
+            }
+            var sortedInts = ints.OrderBy(x => x).ToList();
+            var Max = sortedInts.Max();
+            return sortedInts.Where(x => x >= Max * 0.6).ToList();
+        }
     }
 
     public class PhaseInformation
