@@ -27,5 +27,6 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
 
         public string[] GetPlayers();
         public int[] GetGroups();
+        IEnumerable<string> GetBoonNames();
     }
 }

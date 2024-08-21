@@ -202,7 +202,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     continue;
                 }
-                List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedEvents = _log.CombatData.GetBuffRemoveAllData(10269).Where(x => x.Time >= Invis.EndTime && x.Time <= Invis.EndTime + 20000).ToList();
+                List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedEvents = _log.CombatData.GetBuffRemoveAllData(10269).Where(x => x.Time >= Invis.Time && x.Time <= Invis.Time + 20000).ToList();
                 if (RemovedEvents.Count == 0)
                 {
                     continue;
@@ -212,12 +212,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 foreach (var RemovedEvent in RemovedEvents)
                 {
                     var error = "";
-
                     if (RemovedEvent.To.Name.Contains(accountName) && median.Time - RemovedEvent.Time > 1000f)
                     {
-                        var dmgData = _log.CombatData.GetDamageData(RemovedEvent.To).Where(x => x.Time > Invis.EndTime && x.Time < Invis.EndTime + 6000);
-                        var StealthTime = RemovedEvent.Time - Invis.EndTime;
-                        var skill = dmgData.FirstOrDefault(x => x.Skill.Name != "Nourishment");
+                        var dmgData = _log.CombatData.GetDamageData(RemovedEvent.To).Where(x => x.Time >= Invis.EndTime && x.Time <= RemovedEvent.Time).OrderBy(x => x.Time);
+                        var skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
                         if (skill == null)
                         {
                             error = "Unknown";
@@ -259,6 +257,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         public int[] GetGroups()
         {
             return _log.PlayerList.Select(x => x.Group).Distinct().ToArray();
+        }
+
+        public IEnumerable<string> GetBoonNames()
+        {
+            return _log.StatisticsHelper.PresentBoons.Select(x => x.Name);
         }
     }
 }

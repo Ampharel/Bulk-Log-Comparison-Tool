@@ -59,6 +59,11 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             return _stealthData.Values.SelectMany(x => x.Keys).Distinct().ToArray();
         }
 
+        public string[] GetBoonNames()
+        {
+            return _logs.SelectMany(x => x.GetBoonNames()).Distinct().ToArray();
+        }
+
         public string GetStealthResult(string logName, string phase)
         {
             ParseStealthData();

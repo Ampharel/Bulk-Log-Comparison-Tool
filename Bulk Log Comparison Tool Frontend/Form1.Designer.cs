@@ -34,20 +34,37 @@
             btnDeleteSelected = new Button();
             btnOpenLogs = new Button();
             lbLoadedFiles = new ListBox();
-            btnStealth = new Button();
-            panel2 = new Panel();
-            tableLayoutPanel1 = new TableLayoutPanel();
+            tableStealth = new TableLayoutPanel();
             cbStealthPhase = new ComboBox();
             label1 = new Label();
+            tabsControl = new TabControl();
+            tabStealth = new TabPage();
+            tabDps = new TabPage();
+            label3 = new Label();
+            cbDpsPhase = new ComboBox();
+            tableDps = new TableLayoutPanel();
+            tabBoons = new TabPage();
+            label5 = new Label();
+            cbBoonBoons = new ComboBox();
+            label4 = new Label();
+            cbBoonPhase = new ComboBox();
+            tableBoons = new TableLayoutPanel();
+            lblSelectedPhaseStealth = new Label();
+            lblSelectedPhaseDps = new Label();
+            lblSelectedPhaseBoons = new Label();
+            lblSelectedBoonBoons = new Label();
             panelStealth.SuspendLayout();
-            panel2.SuspendLayout();
+            tabsControl.SuspendLayout();
+            tabStealth.SuspendLayout();
+            tabDps.SuspendLayout();
+            tabBoons.SuspendLayout();
             SuspendLayout();
             // 
             // panelPlayers
             // 
             panelPlayers.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             panelPlayers.AutoScroll = true;
-            panelPlayers.Location = new Point(5, 36);
+            panelPlayers.Location = new Point(5, 4);
             panelPlayers.Name = "panelPlayers";
             panelPlayers.Size = new Size(1066, 25);
             panelPlayers.TabIndex = 4;
@@ -93,46 +110,28 @@
             lbLoadedFiles.Size = new Size(160, 589);
             lbLoadedFiles.TabIndex = 0;
             // 
-            // btnStealth
+            // tableStealth
             // 
-            btnStealth.Location = new Point(3, 3);
-            btnStealth.Name = "btnStealth";
-            btnStealth.Size = new Size(99, 23);
-            btnStealth.TabIndex = 2;
-            btnStealth.Text = "Stealth Analysis";
-            btnStealth.UseVisualStyleBackColor = true;
-            // 
-            // panel2
-            // 
-            panel2.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            panel2.Controls.Add(btnStealth);
-            panel2.Location = new Point(5, 4);
-            panel2.Name = "panel2";
-            panel2.Size = new Size(1066, 28);
-            panel2.TabIndex = 6;
-            // 
-            // tableLayoutPanel1
-            // 
-            tableLayoutPanel1.AutoScroll = true;
-            tableLayoutPanel1.AutoSize = true;
-            tableLayoutPanel1.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
-            tableLayoutPanel1.ColumnCount = 2;
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250F));
-            tableLayoutPanel1.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250F));
-            tableLayoutPanel1.GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
-            tableLayoutPanel1.Location = new Point(5, 96);
-            tableLayoutPanel1.MaximumSize = new Size(1050, 800);
-            tableLayoutPanel1.Name = "tableLayoutPanel1";
-            tableLayoutPanel1.RowCount = 2;
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 250F));
-            tableLayoutPanel1.RowStyles.Add(new RowStyle(SizeType.Absolute, 250F));
-            tableLayoutPanel1.Size = new Size(1050, 578);
-            tableLayoutPanel1.TabIndex = 0;
+            tableStealth.AutoScroll = true;
+            tableStealth.AutoSize = true;
+            tableStealth.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
+            tableStealth.ColumnCount = 2;
+            tableStealth.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250F));
+            tableStealth.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250F));
+            tableStealth.GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
+            tableStealth.Location = new Point(6, 37);
+            tableStealth.MaximumSize = new Size(1050, 800);
+            tableStealth.Name = "tableStealth";
+            tableStealth.RowCount = 2;
+            tableStealth.RowStyles.Add(new RowStyle(SizeType.Absolute, 250F));
+            tableStealth.RowStyles.Add(new RowStyle(SizeType.Absolute, 250F));
+            tableStealth.Size = new Size(1050, 578);
+            tableStealth.TabIndex = 0;
             // 
             // cbStealthPhase
             // 
             cbStealthPhase.FormattingEnabled = true;
-            cbStealthPhase.Location = new Point(49, 67);
+            cbStealthPhase.Location = new Point(50, 6);
             cbStealthPhase.Name = "cbStealthPhase";
             cbStealthPhase.Size = new Size(121, 23);
             cbStealthPhase.TabIndex = 1;
@@ -141,22 +140,199 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(5, 70);
+            label1.Location = new Point(6, 9);
             label1.Name = "label1";
             label1.Size = new Size(38, 15);
             label1.TabIndex = 7;
             label1.Text = "Phase";
+            // 
+            // tabsControl
+            // 
+            tabsControl.Controls.Add(tabStealth);
+            tabsControl.Controls.Add(tabDps);
+            tabsControl.Controls.Add(tabBoons);
+            tabsControl.Location = new Point(5, 36);
+            tabsControl.Name = "tabsControl";
+            tabsControl.SelectedIndex = 0;
+            tabsControl.Size = new Size(1066, 638);
+            tabsControl.TabIndex = 8;
+            // 
+            // tabStealth
+            // 
+            tabStealth.Controls.Add(lblSelectedPhaseStealth);
+            tabStealth.Controls.Add(label1);
+            tabStealth.Controls.Add(cbStealthPhase);
+            tabStealth.Controls.Add(tableStealth);
+            tabStealth.Location = new Point(4, 24);
+            tabStealth.Name = "tabStealth";
+            tabStealth.Padding = new Padding(3);
+            tabStealth.Size = new Size(1058, 610);
+            tabStealth.TabIndex = 0;
+            tabStealth.Text = "Stealth Analytics";
+            tabStealth.UseVisualStyleBackColor = true;
+            // 
+            // tabDps
+            // 
+            tabDps.Controls.Add(lblSelectedPhaseDps);
+            tabDps.Controls.Add(label3);
+            tabDps.Controls.Add(cbDpsPhase);
+            tabDps.Controls.Add(tableDps);
+            tabDps.Location = new Point(4, 24);
+            tabDps.Name = "tabDps";
+            tabDps.Padding = new Padding(3);
+            tabDps.Size = new Size(1058, 610);
+            tabDps.TabIndex = 1;
+            tabDps.Text = "Dps";
+            tabDps.UseVisualStyleBackColor = true;
+            // 
+            // label3
+            // 
+            label3.AutoSize = true;
+            label3.Location = new Point(6, 9);
+            label3.Name = "label3";
+            label3.Size = new Size(38, 15);
+            label3.TabIndex = 10;
+            label3.Text = "Phase";
+            // 
+            // cbDpsPhase
+            // 
+            cbDpsPhase.FormattingEnabled = true;
+            cbDpsPhase.Location = new Point(50, 6);
+            cbDpsPhase.Name = "cbDpsPhase";
+            cbDpsPhase.Size = new Size(121, 23);
+            cbDpsPhase.TabIndex = 9;
+            cbDpsPhase.SelectedIndexChanged += cbDpsPhase_SelectedIndexChanged;
+            // 
+            // tableDps
+            // 
+            tableDps.AutoScroll = true;
+            tableDps.AutoSize = true;
+            tableDps.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
+            tableDps.ColumnCount = 2;
+            tableDps.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250F));
+            tableDps.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250F));
+            tableDps.GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
+            tableDps.Location = new Point(4, 32);
+            tableDps.MaximumSize = new Size(1050, 800);
+            tableDps.Name = "tableDps";
+            tableDps.RowCount = 2;
+            tableDps.RowStyles.Add(new RowStyle(SizeType.Absolute, 250F));
+            tableDps.RowStyles.Add(new RowStyle(SizeType.Absolute, 250F));
+            tableDps.Size = new Size(1050, 578);
+            tableDps.TabIndex = 8;
+            // 
+            // tabBoons
+            // 
+            tabBoons.Controls.Add(lblSelectedBoonBoons);
+            tabBoons.Controls.Add(lblSelectedPhaseBoons);
+            tabBoons.Controls.Add(label5);
+            tabBoons.Controls.Add(cbBoonBoons);
+            tabBoons.Controls.Add(label4);
+            tabBoons.Controls.Add(cbBoonPhase);
+            tabBoons.Controls.Add(tableBoons);
+            tabBoons.Location = new Point(4, 24);
+            tabBoons.Name = "tabBoons";
+            tabBoons.Size = new Size(1058, 610);
+            tabBoons.TabIndex = 2;
+            tabBoons.Text = "tabBoons";
+            tabBoons.UseVisualStyleBackColor = true;
+            // 
+            // label5
+            // 
+            label5.AutoSize = true;
+            label5.Location = new Point(352, 6);
+            label5.Name = "label5";
+            label5.Size = new Size(35, 15);
+            label5.TabIndex = 14;
+            label5.Text = "Boon";
+            // 
+            // cbBoonBoons
+            // 
+            cbBoonBoons.FormattingEnabled = true;
+            cbBoonBoons.Location = new Point(396, 3);
+            cbBoonBoons.Name = "cbBoonBoons";
+            cbBoonBoons.Size = new Size(121, 23);
+            cbBoonBoons.TabIndex = 13;
+            cbBoonBoons.SelectedIndexChanged += cbBoonBoons_SelectedIndexChanged;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(6, 6);
+            label4.Name = "label4";
+            label4.Size = new Size(38, 15);
+            label4.TabIndex = 12;
+            label4.Text = "Phase";
+            // 
+            // cbBoonPhase
+            // 
+            cbBoonPhase.FormattingEnabled = true;
+            cbBoonPhase.Location = new Point(50, 3);
+            cbBoonPhase.Name = "cbBoonPhase";
+            cbBoonPhase.Size = new Size(121, 23);
+            cbBoonPhase.TabIndex = 11;
+            cbBoonPhase.SelectedIndexChanged += cbBoonPhase_SelectedIndexChanged;
+            // 
+            // tableBoons
+            // 
+            tableBoons.AutoScroll = true;
+            tableBoons.AutoSize = true;
+            tableBoons.CellBorderStyle = TableLayoutPanelCellBorderStyle.Single;
+            tableBoons.ColumnCount = 2;
+            tableBoons.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250F));
+            tableBoons.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 250F));
+            tableBoons.GrowStyle = TableLayoutPanelGrowStyle.FixedSize;
+            tableBoons.Location = new Point(4, 29);
+            tableBoons.MaximumSize = new Size(1050, 800);
+            tableBoons.Name = "tableBoons";
+            tableBoons.RowCount = 2;
+            tableBoons.RowStyles.Add(new RowStyle(SizeType.Absolute, 250F));
+            tableBoons.RowStyles.Add(new RowStyle(SizeType.Absolute, 250F));
+            tableBoons.Size = new Size(1050, 578);
+            tableBoons.TabIndex = 10;
+            // 
+            // lblSelectedPhaseStealth
+            // 
+            lblSelectedPhaseStealth.AutoSize = true;
+            lblSelectedPhaseStealth.Location = new Point(177, 9);
+            lblSelectedPhaseStealth.Name = "lblSelectedPhaseStealth";
+            lblSelectedPhaseStealth.Size = new Size(0, 15);
+            lblSelectedPhaseStealth.TabIndex = 8;
+            // 
+            // lblSelectedPhaseDps
+            // 
+            lblSelectedPhaseDps.AutoSize = true;
+            lblSelectedPhaseDps.Location = new Point(177, 9);
+            lblSelectedPhaseDps.Name = "lblSelectedPhaseDps";
+            lblSelectedPhaseDps.Size = new Size(38, 15);
+            lblSelectedPhaseDps.TabIndex = 11;
+            lblSelectedPhaseDps.Text = "label2";
+            // 
+            // lblSelectedPhaseBoons
+            // 
+            lblSelectedPhaseBoons.AutoSize = true;
+            lblSelectedPhaseBoons.Location = new Point(177, 6);
+            lblSelectedPhaseBoons.Name = "lblSelectedPhaseBoons";
+            lblSelectedPhaseBoons.Size = new Size(38, 15);
+            lblSelectedPhaseBoons.TabIndex = 15;
+            lblSelectedPhaseBoons.Text = "label2";
+            // 
+            // lblSelectedBoonBoons
+            // 
+            lblSelectedBoonBoons.AutoSize = true;
+            lblSelectedBoonBoons.Location = new Point(523, 6);
+            lblSelectedBoonBoons.Name = "lblSelectedBoonBoons";
+            lblSelectedBoonBoons.Size = new Size(38, 15);
+            lblSelectedBoonBoons.TabIndex = 16;
+            lblSelectedBoonBoons.Text = "label2";
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1261, 681);
-            Controls.Add(label1);
-            Controls.Add(cbStealthPhase);
+            Controls.Add(tabsControl);
             Controls.Add(panelPlayers);
-            Controls.Add(tableLayoutPanel1);
-            Controls.Add(panel2);
             Controls.Add(panelStealth);
             MaximizeBox = false;
             MaximumSize = new Size(1277, 720);
@@ -166,23 +342,42 @@
             StartPosition = FormStartPosition.WindowsDefaultBounds;
             Text = "BLCT";
             panelStealth.ResumeLayout(false);
-            panel2.ResumeLayout(false);
+            tabsControl.ResumeLayout(false);
+            tabStealth.ResumeLayout(false);
+            tabStealth.PerformLayout();
+            tabDps.ResumeLayout(false);
+            tabDps.PerformLayout();
+            tabBoons.ResumeLayout(false);
+            tabBoons.PerformLayout();
             ResumeLayout(false);
-            PerformLayout();
         }
 
         #endregion
 
         private System.ComponentModel.BackgroundWorker backgroundWorker1;
         private Button btnOpenLogs;
-        private Button btnStealth;
         private Panel panelStealth;
         private ListBox lbLoadedFiles;
         private Button btnDeleteSelected;
         private Panel panelPlayers;
-        private Panel panel2;
-        private TableLayoutPanel tableLayoutPanel1;
+        private TableLayoutPanel tableStealth;
         private ComboBox cbStealthPhase;
         private Label label1;
+        private TabControl tabsControl;
+        private TabPage tabStealth;
+        private TabPage tabDps;
+        private ComboBox cbDpsPhase;
+        private TableLayoutPanel tableDps;
+        private Label label3;
+        private TabPage tabBoons;
+        private Label label5;
+        private ComboBox cbBoonBoons;
+        private Label label4;
+        private ComboBox cbBoonPhase;
+        private TableLayoutPanel tableBoons;
+        private Label lblSelectedPhaseStealth;
+        private Label lblSelectedPhaseDps;
+        private Label lblSelectedBoonBoons;
+        private Label lblSelectedPhaseBoons;
     }
 }
