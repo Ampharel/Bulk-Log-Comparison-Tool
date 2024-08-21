@@ -51,7 +51,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             UpdatePanel(panelToShow);
         }
 
-        private void UpdatePanel(Panel panel)
+        private void UpdateStealthPanel()
         {
             if (panel == panelStealth)
             {
