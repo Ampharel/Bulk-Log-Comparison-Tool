@@ -29,6 +29,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             parserSettings = new EvtcParserSettings(false, false, true, true, true, 2200, true);
             APIController = new GW2APIController(SkillAPICacheLocation, SpecAPICacheLocation, TraitAPICacheLocation);
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+            _parser = new EvtcParser(parserSettings, APIController);
         }
         public IParsedEvtcLog ParseLog(ParserController operation, FileInfo evtc, out ParsingFailureReason parsingFailureReason, bool multiThreadAccelerationForBuffs = false)
         {

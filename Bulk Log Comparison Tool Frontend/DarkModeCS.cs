@@ -1,4 +1,13 @@
-﻿using Microsoft.Win32;
+﻿#pragma warning disable CS8625 // Cannot convert null literal to non-nullable reference type.
+#pragma warning disable CS8600 
+#pragma warning disable CS8602 
+#pragma warning disable CS8618 
+#pragma warning disable CS8622 
+#pragma warning disable CS8604 
+#pragma warning disable CS8601 
+#pragma warning disable CS8605 
+#pragma warning disable CS0184 
+using Microsoft.Win32;
 using System.Drawing;
 using System;
 using System.ComponentModel;

@@ -21,7 +21,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private Panel _panel;
 
         public delegate void PlayerSelectionChangedEventHandler(List<string> ActivePlayers);
-        private event PlayerSelectionChangedEventHandler _playerSelectionChangedEvent;
+        private event PlayerSelectionChangedEventHandler? _playerSelectionChangedEvent;
 
         public event PlayerSelectionChangedEventHandler PlayerSelectionChangedEvent
         {

@@ -15,8 +15,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private List<string> ActivePlayers() => _activePlayers;
         private List<Panel> _panels = new();
         private UILogParser _logParser = new(new LibraryParser(false));
-        private PlayerPanel _playerPanel;
-        private Panel _selectedPanel;
+        private PlayerPanel? _playerPanel;
         private List<string> _activePlayers = new();
         private string _selectedPhase = "";
         private string _selectedBoon = "";
@@ -258,25 +257,34 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabBoons.Controls.Add(tableBoons);
         }
 
+        private void UpdateSelectedPhase()
+        {
+            if (cbStealthPhase.SelectedItem == null)
+            {
+                return;
+            }
+            _selectedPhase = cbStealthPhase.SelectedItem.ToString() ?? "";
+        }
+
         private void cbStealthPhase_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _selectedPhase = cbStealthPhase.SelectedItem.ToString();
+            UpdateSelectedPhase();
             UpdateStealthPanel();
         }
         private void cbDpsPhase_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _selectedPhase = cbDpsPhase.SelectedItem.ToString();
+            UpdateSelectedPhase();
             UpdateDpsPanel();
         }
         private void cbBoonBoons_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _selectedBoon = cbBoonBoons.SelectedItem.ToString();
+            UpdateSelectedPhase();
             UpdateBoonPanel();
         }
 
         private void cbBoonPhase_SelectedIndexChanged(object sender, EventArgs e)
         {
-            _selectedPhase = cbBoonPhase.SelectedItem.ToString();
+            UpdateSelectedPhase();
             UpdateBoonPanel();
         }
 
@@ -305,7 +313,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     }
                 }
             }
-            _playerPanel.Refresh();
+            _playerPanel?.Refresh();
         }
 
 
@@ -313,7 +321,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         {
             lbLoadedFiles.SelectedItems.Cast<string>().ToList().ForEach(file => { lbLoadedFiles.Items.Remove(file); _logParser.RemoveLog(file); });
 
-            _playerPanel.Refresh();
+            _playerPanel?.Refresh();
         }
 
 
