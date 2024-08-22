@@ -257,34 +257,41 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabBoons.Controls.Add(tableBoons);
         }
 
-        private void UpdateSelectedPhase()
+        private void cbStealthPhase_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cbStealthPhase.SelectedItem == null)
             {
                 return;
             }
             _selectedPhase = cbStealthPhase.SelectedItem.ToString() ?? "";
-        }
-
-        private void cbStealthPhase_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            UpdateSelectedPhase();
             UpdateStealthPanel();
         }
         private void cbDpsPhase_SelectedIndexChanged(object sender, EventArgs e)
         {
-            UpdateSelectedPhase();
+            if (cbDpsPhase.SelectedItem == null)
+            {
+                return;
+            }
+            _selectedPhase = cbDpsPhase.SelectedItem.ToString() ?? "";
             UpdateDpsPanel();
         }
         private void cbBoonBoons_SelectedIndexChanged(object sender, EventArgs e)
         {
-            UpdateSelectedPhase();
+            if (cbBoonPhase.SelectedItem == null)
+            {
+                return;
+            }
+            _selectedBoon = cbBoonPhase.SelectedItem.ToString() ?? "";
             UpdateBoonPanel();
         }
 
         private void cbBoonPhase_SelectedIndexChanged(object sender, EventArgs e)
         {
-            UpdateSelectedPhase();
+            if (cbBoonPhase.SelectedItem == null)
+            {
+                return;
+            }
+            _selectedPhase = cbBoonPhase.SelectedItem.ToString() ?? "";
             UpdateBoonPanel();
         }
 
