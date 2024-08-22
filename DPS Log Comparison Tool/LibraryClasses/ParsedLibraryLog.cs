@@ -15,6 +15,7 @@ using static GW2EIEvtcParser.ArcDPSEnums;
 using Bulk_Log_Comparison_Tool.Util;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Xml.Linq;
+using GW2EIEvtcParser.ParsedData;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
@@ -209,25 +210,45 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 }
                 double mean = RemovedEvents.Average(x => x.Time);
                 var median = RemovedEvents[(int)Math.Floor(RemovedEvents.Count / 2f)];
-                foreach (var RemovedEvent in RemovedEvents)
+                foreach (var RemovedEvent in RemovedEvents.Where(x => x.To.Name.Contains(accountName)))
                 {
                     var error = "";
-                    if (RemovedEvent.To.Name.Contains(accountName) && median.Time - RemovedEvent.Time > 1000f)
+                    var player = _log.PlayerAgents.Where(x => x.Name.Contains(accountName)).FirstOrDefault();
+                    if (player != null)
                     {
-                        var dmgData = _log.CombatData.GetDamageData(RemovedEvent.To).Where(x => x.Time >= Invis.EndTime && x.Time <= RemovedEvent.Time).OrderBy(x => x.Time);
-                        var skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
+                        var deaths = _log.CombatData.GetDeadEvents(player);
+                        foreach (var death in deaths)
+                        {
+                            if (death.Time >= Invis.EndTime && death.Time <= Invis.EndTime + 10000)
+                            {
+                                error = $"Died";
+                                break;
+                            }
+                        }
+                    }
+                    if (median.Time - RemovedEvent.Time > 1000f)
+                    {
+                        var dmgData = _log.CombatData.GetDamageData(RemovedEvent.To).Where(x => x.Time >= Invis.EndTime && x.Time <= RemovedEvent.Time+10000).OrderBy(x => x.Time);
+                        var skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment") && x is DirectHealthDamageEvent);
+                        if(skill == null)
+                        {
+                            skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
+                        }
                         if (skill == null)
                         {
-                            error = "Unknown";
+                            if (error == "")
+                            {
+                                error = "Unknown";
+                            }
                         }
                         else
                         {
-                            error = skill.Skill.Name;
+                            error = $"{-(int)(median.Time - RemovedEvent.Time) / 1000f}s { skill.Skill.Name}";
                         }
                     }
                     if (error != "")
                     {
-                        StealthResult.Add((FromPhase.Name, $"{-(int)(median.Time - RemovedEvent.Time) / 1000f}s {error}"));
+                        StealthResult.Add((FromPhase.Name, error));
                     }
                 }
             }

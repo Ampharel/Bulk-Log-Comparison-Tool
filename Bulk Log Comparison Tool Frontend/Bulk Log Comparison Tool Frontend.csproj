@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ScottPlot.WinForms" Version="5.0.37" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\DPS Log Comparison Tool\Bulk Log Comparison Tool.csproj" />
   </ItemGroup>
 

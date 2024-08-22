@@ -4,6 +4,8 @@ using static System.Net.Mime.MediaTypeNames;
 using System.Windows.Forms;
 using Bulk_Log_Comparison_Tool.Util;
 using System.Globalization;
+using System.Linq;
+using DarkModeForms;
 
 namespace Bulk_Log_Comparison_Tool_Frontend
 {
@@ -17,11 +19,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private Panel _selectedPanel;
         private List<string> _activePlayers = new();
         private string _selectedPhase = "";
-        private string _selectedBoon = "";  
+        private string _selectedBoon = "";
 
         public Form1()
         {
             InitializeComponent();
+            _ = new DarkModeCS(this);
             Setup();
         }
 
@@ -54,12 +57,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 return;
             }
             tabStealth.Controls.Remove(tableStealth);
-            tableStealth.Controls.Clear();
-            tableStealth.AutoSize = false;
-            tableStealth.RowStyles.Clear();
-            tableStealth.RowCount = _activePlayers.Count + 2;
-            tableStealth.ColumnStyles.Clear();
-            tableStealth.ColumnCount = _logParser.BulkLog.Logs.Count() + 2;
+            tableStealth.DataSource = null;
+            tableStealth.RowCount = _activePlayers.Count;
+            tableStealth.ColumnCount = _logParser.BulkLog.Logs.Count();
 
             var StealthPhases = _logParser.BulkLog.GetStealthPhases();
             if (_selectedPhase == "" || !StealthPhases.Contains(_selectedPhase))
@@ -75,25 +75,25 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             cbStealthPhase.Items.Clear();
             cbStealthPhase.Items.AddRange(StealthPhases);
 
-            tableStealth.Controls.Add(new Label() { Text = _selectedPhase, AutoSize = true }, 0, 0);
+            tableStealth.TopLeftHeaderCell.Value = _selectedPhase;
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
-                tableStealth.Controls.Add(new Label() { Text = _logParser.BulkLog.Logs[x].GetFileName(), AutoSize = true }, x + 1, 0);
+                tableStealth.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+                tableStealth.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
             for (int y = 0; y < _activePlayers.Count; y++)
             {
-                tableStealth.Controls.Add(new Label() { Text = _activePlayers[y] }, 0, y + 1);
+                tableStealth.Rows[y].HeaderCell.Value = _activePlayers[y];
                 for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
                 {
                     var text = _logParser.BulkLog.Logs[x].GetStealthResult(_activePlayers[y]).Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
-                    if (text == null)
+                    if (text == null && _logParser.BulkLog.GetPlayers().Contains(_activePlayers[y]))
                     {
                         text = "✓";
                     }
-                    tableStealth.Controls.Add(new Label() { Text = text, AutoSize = true }, x + 1, y + 1);
+                    tableStealth.Rows[y].Cells[x].Value = text;
                 }
             }
-            tableStealth.AutoSize = true;
             tabStealth.Controls.Add(tableStealth);
         }
         private void UpdateDpsPanel()
@@ -103,12 +103,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 return;
             }
             tabDps.Controls.Remove(tableDps);
-            tableDps.Controls.Clear();
-            tableDps.AutoSize = false;
-            tableDps.RowStyles.Clear();
-            tableDps.RowCount = _activePlayers.Count + 3;
-            tableDps.ColumnStyles.Clear();
-            tableDps.ColumnCount = _logParser.BulkLog.Logs.Count() + 3;
+            tableDps.DataSource = null;
+            tableDps.RowCount = _activePlayers.Count + 1;
+            tableDps.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
 
             var Phases = _logParser.BulkLog.GetPhases();
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
@@ -124,16 +121,17 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             cbDpsPhase.Items.AddRange(Phases);
             lblSelectedPhaseDps.Text = _selectedPhase;
 
-            tableDps.Controls.Add(new Label() { Text = _selectedPhase, AutoSize = true }, 0, 0);
+            tableDps.TopLeftHeaderCell.Value = _selectedPhase;
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
-                tableDps.Controls.Add(new Label() { Text = _logParser.BulkLog.Logs[x].GetFileName(), AutoSize = true }, x + 1, 0);
+                tableDps.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+                tableDps.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             }
-            tableDps.Controls.Add(new Label() { Text = "Trimmed Mean", AutoSize = true }, _logParser.BulkLog.Logs.Count() + 2, 0);
+            tableDps.Columns[_logParser.BulkLog.Logs.Count()].HeaderCell.Value = "Trimmed Mean";
             var TotalDps = new Dictionary<string, List<int>>();
             for (int y = 0; y < _activePlayers.Count; y++)
             {
-                tableDps.Controls.Add(new Label() { Text = _activePlayers[y] }, 0, y + 1);
+                tableDps.Rows[y].HeaderCell.Value = _activePlayers[y];
                 List<int> dpsnumbers = new();
                 for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
                 {
@@ -146,16 +144,17 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     TotalDps[_logParser.BulkLog.Logs[x].GetFileName()].Add(dps);
                     dpsnumbers.Add(dps);
                     var text = $"{roundedDps}k";
-                    tableDps.Controls.Add(new Label() { Text = text, AutoSize = true }, x + 1, y + 1);
+                    tableDps.Rows[y].Cells[x].Value = text;
                 }
                 float RoundedAverage = (float)Math.Round(TrimmedAverage(dpsnumbers).Average() / 1000f, 1);
-                tableDps.Controls.Add(new Label() { Text = $"{RoundedAverage}k", AutoSize = true }, _logParser.BulkLog.Logs.Count() + 2, y + 1);
+                tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = $"{RoundedAverage}k";
             }
             int row = _activePlayers.Count + 1;
-            tableDps.Controls.Add(new Label() { Text = $"Total DPS", AutoSize = true }, 0, row);
+
+            tableDps.Rows[_activePlayers.Count].HeaderCell.Value = "Total DPS";
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
-                tableDps.Controls.Add(new Label() { Text = $"{(float)Math.Round(TotalDps[_logParser.BulkLog.Logs[x].GetFileName()].Sum() / 1000f, 1)}k", AutoSize = true }, x + 1, row);
+                tableDps.Rows[_activePlayers.Count].Cells[x].Value = $"{(float)Math.Round(TotalDps[_logParser.BulkLog.Logs[x].GetFileName()].Sum() / 1000f, 1)}k";
             }
             tableDps.AutoSize = true;
             tabDps.Controls.Add(tableDps);
@@ -168,13 +167,15 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 return;
             }
             var Groups = _logParser.BulkLog.GetGroups();
+            if(_activePlayers.Count + Groups.Count() == 0)
+            {
+                return;
+            }
             tabBoons.Controls.Remove(tableBoons);
-            tableBoons.Controls.Clear();
-            tableBoons.AutoSize = false;
-            tableBoons.RowStyles.Clear();
-            tableBoons.RowCount = _activePlayers.Count + 3 + Groups.Count() + 1;
-            tableBoons.ColumnStyles.Clear();
-            tableBoons.ColumnCount = _logParser.BulkLog.Logs.Count() + 3;
+            tableBoons.DataSource = null;
+            
+            tableBoons.RowCount = _activePlayers.Count + Groups.Count();
+            tableBoons.ColumnCount = _logParser.BulkLog.Logs.Count()+1;
 
             var Phases = _logParser.BulkLog.GetPhases();
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
@@ -205,15 +206,15 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             cbBoonBoons.Items.AddRange(boonNames);
             lblSelectedBoonBoons.Text = _selectedBoon;
 
-            tableBoons.Controls.Add(new Label() { Text = _selectedPhase, AutoSize = true }, 0, 0);
+            tableBoons.TopLeftHeaderCell.Value = _selectedPhase;
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
-                tableBoons.Controls.Add(new Label() { Text = _logParser.BulkLog.Logs[x].GetFileName(), AutoSize = true }, x + 1, 0);
+                tableBoons.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
             }
-            tableBoons.Controls.Add(new Label() { Text = "Trimmed Mean", AutoSize = true }, _logParser.BulkLog.Logs.Count() + 2, 0);
+            tableBoons.Columns[_logParser.BulkLog.Logs.Count()].HeaderCell.Value = "Trimmed Mean";
             for (int y = 0; y < _activePlayers.Count; y++)
             {
-                tableBoons.Controls.Add(new Label() { Text = _activePlayers[y] }, 0, y + 1);
+                tableBoons.Rows[y].HeaderCell.Value = _activePlayers[y];
                 List<double> boonNumbers = new();
                 BuffStackTyping boonType = BuffStackTyping.Stacking;
                 for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
@@ -222,24 +223,24 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     boonType = _logParser.BulkLog.Logs[x].GetBoonStackType(_selectedBoon);
                     boonNumbers.Add(boonUptime);
                     var text = $"{boonUptime.ToString("F1")}";
-                    if(boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
+                    if (boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
                     {
                         text += "%";
                     }
-                    tableBoons.Controls.Add(new Label() { Text = text, AutoSize = true }, x + 1, y + 1);
+                    tableBoons.Rows[y].Cells[x].Value = text;
                 }
-                float RoundedAverage = (float)Math.Round(TrimmedAverage(boonNumbers).Average() / 1000f, 1);
+                float RoundedAverage = (float)Math.Round(TrimmedAverage(boonNumbers).Average(), 1);
                 var averageText = $"{RoundedAverage.ToString("F1")}";
                 if (boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
                 {
                     averageText += "%";
                 }
-                tableBoons.Controls.Add(new Label() { Text = averageText, AutoSize = true }, _logParser.BulkLog.Logs.Count() + 2, y + 1);
+                tableBoons.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = averageText;
             }
-            int row = _activePlayers.Count + 1;
-            foreach(var group in Groups)
+            int row = _activePlayers.Count;
+            foreach (var group in Groups)
             {
-                tableBoons.Controls.Add(new Label() { Text = $"Group {group}", AutoSize = true }, 0, row);
+                tableBoons.Rows[row].HeaderCell.Value = $"Group {group}";
                 for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
                 {
                     var boonUptime = _logParser.BulkLog.Logs[x].GetBoon(group, _selectedBoon, _selectedPhase);
@@ -249,7 +250,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     {
                         groupText += "%";
                     }
-                    tableBoons.Controls.Add(new Label() { Text = $"{groupText}", AutoSize = true }, x + 1, row);
+                    tableBoons.Rows[row].Cells[x].Value = $"{groupText}";
                 }
                 row++;
             }
@@ -336,6 +337,5 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             var Max = sortedDoubles.Max();
             return sortedDoubles.Where(x => x >= Max * 0.6).ToList();
         }
-
     }
 }
