@@ -5,12 +5,7 @@ VisualStudioVersion = 17.8.34316.72
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bulk Log Comparison Tool", "DPS Log Comparison Tool\Bulk Log Comparison Tool.csproj", "{201332F2-21D2-4A5B-9501-00BF0436FC42}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bulk Log Comparison Tool Tests", "Bulk Log Comparison Tool Tests\Bulk Log Comparison Tool Tests.csproj", "{92DFCA7B-6972-4841-A4D2-E8DEA94520B0}"
-	ProjectSection(ProjectDependencies) = postProject
-		{201332F2-21D2-4A5B-9501-00BF0436FC42} = {201332F2-21D2-4A5B-9501-00BF0436FC42}
-	EndProjectSection
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bulk Log Comparison Tool Frontend", "Bulk Log Comparison Tool Frontend\Bulk Log Comparison Tool Frontend.csproj", "{37925C82-8218-4167-857E-CEF9D5080DF8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bulk Log Comparison Tool Frontend", "Bulk Log Comparison Tool Frontend\Bulk Log Comparison Tool Frontend.csproj", "{37925C82-8218-4167-857E-CEF9D5080DF8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -22,10 +17,6 @@ Global
 		{201332F2-21D2-4A5B-9501-00BF0436FC42}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{201332F2-21D2-4A5B-9501-00BF0436FC42}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{201332F2-21D2-4A5B-9501-00BF0436FC42}.Release|Any CPU.Build.0 = Release|Any CPU
-		{92DFCA7B-6972-4841-A4D2-E8DEA94520B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{92DFCA7B-6972-4841-A4D2-E8DEA94520B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{92DFCA7B-6972-4841-A4D2-E8DEA94520B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{92DFCA7B-6972-4841-A4D2-E8DEA94520B0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{37925C82-8218-4167-857E-CEF9D5080DF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{37925C82-8218-4167-857E-CEF9D5080DF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37925C82-8218-4167-857E-CEF9D5080DF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
