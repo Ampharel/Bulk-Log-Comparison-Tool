@@ -187,9 +187,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var MassInvis = _log.CombatData.GetAnimatedCastData(10245);
             var buffRemoved = _log.CombatData.GetBuffRemoveAllData(10269);
             var buffInfoEvent = _log.CombatData.GetBuffInfoEvent(10269);
+            var revealedRemovedEvent = _log.CombatData.GetBuffRemoveAllData(890);
+
             foreach (var Invis in MassInvis)
             {
                 var phases = _log.FightData.GetPhases(_log);
+                var PlayersStealthed = new List<string>();
                 PhaseData? FromPhase = null;
                 foreach (var ph in phases)
                 {
@@ -203,15 +206,22 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     continue;
                 }
-                List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedEvents = _log.CombatData.GetBuffRemoveAllData(10269).Where(x => x.Time >= Invis.Time && x.Time <= Invis.Time + 20000).ToList();
-                if (RemovedEvents.Count == 0)
+
+                List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedStealthEvents = _log.CombatData.GetBuffRemoveAllData(10269).Where(x => x.Time >= Invis.Time && x.Time <= Invis.Time + 20000).ToList();
+                List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedRevealedEvents = _log.CombatData.GetBuffRemoveAllData(890).Where(x => x.Time >= Invis.Time && x.Time <= Invis.Time + 20000).ToList();
+                if (RemovedStealthEvents.Count == 0)
                 {
                     continue;
                 }
-                double mean = RemovedEvents.Average(x => x.Time);
-                var median = RemovedEvents[(int)Math.Floor(RemovedEvents.Count / 2f)];
-                foreach (var RemovedEvent in RemovedEvents.Where(x => x.To.Name.Contains(accountName)))
+                if(RemovedRevealedEvents.Where(x => x.To.Name.Contains(accountName)).Count() == 0)
                 {
+                    StealthResult.Add((FromPhase.Name, "✓"));
+                    continue;
+                }
+                var median = RemovedStealthEvents[(int)Math.Floor(RemovedStealthEvents.Count / 2f)];
+                foreach (var RemovedEvent in RemovedRevealedEvents.Where(x => x.To.Name.Contains(accountName)))
+                {
+                    //Check for revealed debuff instead
                     var error = "";
                     var player = _log.PlayerAgents.Where(x => x.Name.Contains(accountName)).FirstOrDefault();
                     if (player != null)
@@ -226,7 +236,8 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                             }
                         }
                     }
-                    if (median.Time - RemovedEvent.Time > 1000f)
+                    var RevealedTime = (RemovedEvent.Time + RemovedEvent.RemovedDuration - 3000f);
+                    if (median.Time - RevealedTime > 1000f)
                     {
                         var dmgData = _log.CombatData.GetDamageData(RemovedEvent.To).Where(x => x.Time >= Invis.EndTime && x.Time <= RemovedEvent.Time+10000).OrderBy(x => x.Time);
                         var skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment") && x is DirectHealthDamageEvent);
@@ -243,12 +254,16 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                         }
                         else
                         {
-                            error = $"{-(int)(median.Time - RemovedEvent.Time) / 1000f}s { skill.Skill.Name}";
+                            error = $"{-(int)(median.Time - RevealedTime) / 1000f}s { skill.Skill.Name}";
                         }
                     }
                     if (error != "")
                     {
                         StealthResult.Add((FromPhase.Name, error));
+                    }
+                    else
+                    {
+                        StealthResult.Add((FromPhase.Name, "✓"));
                     }
                 }
             }
@@ -283,6 +298,46 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         public IEnumerable<string> GetBoonNames()
         {
             return _log.StatisticsHelper.PresentBoons.Select(x => x.Name);
+        }
+
+        public long GetPhaseStart(string phase)
+        {
+            var Phase = GetPhaseFromName(phase);
+            return Phase?.Start ?? 0;
+        }
+        public long GetPhaseEnd(string phase)
+        {
+            var Phase = GetPhaseFromName(phase); 
+            return Phase?.End ?? 0;
+        }
+
+        public bool HasBoonDuringTime(string target, string boonName, long start, long end)
+        {
+            AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
+
+
+            var Buffs = Target?.GetBuffs(BuffEnum.Self, _log, start, start+1) ?? null;
+            foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
+            {
+                if (Buffs?.TryGetValue(Boon.ID, out var value) ?? false && value != null)
+                {
+                    if(value.Uptime == 0)
+                    {
+                        return false;
+                    }
+                    List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedStealthEvents = _log.CombatData.GetBuffRemoveAllData(Boon.ID).Where(x => x.RemovedDuration == 0 && x.To.Name.Contains(target) && x.Time >= start && x.Time <= end).ToList();
+                    if (RemovedStealthEvents.Count > 0)
+                    {
+                        var stabLeft = value.Uptime - RemovedStealthEvents.Sum(x => x.RemovedStacks);
+                        if(stabLeft == 0)
+                        {
+                            return false; //lost boon during period
+                        }
+                    }
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

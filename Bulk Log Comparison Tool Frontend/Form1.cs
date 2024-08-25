@@ -47,6 +47,89 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             UpdateStealthPanel();
             UpdateDpsPanel();
             UpdateBoonPanel();
+            UpdateShockwavePanel();
+        }
+
+
+        private readonly long _startPhaseOffset = 3000;
+        private readonly long _shockwaveCooldown = 18315;
+        private readonly long _shockwave2Internal = 2408;
+        private readonly long _shockwave3Internal = 1934;
+
+        private void UpdateShockwavePanel()
+        {
+            if (tabsControl.SelectedTab != tabShockwaves || _activePlayers.Count == 0)
+            {
+                return;
+            }
+            tabShockwaves.Controls.Remove(tableShockwave);
+            tableShockwave.DataSource = null;
+            tableShockwave.RowCount = _activePlayers.Count;
+            tableShockwave.ColumnCount = _logParser.BulkLog.Logs.Count();
+
+            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+            {
+                tableShockwave.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+                tableShockwave.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            }
+            for (int y = 0; y < _activePlayers.Count; y++)
+            {
+                tableShockwave.Rows[y].HeaderCell.Value = _activePlayers[y];
+                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+                {
+                    var phaseStart = _logParser.BulkLog.Logs[x].GetPhaseStart("Mordremoth");
+                    var phaseEnd = _logParser.BulkLog.Logs[x].GetPhaseEnd("Mordremoth");
+                    var waveStart = phaseStart+_startPhaseOffset + _shockwaveCooldown;
+                    var wave = 0;
+
+                    var resultsForPlayer = "";
+
+                    while (true)
+                    {
+                        waveStart += GetWaveOffset(wave);
+                        var hadStab = _logParser.BulkLog.Logs[x].HasBoonDuringTime(_activePlayers[y], "Stability", waveStart, waveStart + 1000);
+                        if(hadStab)
+                        {
+                            resultsForPlayer += "✓";
+                        }
+                        else
+                        {
+                            resultsForPlayer += "   ";
+                        }
+
+                        wave++;
+                        if(wave == 3)
+                        {
+                            wave = 0;
+                            waveStart += _shockwaveCooldown;
+                        }
+                        if (waveStart + GetWaveOffset(wave) > phaseEnd)
+                        {
+                            break;
+                        }
+                        resultsForPlayer += " | ";
+                    }
+                    tableShockwave.Rows[y].Cells[x].Value = resultsForPlayer;
+
+                }
+            }
+            tabShockwaves.Controls.Add(tableShockwave);
+        }
+
+        private long GetWaveOffset(int wave)
+        {
+
+            switch (wave)
+            {
+                case 0:
+                    return 0;
+                case 1:
+                    return _shockwave2Internal;
+                case 2:
+                    return _shockwave3Internal;
+                default:
+                    return -1;
+            }
         }
 
         private void UpdateStealthPanel()
@@ -58,7 +141,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabStealth.Controls.Remove(tableStealth);
             tableStealth.DataSource = null;
             tableStealth.RowCount = _activePlayers.Count;
-            tableStealth.ColumnCount = _logParser.BulkLog.Logs.Count();
+            tableStealth.ColumnCount = _logParser.BulkLog.Logs.Count()+1;
 
             var StealthPhases = _logParser.BulkLog.GetStealthPhases();
             if (_selectedPhase == "" || !StealthPhases.Contains(_selectedPhase))
@@ -83,15 +166,30 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int y = 0; y < _activePlayers.Count; y++)
             {
                 tableStealth.Rows[y].HeaderCell.Value = _activePlayers[y];
+                int stealthCount = 0;
+                int successCount = 0;
                 for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
                 {
+                    var StealthForPlayer = _logParser.BulkLog.Logs[x].GetStealthResult(_activePlayers[y]);
+                    var StealthForPhase = StealthForPlayer.Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
+                    
                     var text = _logParser.BulkLog.Logs[x].GetStealthResult(_activePlayers[y]).Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
                     if (text == null && _logParser.BulkLog.GetPlayers().Contains(_activePlayers[y]))
                     {
-                        text = "✓";
+                        text = "No stealth";
+                    }
+                    else
+                    {
+                        stealthCount++;
+                        if (text.Equals("✓"))
+                        {
+                            successCount++;
+                        }
                     }
                     tableStealth.Rows[y].Cells[x].Value = text;
                 }
+
+                tableStealth.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = $"{successCount}/{stealthCount}";
             }
             tabStealth.Controls.Add(tableStealth);
         }
@@ -277,11 +375,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         }
         private void cbBoonBoons_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (cbBoonPhase.SelectedItem == null)
+            if (cbBoonBoons.SelectedItem == null)
             {
                 return;
             }
-            _selectedBoon = cbBoonPhase.SelectedItem.ToString() ?? "";
+            _selectedBoon = cbBoonBoons.SelectedItem.ToString() ?? "";
             UpdateBoonPanel();
         }
 

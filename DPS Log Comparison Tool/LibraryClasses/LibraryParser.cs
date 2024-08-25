@@ -33,7 +33,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         }
         public IParsedEvtcLog ParseLog(ParserController operation, FileInfo evtc, out ParsingFailureReason parsingFailureReason, bool multiThreadAccelerationForBuffs = false)
         {
-            return new ParsedLibraryLog(_parser.ParseLog(operation, evtc, out parsingFailureReason, multiThreadAccelerationForBuffs), evtc.Name);
+            return new ParsedLibraryLog(_parser.ParseLog(operation, evtc, out parsingFailureReason, multiThreadAccelerationForBuffs), evtc.Name.Replace($".{evtc.Extension}",""));
         }
 
         public IParsedEvtcLog ParseLog(string filePath)

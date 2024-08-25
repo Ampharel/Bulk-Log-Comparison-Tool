@@ -22,11 +22,14 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public double GetBoon(string target, string boonName, long start, long end);
         public double GetBoon(int group, string boonName, string phaseName = "");
         public double GetBoon(int group, string boonName, long start, long end);
+        public bool HasBoonDuringTime(string target, string boonName, long start, long end);
         public BuffStackTyping GetBoonStackType(string boonName);
         public List<(string, string)> GetStealthResult(string accountName);
 
         public string[] GetPlayers();
         public int[] GetGroups();
         IEnumerable<string> GetBoonNames();
+        public long GetPhaseStart(string phase);
+        public long GetPhaseEnd(string phase);
     }
 }
