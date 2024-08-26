@@ -79,6 +79,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 {
                     var phaseStart = _logParser.BulkLog.Logs[x].GetPhaseStart("Mordremoth");
                     var phaseEnd = _logParser.BulkLog.Logs[x].GetPhaseEnd("Mordremoth");
+                    if(phaseStart == 0 || phaseEnd == 0)
+                    {
+                        tableShockwave.Rows[y].Cells[x].Value = "No Mordremoth phase";
+                        continue;
+                    }   
                     var waveStart = phaseStart+_startPhaseOffset + _shockwaveCooldown;
                     var wave = 0;
 

@@ -117,7 +117,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
             if (Target == null)
             {
-                Target = _log.FightData.GetMainTargets(_log).First(x => x.Equals("target"));
+                Target = _log.FightData.GetMainTargets(_log).FirstOrDefault(x => x.Equals("target"));
+                if(Target == null)
+                {
+                    return 0;
+                }
             }
 
             var Buffs = Target.GetBuffs(BuffEnum.Self, _log, start, end);
