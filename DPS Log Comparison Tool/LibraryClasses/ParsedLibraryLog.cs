@@ -23,6 +23,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
     {
         private ParsedEvtcLog _log;
         private string _path;
+        private Dictionary<string, (long, long)> _customPhases = new();
 
         public ParsedLibraryLog(ParsedEvtcLog log, string path)
         {
@@ -35,6 +36,14 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return _path;
         }
 
+        public void AddPhase(string name, long start, long duration)
+        {
+            if(!_customPhases.ContainsKey(name))
+            {
+                _customPhases.Add(name, (start, duration));
+            }
+        }
+
         public string GetLogStart()
         {
             return _log.LogData.LogStart;
@@ -42,26 +51,26 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         public string[] GetPhases()
         {
-            return _log.FightData.GetPhases(_log).Select(x => x.Name).ToArray();
+            return _log.FightData.GetPhases(_log).Select(x => x.Name).Concat(_customPhases.Select(x => $"{x.Key}|{x.Value.Item1}|{x.Value.Item2}")).ToArray();
         }
 
         public string[] GetTargets(string phaseName = "")
         {
             var phase = GetPhaseFromName(phaseName);
-            if (phase == null)
+            if (phase.Item1 == null)
                 return [""];
-            return phase.Targets.Select(x => x.Character).ToArray();
+            return phase.Item1.Targets.Select(x => x.Character).ToArray();
         }
 
         public int GetPlayerDps(string accountName, string phaseName = "", DamageTyping damageType = DamageTyping.All)
         {
             var phase = GetPhaseFromName(phaseName);
-            if (phase == null)
+            if (phase.Item1 == null)
                 return 0;
-            var target = phase.Targets;
+            var target = phase.Item1.Targets;
             if (target == null)
                 return 0;
-            return GetPlayerDps(accountName, phase.Start, phase.End, target.Select(x => x.Character).ToArray(), damageType);
+            return GetPlayerDps(accountName, GetPhaseStart(phaseName), GetPhaseEnd(phaseName), target.Select(x => x.Character).ToArray(), damageType);
         }
 
         public int GetPlayerDps(string accountName, long start, long end, string[] targetNames, DamageTyping damageType = DamageTyping.All)
@@ -107,9 +116,9 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         public double GetBoon(string target, string boonName, string phaseName = "")
         {
             var phase = GetPhaseFromName(phaseName);
-            if (phase == null)
+            if (phase.Item1 == null)
                 return 0;
-            return GetBoon(target, boonName, phase.Start, phase.End);
+            return GetBoon(target, boonName, GetPhaseStart(phaseName), GetPhaseEnd(phaseName));
         }
 
         public double GetBoon(string target, string boonName, long start, long end)
@@ -140,9 +149,9 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         public double GetBoon(int group, string boonName, string phaseName = "")
         {
             var phase = GetPhaseFromName(phaseName);
-            if (phase == null)
+            if (phase.Item1 == null)
                 return 0;
-            return GetBoon(group, boonName, phase.Start, phase.End);
+            return GetBoon(group, boonName, GetPhaseStart(phaseName), GetPhaseEnd(phaseName));
         }
 
         public double GetBoon(int group, string boonName, long start, long end)
@@ -275,18 +284,36 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         }
 
 
-        private PhaseData? GetPhaseFromName(string phaseName)
+        private (PhaseData?,long,long) GetPhaseFromName(string phaseName)
         {
             PhaseData? phase = null;
+            long start = 0;
+            long duration = 0;
             if (phaseName == "")
             {
                 phase = _log.FightData.GetPhases(_log).FirstOrDefault();
             }
             else
             {
+                var splitPhaseName = phaseName.Split('|');
+                if(splitPhaseName.Length == 3)
+                {
+                    phaseName = splitPhaseName[0].Split(':').First();
+                }
                 phase = _log.FightData.GetPhases(_log).Where(x => x.Name == phaseName).FirstOrDefault();
+                if(phase == null)
+                {
+                    return (null, 0, 0);
+                }
+                start = phase.Start;
+                duration = phase.End - phase.Start;
+                if (splitPhaseName.Length == 3)
+                {
+                    start = start+long.Parse(splitPhaseName[1]) * 1000;
+                    duration = long.Parse(splitPhaseName[2]) * 1000;
+                }
             }
-            return phase;
+            return (phase,start, duration);
         }
 
         public string[] GetPlayers()
@@ -307,12 +334,19 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         public long GetPhaseStart(string phase)
         {
             var Phase = GetPhaseFromName(phase);
-            return Phase?.Start ?? 0;
+            var start = Phase.Item2 == 0 ? Phase.Item1?.Start ?? 0 : Phase.Item2;
+            return start;
         }
         public long GetPhaseEnd(string phase)
         {
-            var Phase = GetPhaseFromName(phase); 
-            return Phase?.End ?? 0;
+            var Phase = GetPhaseFromName(phase);
+            var start = Phase.Item2 == 0 ? Phase.Item1?.Start ?? 0 : Phase.Item2;
+            var end = start + Phase.Item3;
+            if(end == start)
+            {
+                end = Phase.Item1?.End ?? 0;
+            }
+            return end;
         }
 
         public bool HasBoonDuringTime(string target, string boonName, long start, long end)
@@ -342,6 +376,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 }
             }
             return false;
+        }
+
+        public bool IsAlive(string player, long time)
+        {
+            AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == player);
+            return !Target?.IsDead(_log, time) ?? false;
         }
     }
 }

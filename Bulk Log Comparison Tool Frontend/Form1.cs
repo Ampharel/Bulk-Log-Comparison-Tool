@@ -6,6 +6,7 @@ using Bulk_Log_Comparison_Tool.Util;
 using System.Globalization;
 using System.Linq;
 using DarkModeForms;
+using System.Diagnostics.Metrics;
 
 namespace Bulk_Log_Comparison_Tool_Frontend
 {
@@ -93,7 +94,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     {
                         waveStart += GetWaveOffset(wave);
                         var hadStab = _logParser.BulkLog.Logs[x].HasBoonDuringTime(_activePlayers[y], "Stability", waveStart, waveStart + 1000);
-                        if(hadStab)
+                        var wasAlive = _logParser.BulkLog.Logs[x].IsAlive(_activePlayers[y], waveStart);
+                        if (!wasAlive)
+                        {
+                            resultsForPlayer += "☠";
+                        }
+                        else if (hadStab)
                         {
                             resultsForPlayer += "✓";
                         }
@@ -207,7 +213,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabDps.Controls.Remove(tableDps);
             tableDps.DataSource = null;
             tableDps.RowCount = _activePlayers.Count + 1;
-            tableDps.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
+            tableDps.ColumnCount = _logParser.BulkLog.Logs.Count() + 2;
 
             var Phases = _logParser.BulkLog.GetPhases();
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
@@ -228,8 +234,18 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             {
                 tableDps.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
                 tableDps.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                tableDps.Columns[x].DefaultCellStyle.Format = "N0";
+                tableDps.Columns[x].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
             }
-            tableDps.Columns[_logParser.BulkLog.Logs.Count()].HeaderCell.Value = "Trimmed Mean";
+            var count = _logParser.BulkLog.Logs.Count();
+            tableDps.Columns[count].HeaderCell.Value = "Average";
+            tableDps.Columns[count + 1].HeaderCell.Value = "Trimmed Mean";
+            tableDps.Columns[count].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            tableDps.Columns[count+1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            tableDps.Columns[count].DefaultCellStyle.Format = "N0";
+            tableDps.Columns[count].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
+            tableDps.Columns[count + 1].DefaultCellStyle.Format = "N0";
+            tableDps.Columns[count + 1].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
             var TotalDps = new Dictionary<string, List<int>>();
             for (int y = 0; y < _activePlayers.Count; y++)
             {
@@ -246,10 +262,14 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     TotalDps[_logParser.BulkLog.Logs[x].GetFileName()].Add(dps);
                     dpsnumbers.Add(dps);
                     var text = $"{roundedDps}k";
-                    tableDps.Rows[y].Cells[x].Value = text;
+                    tableDps.Rows[y].Cells[x].Value = dps;// text;
                 }
+                var dpsNumbersWithoutZero = dpsnumbers.Where(x => x != 0).ToList();
+                var averageDps = dpsNumbersWithoutZero.Count == 0 ? 0 : dpsNumbersWithoutZero.Average();
+                float Average = (float)Math.Round(averageDps / 1000f);
+                tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = averageDps;//$"{Average}k";
                 float RoundedAverage = (float)Math.Round(TrimmedAverage(dpsnumbers).Average() / 1000f, 1);
-                tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = $"{RoundedAverage}k";
+                tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count()+1].Value = TrimmedAverage(dpsnumbers).Average();//$"{RoundedAverage}k";
             }
             int row = _activePlayers.Count + 1;
 
@@ -327,17 +347,27 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     var text = $"{boonUptime.ToString("F1")}";
                     if (boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
                     {
-                        text += "%";
+                        tableBoons.Columns[x].DefaultCellStyle.Format = "P1";
+                        boonUptime /= 100f;
                     }
-                    tableBoons.Rows[y].Cells[x].Value = text;
+                    else
+                    {
+                        tableBoons.Columns[x].DefaultCellStyle.Format = "F1";
+                    }
+                    tableBoons.Rows[y].Cells[x].Value = boonUptime;
                 }
                 float RoundedAverage = (float)Math.Round(TrimmedAverage(boonNumbers).Average(), 1);
                 var averageText = $"{RoundedAverage.ToString("F1")}";
                 if (boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
                 {
-                    averageText += "%";
+                    tableBoons.Columns[_logParser.BulkLog.Logs.Count()].DefaultCellStyle.Format = "P1";
+                    RoundedAverage /= 100f;
                 }
-                tableBoons.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = averageText;
+                else
+                {
+                    tableBoons.Columns[_logParser.BulkLog.Logs.Count()].DefaultCellStyle.Format = "F1";
+                }
+                tableBoons.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = RoundedAverage;
             }
             int row = _activePlayers.Count;
             foreach (var group in Groups)
@@ -350,9 +380,14 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     var bt = _logParser.BulkLog.Logs[x].GetBoonStackType(_selectedBoon);
                     if (bt == BuffStackTyping.Queue || bt == BuffStackTyping.Regeneration)
                     {
-                        groupText += "%";
+                        tableBoons.Columns[x].DefaultCellStyle.Format = "P1";
+                        boonUptime /= 100f;
                     }
-                    tableBoons.Rows[row].Cells[x].Value = $"{groupText}";
+                    else
+                    {
+                        tableBoons.Columns[x].DefaultCellStyle.Format = "F1";
+                    }
+                    tableBoons.Rows[row].Cells[x].Value = boonUptime;
                 }
                 row++;
             }
@@ -420,6 +455,32 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     catch (Exception ex)
                     {
                         MessageBox.Show($"Error loading file {file}: {ex.Message}");
+                    }
+                }
+            }
+            if (File.Exists("SpecificPhase.txt"))
+            {
+                var customPhases = File.ReadAllLines("SpecificPhase.txt").ToList();
+                foreach (var phase in customPhases)
+                {
+                    if (phase.StartsWith("#"))
+                    {
+                        continue;
+                    }
+                    var splitPhase = phase.Split('|');
+                    if (splitPhase.Length != 3)
+                    {
+                        continue;
+                    }
+                    try
+                    {
+                        _logParser.BulkLog.Logs.ForEach(x => x.AddPhase(splitPhase[0], long.Parse(splitPhase[1]), long.Parse(splitPhase[2])));
+                    }
+                    catch(Exception ex)
+                    {
+                        var startSucceeded = long.TryParse(phase, out long start);
+                        var durationSucceeded = long.TryParse(phase, out long duration);
+                        MessageBox.Show($"Error in custom phase {phase}: {ex.Message}\nStart is {(startSucceeded ? "Valid" : "Not Valid")}\nDuration is {(durationSucceeded ? "Valid" : "Not Valid")}");
                     }
                 }
             }
