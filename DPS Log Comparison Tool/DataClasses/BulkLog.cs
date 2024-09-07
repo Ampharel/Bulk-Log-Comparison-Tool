@@ -59,8 +59,25 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             return _stealthData.Values.SelectMany(x => x.Keys).Distinct().ToArray();
         }
 
+        public string[] GetMechanicNames(string phaseName = "", long start = 0, long end = 0)
+        {
+            return _logs.SelectMany(x => x.GetMechanicNames(phaseName, start, end)).Distinct().ToArray();
+        }
+
+        public List<string> GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0)
+        {
+            var result = _logs.SelectMany(x => x.GetMechanicLogs(mechanicName, phaseName, start, end)).ToList();
+            return [""];
+        }
+
         public string[] GetBoonNames()
         {
+            var names = GetMechanicNames("Full Fight");
+            if(names.Length == 0)
+            {
+                return [""];
+            }
+            var mechs = GetMechanicLogs(names.First(), "Full Fight", 0, 0);
             return _logs.SelectMany(x => x.GetBoonNames()).Distinct().ToArray();
         }
 

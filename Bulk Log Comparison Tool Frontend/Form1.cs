@@ -7,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using DarkModeForms;
 using System.Diagnostics.Metrics;
+using System.Text;
 
 namespace Bulk_Log_Comparison_Tool_Frontend
 {
@@ -20,6 +21,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private List<string> _activePlayers = new();
         private string _selectedPhase = "";
         private string _selectedBoon = "";
+        private string _selectedMechanic = "";
 
         public Form1()
         {
@@ -49,6 +51,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             UpdateDpsPanel();
             UpdateBoonPanel();
             UpdateShockwavePanel();
+            UpdateMechanicPanel();
         }
 
 
@@ -395,6 +398,77 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabBoons.Controls.Add(tableBoons);
         }
 
+        private void UpdateMechanicPanel()
+        {
+            if (tabsControl.SelectedTab != tabMechanics)
+            {
+                return;
+            }
+            var Groups = _logParser.BulkLog.GetGroups();
+            if (_activePlayers.Count + Groups.Count() == 0)
+            {
+                return;
+            }
+            tabMechanics.Controls.Remove(tableMechanics);
+            tableMechanics.DataSource = null;
+
+            tableMechanics.RowCount = _activePlayers.Count + Groups.Count();
+            tableMechanics.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
+
+            var Phases = _logParser.BulkLog.GetPhases();
+            if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
+            {
+                var Phase = Phases.FirstOrDefault();
+                if (Phase == null)
+                {
+                    return;
+                }
+                _selectedPhase = Phase;
+            }
+            cbMechanicPhase.Items.Clear();
+            cbMechanicPhase.Items.AddRange(Phases);
+            lblSelectedPhaseMechanics.Text = _selectedPhase;
+
+            var MechanicNames = _logParser.BulkLog.GetMechanicNames(_selectedPhase);
+            if (_selectedMechanic == "" || !MechanicNames.Contains(_selectedMechanic))
+            {
+                var Mechanic = MechanicNames.FirstOrDefault();
+                if (Mechanic == null)
+                {
+                    return;
+                }
+                _selectedMechanic = Mechanic;
+            }
+
+            cbMechanicMechanics.Items.Clear();
+            cbMechanicMechanics.Items.AddRange(MechanicNames);
+            lblSelectedMechanicMechanics.Text = _selectedMechanic;
+
+            tableMechanics.TopLeftHeaderCell.Value = _selectedPhase;
+            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+            {
+                tableMechanics.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+            }
+            for (int y = 0; y < _activePlayers.Count; y++)
+            {
+                tableMechanics.Rows[y].HeaderCell.Value = _activePlayers[y];
+                List<double> MechanicNumbers = new();
+                BuffStackTyping MechanicType = BuffStackTyping.Stacking;
+                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+                {
+                    var mechanicLogs = _logParser.BulkLog.Logs[x].GetMechanicLogs(_selectedMechanic, _selectedPhase).Where(x => x.Item1.Equals(_activePlayers[y]));
+                    StringBuilder sb = new();
+                    foreach (var log in mechanicLogs)
+                    {
+                        sb.Append($"{log.Item2/1000}s ");
+                    }
+                    tableMechanics.Rows[y].Cells[x].Value = sb.ToString();
+                }
+            }
+            tableMechanics.AutoSize = true;
+            tabMechanics.Controls.Add(tableMechanics);
+        }
+
         private void cbStealthPhase_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (cbStealthPhase.SelectedItem == null)
@@ -431,6 +505,25 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             }
             _selectedPhase = cbBoonPhase.SelectedItem.ToString() ?? "";
             UpdateBoonPanel();
+        }
+        private void cbMechanicMechanics_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbMechanicMechanics.SelectedItem == null)
+            {
+                return;
+            }
+            _selectedMechanic = cbMechanicMechanics.SelectedItem.ToString() ?? "";
+            UpdateMechanicPanel();
+        }
+
+        private void cbMechanicPhase_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cbMechanicPhase.SelectedItem == null)
+            {
+                return;
+            }
+            _selectedPhase = cbMechanicPhase.SelectedItem.ToString() ?? "";
+            UpdateMechanicPanel();
         }
 
 

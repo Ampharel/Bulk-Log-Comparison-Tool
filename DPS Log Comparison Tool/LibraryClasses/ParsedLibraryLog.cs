@@ -154,6 +154,37 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return GetBoon(group, boonName, GetPhaseStart(phaseName), GetPhaseEnd(phaseName));
         }
 
+        public string[] GetMechanicNames(string phaseName = "", long start = 0, long end = 0)
+        {
+            if(phaseName != "")
+            {
+                start = GetPhaseStart(phaseName);
+                end = GetPhaseEnd(phaseName);
+            }
+            var result = _log.MechanicData.GetPresentMechanics(_log,start,end);
+            return result.Select(x => x.FullName).ToArray();
+        }
+        public Mechanic? GetMechanic(string mechanicName,long start, long end)
+        {  
+            return _log.MechanicData.GetPresentMechanics(_log, start, end).FirstOrDefault(x => x.FullName.Equals(mechanicName));
+        }
+
+        public (string,long)[] GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0)
+        {
+            if (phaseName != "")
+            {
+                start = GetPhaseStart(phaseName);
+                end = GetPhaseEnd(phaseName);
+            }
+            var mech = GetMechanic(mechanicName, start, end);
+            if(mech == null)
+            {
+                return [("",0)];
+            }
+            var result = _log.MechanicData.GetMechanicLogs(_log, mech, start, end).ToList();
+            return result.Select(x => (x.Actor.Account, x.Time)).ToArray();
+        }
+
         public double GetBoon(int group, string boonName, long start, long end)
         {
             var groupMembers = _log.PlayerList.Where(x => x.Group == group);
@@ -169,6 +200,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                         boons.Add(value.Uptime);
                     }
                 }
+            }
+            if(boons.Count == 0)
+            {
+                return 0;
             }
             return boons.Average();
         }

@@ -7,6 +7,8 @@ using System.Text;
 using System.Threading.Tasks;
 using static GW2EIEvtcParser.ParserHelper;
 using Bulk_Log_Comparison_Tool.Util;
+using GW2EIEvtcParser.EIData;
+using GW2EIEvtcParser.ParsedData;
 
 namespace Bulk_Log_Comparison_Tool.DataClasses
 {
@@ -31,6 +33,8 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public string[] GetPlayers();
         public int[] GetGroups();
         IEnumerable<string> GetBoonNames();
+        public string[] GetMechanicNames(string phaseName = "", long start = 0, long end = 0);
+        public (string, long)[] GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0);
         public long GetPhaseStart(string phase);
         public long GetPhaseEnd(string phase);
     }
