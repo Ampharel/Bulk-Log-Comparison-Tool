@@ -74,7 +74,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
                 tableShockwave.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableShockwave.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                tableShockwave.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+                tableShockwave.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < _activePlayers.Count; y++)
             {
@@ -85,7 +86,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     var phaseEnd = _logParser.BulkLog.Logs[x].GetPhaseEnd("Mordremoth");
                     if(phaseStart == 0 || phaseEnd == 0)
                     {
-                        tableShockwave.Rows[y].Cells[x].Value = "No Mordremoth phase";
+                        tableShockwave.Rows[y].Cells[x].Value = "";
                         continue;
                     }   
                     var waveStart = phaseStart+_startPhaseOffset + _shockwaveCooldown;
@@ -175,7 +176,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
                 tableStealth.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableStealth.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                tableStealth.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+                tableStealth.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < _activePlayers.Count; y++)
             {
@@ -236,7 +238,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
                 tableDps.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableDps.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+                tableDps.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+                tableDps.Columns[x].MinimumWidth = 10;
                 tableDps.Columns[x].DefaultCellStyle.Format = "N0";
                 tableDps.Columns[x].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
             }
@@ -335,6 +338,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
                 tableBoons.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+                tableBoons.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+                tableBoons.Columns[x].MinimumWidth = 10;
             }
             tableBoons.Columns[_logParser.BulkLog.Logs.Count()].HeaderCell.Value = "Trimmed Mean";
             for (int y = 0; y < _activePlayers.Count; y++)
@@ -448,6 +453,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
                 tableMechanics.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+                tableMechanics.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+                tableMechanics.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < _activePlayers.Count; y++)
             {

@@ -182,7 +182,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 return [("",0)];
             }
             var result = _log.MechanicData.GetMechanicLogs(_log, mech, start, end).ToList();
-            return result.Select(x => (x.Actor.Account, x.Time)).ToArray();
+            return result.Select(x => (x.Actor.Account, x.Time - start)).ToArray();
         }
 
         public double GetBoon(int group, string boonName, long start, long end)
