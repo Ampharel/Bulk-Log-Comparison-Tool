@@ -33,7 +33,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
 
         public void RemoveLog(string log)
         {
-            _logs.RemoveAll(x => x.GetFileName() == log);
+            _logs.RemoveAll(x => log.StartsWith(x.GetFileName()));
             _stealthParsed = false;
         }
 

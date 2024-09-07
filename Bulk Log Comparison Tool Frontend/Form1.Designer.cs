@@ -258,12 +258,15 @@
             // 
             // tableMechanics
             // 
+            tableMechanics.AllowUserToOrderColumns = true;
             tableMechanics.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tableMechanics.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
             tableMechanics.Location = new Point(6, 37);
             tableMechanics.Name = "tableMechanics";
             tableMechanics.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
             tableMechanics.Size = new Size(1050, 570);
             tableMechanics.TabIndex = 0;
+            tableMechanics.ColumnHeaderMouseDoubleClick += tableMechanics_ColumnHeaderMouseDoubleClick;
             // 
             // label7
             // 

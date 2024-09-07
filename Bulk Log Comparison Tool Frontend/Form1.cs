@@ -74,7 +74,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
                 tableShockwave.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableShockwave.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
                 tableShockwave.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < _activePlayers.Count; y++)
@@ -84,12 +83,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 {
                     var phaseStart = _logParser.BulkLog.Logs[x].GetPhaseStart("Mordremoth");
                     var phaseEnd = _logParser.BulkLog.Logs[x].GetPhaseEnd("Mordremoth");
-                    if(phaseStart == 0 || phaseEnd == 0)
+                    if (phaseStart == 0 || phaseEnd == 0)
                     {
                         tableShockwave.Rows[y].Cells[x].Value = "";
                         continue;
-                    }   
-                    var waveStart = phaseStart+_startPhaseOffset + _shockwaveCooldown;
+                    }
+                    var waveStart = phaseStart + _startPhaseOffset + _shockwaveCooldown;
                     var wave = 0;
 
                     var resultsForPlayer = "";
@@ -113,7 +112,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                         }
 
                         wave++;
-                        if(wave == 3)
+                        if (wave == 3)
                         {
                             wave = 0;
                             waveStart += _shockwaveCooldown;
@@ -128,6 +127,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
                 }
             }
+            tableShockwave.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabShockwaves.Controls.Add(tableShockwave);
         }
 
@@ -156,7 +156,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabStealth.Controls.Remove(tableStealth);
             tableStealth.DataSource = null;
             tableStealth.RowCount = _activePlayers.Count;
-            tableStealth.ColumnCount = _logParser.BulkLog.Logs.Count()+1;
+            tableStealth.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
 
             var StealthPhases = _logParser.BulkLog.GetStealthPhases();
             if (_selectedPhase == "" || !StealthPhases.Contains(_selectedPhase))
@@ -176,7 +176,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
                 tableStealth.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableStealth.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
                 tableStealth.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < _activePlayers.Count; y++)
@@ -188,7 +187,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 {
                     var StealthForPlayer = _logParser.BulkLog.Logs[x].GetStealthResult(_activePlayers[y]);
                     var StealthForPhase = StealthForPlayer.Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
-                    
+
                     var text = _logParser.BulkLog.Logs[x].GetStealthResult(_activePlayers[y]).Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
                     if (text == null && _logParser.BulkLog.GetPlayers().Contains(_activePlayers[y]))
                     {
@@ -207,6 +206,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
                 tableStealth.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = $"{successCount}/{stealthCount}";
             }
+            tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabStealth.Controls.Add(tableStealth);
         }
         private void UpdateDpsPanel()
@@ -238,7 +238,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
                 tableDps.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableDps.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
                 tableDps.Columns[x].MinimumWidth = 10;
                 tableDps.Columns[x].DefaultCellStyle.Format = "N0";
                 tableDps.Columns[x].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
@@ -247,7 +246,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableDps.Columns[count].HeaderCell.Value = "Average";
             tableDps.Columns[count + 1].HeaderCell.Value = "Trimmed Mean";
             tableDps.Columns[count].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            tableDps.Columns[count+1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            tableDps.Columns[count + 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             tableDps.Columns[count].DefaultCellStyle.Format = "N0";
             tableDps.Columns[count].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
             tableDps.Columns[count + 1].DefaultCellStyle.Format = "N0";
@@ -275,7 +274,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 float Average = (float)Math.Round(averageDps / 1000f);
                 tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = averageDps;//$"{Average}k";
                 float RoundedAverage = (float)Math.Round(TrimmedAverage(dpsnumbers).Average() / 1000f, 1);
-                tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count()+1].Value = TrimmedAverage(dpsnumbers).Average();//$"{RoundedAverage}k";
+                tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count() + 1].Value = TrimmedAverage(dpsnumbers).Average();//$"{RoundedAverage}k";
             }
             int row = _activePlayers.Count + 1;
 
@@ -284,7 +283,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             {
                 tableDps.Rows[_activePlayers.Count].Cells[x].Value = $"{(float)Math.Round(TotalDps[_logParser.BulkLog.Logs[x].GetFileName()].Sum() / 1000f, 1)}k";
             }
-            tableDps.AutoSize = true;
+            tableDps.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabDps.Controls.Add(tableDps);
         }
 
@@ -295,15 +294,15 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 return;
             }
             var Groups = _logParser.BulkLog.GetGroups();
-            if(_activePlayers.Count + Groups.Count() == 0)
+            if (_activePlayers.Count + Groups.Count() == 0)
             {
                 return;
             }
             tabBoons.Controls.Remove(tableBoons);
             tableBoons.DataSource = null;
-            
+
             tableBoons.RowCount = _activePlayers.Count + Groups.Count();
-            tableBoons.ColumnCount = _logParser.BulkLog.Logs.Count()+1;
+            tableBoons.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
 
             var Phases = _logParser.BulkLog.GetPhases();
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
@@ -338,7 +337,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
                 tableBoons.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableBoons.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
                 tableBoons.Columns[x].MinimumWidth = 10;
             }
             tableBoons.Columns[_logParser.BulkLog.Logs.Count()].HeaderCell.Value = "Trimmed Mean";
@@ -399,7 +397,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 }
                 row++;
             }
-            tableBoons.AutoSize = true;
+            tableBoons.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabBoons.Controls.Add(tableBoons);
         }
 
@@ -453,7 +451,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
             {
                 tableMechanics.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableMechanics.Columns[x].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
                 tableMechanics.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < _activePlayers.Count; y++)
@@ -467,12 +464,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     StringBuilder sb = new();
                     foreach (var log in mechanicLogs)
                     {
-                        sb.Append($"{log.Item2/1000}s ");
+                        sb.Append($"{log.Item2 / 1000}s ");
                     }
                     tableMechanics.Rows[y].Cells[x].Value = sb.ToString();
                 }
             }
-            tableMechanics.AutoSize = true;
+            tableMechanics.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabMechanics.Controls.Add(tableMechanics);
         }
 
@@ -576,7 +573,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     {
                         _logParser.BulkLog.Logs.ForEach(x => x.AddPhase(splitPhase[0], long.Parse(splitPhase[1]), long.Parse(splitPhase[2])));
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         var startSucceeded = long.TryParse(phase, out long start);
                         var durationSucceeded = long.TryParse(phase, out long duration);
@@ -615,6 +612,21 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             var sortedDoubles = doubles.OrderBy(x => x).ToList();
             var Max = sortedDoubles.Max();
             return sortedDoubles.Where(x => x >= Max * 0.6).ToList();
+        }
+
+        private void tableMechanics_ColumnHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            var dataGrid = sender as DataGridView;
+            if (dataGrid == null)
+            {
+                return;
+            }
+            var content = dataGrid.Columns[e.ColumnIndex].HeaderCell.Value;
+            if(content == null || !(content is string))
+            {
+                return;
+            }
+            System.Windows.Forms.Clipboard.SetText(content as string);
         }
     }
 }
