@@ -442,7 +442,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
             cbMechanicMechanics.Items.Clear();
             cbMechanicMechanics.Items.AddRange(MechanicNames);
-            lblSelectedMechanicMechanics.Text = _selectedMechanic;
+            lblSelectedMechanic.Text = _selectedMechanic;
 
             tableMechanics.TopLeftHeaderCell.Value = _selectedPhase;
             for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)

@@ -36,13 +36,14 @@
             lbLoadedFiles = new ListBox();
             backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             tabBoons = new TabPage();
+            label9 = new Label();
             lblSelectedBoonBoons = new Label();
             lblSelectedPhaseBoons = new Label();
-            label5 = new Label();
             cbBoonBoons = new ComboBox();
-            label4 = new Label();
             cbBoonPhase = new ComboBox();
             tableBoons = new DataGridView();
+            lblSelectedMechanic = new Label();
+            label4 = new Label();
             tabMechanics = new TabPage();
             lblSelectedPhaseMechanics = new Label();
             cbMechanicMechanics = new ComboBox();
@@ -63,7 +64,6 @@
             tabsControl = new TabControl();
             tabShockwaves = new TabPage();
             tableShockwave = new DataGridView();
-            label9 = new Label();
             panelStealth.SuspendLayout();
             tabBoons.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tableBoons).BeginInit();
@@ -146,6 +146,15 @@
             tabBoons.Text = "Boons";
             tabBoons.UseVisualStyleBackColor = true;
             // 
+            // label9
+            // 
+            label9.AutoSize = true;
+            label9.Location = new Point(6, 6);
+            label9.Name = "label9";
+            label9.Size = new Size(38, 15);
+            label9.TabIndex = 17;
+            label9.Text = "Phase";
+            // 
             // lblSelectedBoonBoons
             // 
             lblSelectedBoonBoons.AutoSize = true;
@@ -162,14 +171,6 @@
             lblSelectedPhaseBoons.Size = new Size(0, 15);
             lblSelectedPhaseBoons.TabIndex = 15;
             // 
-            // label5
-            // 
-            label5.AutoSize = true;
-            label5.Location = new Point(660, 6);
-            label5.Name = "label5";
-            label5.Size = new Size(0, 15);
-            label5.TabIndex = 14;
-            // 
             // cbBoonBoons
             // 
             cbBoonBoons.FormattingEnabled = true;
@@ -178,15 +179,6 @@
             cbBoonBoons.Size = new Size(121, 23);
             cbBoonBoons.TabIndex = 13;
             cbBoonBoons.SelectedIndexChanged += cbBoonBoons_SelectedIndexChanged;
-            // 
-            // label4
-            // 
-            label4.AutoSize = true;
-            label4.Location = new Point(6, 6);
-            label4.Name = "label4";
-            label4.Size = new Size(38, 15);
-            label4.TabIndex = 12;
-            label4.Text = "Phase";
             // 
             // cbBoonPhase
             // 
@@ -206,10 +198,27 @@
             tableBoons.Size = new Size(1050, 570);
             tableBoons.TabIndex = 0;
             // 
+            // lblSelectedMechanic
+            // 
+            lblSelectedMechanic.AutoSize = true;
+            lblSelectedMechanic.Location = new Point(660, 6);
+            lblSelectedMechanic.Name = "lblSelectedMechanic";
+            lblSelectedMechanic.Size = new Size(0, 15);
+            lblSelectedMechanic.TabIndex = 14;
+            // 
+            // label4
+            // 
+            label4.AutoSize = true;
+            label4.Location = new Point(6, 6);
+            label4.Name = "label4";
+            label4.Size = new Size(38, 15);
+            label4.TabIndex = 12;
+            label4.Text = "Phase";
+            // 
             // tabMechanics
             // 
             tabMechanics.Controls.Add(lblSelectedPhaseMechanics);
-            tabMechanics.Controls.Add(label5);
+            tabMechanics.Controls.Add(lblSelectedMechanic);
             tabMechanics.Controls.Add(cbMechanicMechanics);
             tabMechanics.Controls.Add(label4);
             tabMechanics.Controls.Add(cbMechanicPhase);
@@ -402,15 +411,6 @@
             tableShockwave.Size = new Size(1067, 591);
             tableShockwave.TabIndex = 0;
             // 
-            // label9
-            // 
-            label9.AutoSize = true;
-            label9.Location = new Point(6, 6);
-            label9.Name = "label9";
-            label9.Size = new Size(38, 15);
-            label9.TabIndex = 17;
-            label9.Text = "Phase";
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -457,7 +457,7 @@
         private TabPage tabBoons;
         private Label lblSelectedBoonBoons;
         private Label lblSelectedPhaseBoons;
-        private Label label5;
+        private Label lblSelectedMechanic;
         private ComboBox cbBoonBoons;
         private Label label4;
         private ComboBox cbBoonPhase;
