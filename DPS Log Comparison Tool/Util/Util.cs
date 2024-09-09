@@ -7,9 +7,30 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Bulk_Log_Comparison_Tool.Util
 {
-    static class Util
+    public static class Util
     {
         public static int TryParse(this string? Source) => int.TryParse(Source, out int result) ? result : 0;
+
+        public static List<int> TrimmedAverage(List<int> ints)
+        {
+            if (ints.Count == 0)
+            {
+                return ints;
+            }
+            var sortedInts = ints.OrderBy(x => x).ToList();
+            var Max = sortedInts.Max();
+            return sortedInts.Where(x => x >= Max * 0.6).ToList();
+        }
+        public static List<double> TrimmedAverage(List<double> doubles)
+        {
+            if (doubles.Count == 0)
+            {
+                return doubles;
+            }
+            var sortedDoubles = doubles.OrderBy(x => x).ToList();
+            var Max = sortedDoubles.Max();
+            return sortedDoubles.Where(x => x >= Max * 0.6).ToList();
+        }
     }
 
     public enum DamageTyping

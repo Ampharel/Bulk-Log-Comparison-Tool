@@ -8,20 +8,24 @@ using System.Linq;
 using DarkModeForms;
 using System.Diagnostics.Metrics;
 using System.Text;
+using Bulk_Log_Comparison_Tool_Frontend.UI;
 
 namespace Bulk_Log_Comparison_Tool_Frontend
 {
     public partial class Form1 : Form
     {
 
-        private List<string> ActivePlayers() => _activePlayers;
-        private List<Panel> _panels = new();
+
+        private List<string> _activePlayers = new();
+        private List<string> ActivePlayers => _activePlayers;
         private UILogParser _logParser = new(new LibraryParser(false));
         private PlayerPanel? _playerPanel;
-        private List<string> _activePlayers = new();
-        private string _selectedPhase = "";
-        private string _selectedBoon = "";
-        private string _selectedMechanic = "";
+        private PlayerUI? _activePanel;
+        private PlayerUI? _boonPanel;
+        private PlayerUI? _mechanicPanel;
+        private PlayerUI? _dpsPanel;
+        private PlayerUI? _stealthPanel;
+        private PlayerUI? _shockwavePanel;
 
         public Form1()
         {
@@ -33,7 +37,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private void Setup()
         {
             _playerPanel = new(panelPlayers, _logParser.BulkLog);
-            _activePlayers = ActivePlayers();
             _playerPanel.PlayerSelectionChangedEvent += OnPlayerSelectionChanged;
             tabsControl.SelectedIndexChanged += (sender, e) => UpdatePanels();
         }
@@ -47,491 +50,18 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
         private void UpdatePanels()
         {
-            UpdateStealthPanel();
-            UpdateDpsPanel();
-            UpdateBoonPanel();
-            UpdateShockwavePanel();
-            UpdateMechanicPanel();
-        }
-
-
-        private readonly long _startPhaseOffset = 3000;
-        private readonly long _shockwaveCooldown = 18315;
-        private readonly long _shockwave2Internal = 2408;
-        private readonly long _shockwave3Internal = 1934;
-
-        private void UpdateShockwavePanel()
-        {
-            if (tabsControl.SelectedTab != tabShockwaves || _activePlayers.Count == 0)
+            if(_activePlayers.Count == 0)
             {
                 return;
             }
-            tabShockwaves.Controls.Remove(tableShockwave);
-            tableShockwave.DataSource = null;
-            tableShockwave.RowCount = _activePlayers.Count;
-            tableShockwave.ColumnCount = _logParser.BulkLog.Logs.Count();
-
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-            {
-                tableShockwave.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableShockwave.Columns[x].MinimumWidth = 10;
-            }
-            for (int y = 0; y < _activePlayers.Count; y++)
-            {
-                tableShockwave.Rows[y].HeaderCell.Value = _activePlayers[y];
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-                {
-                    var phaseStart = _logParser.BulkLog.Logs[x].GetPhaseStart("Mordremoth");
-                    var phaseEnd = _logParser.BulkLog.Logs[x].GetPhaseEnd("Mordremoth");
-                    if (phaseStart == 0 || phaseEnd == 0)
-                    {
-                        tableShockwave.Rows[y].Cells[x].Value = "";
-                        continue;
-                    }
-                    var waveStart = phaseStart + _startPhaseOffset + _shockwaveCooldown;
-                    var wave = 0;
-
-                    var resultsForPlayer = "";
-
-                    while (true)
-                    {
-                        waveStart += GetWaveOffset(wave);
-                        var hadStab = _logParser.BulkLog.Logs[x].HasBoonDuringTime(_activePlayers[y], "Stability", waveStart, waveStart + 1000);
-                        var wasAlive = _logParser.BulkLog.Logs[x].IsAlive(_activePlayers[y], waveStart);
-                        if (!wasAlive)
-                        {
-                            resultsForPlayer += "☠";
-                        }
-                        else if (hadStab)
-                        {
-                            resultsForPlayer += "✓";
-                        }
-                        else
-                        {
-                            resultsForPlayer += "   ";
-                        }
-
-                        wave++;
-                        if (wave == 3)
-                        {
-                            wave = 0;
-                            waveStart += _shockwaveCooldown;
-                        }
-                        if (waveStart + GetWaveOffset(wave) > phaseEnd)
-                        {
-                            break;
-                        }
-                        resultsForPlayer += " | ";
-                    }
-                    tableShockwave.Rows[y].Cells[x].Value = resultsForPlayer;
-
-                }
-            }
-            tableShockwave.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tabShockwaves.Controls.Add(tableShockwave);
+            if (tabsControl.SelectedTab == tabShockwaves) _shockwavePanel?.UpdateActivePlayers(ActivePlayers);
+            if (tabsControl.SelectedTab == tabStealth) _stealthPanel?.UpdateActivePlayers(ActivePlayers);
+            if (tabsControl.SelectedTab == tabDps) _dpsPanel?.UpdateActivePlayers(ActivePlayers);
+            if (tabsControl.SelectedTab == tabMechanics) _mechanicPanel?.UpdateActivePlayers(ActivePlayers);
+            if (tabsControl.SelectedTab == tabBoons) _boonPanel?.UpdateActivePlayers(ActivePlayers);
         }
 
-        private long GetWaveOffset(int wave)
-        {
-
-            switch (wave)
-            {
-                case 0:
-                    return 0;
-                case 1:
-                    return _shockwave2Internal;
-                case 2:
-                    return _shockwave3Internal;
-                default:
-                    return -1;
-            }
-        }
-
-        private void UpdateStealthPanel()
-        {
-            if (tabsControl.SelectedTab != tabStealth || _activePlayers.Count == 0)
-            {
-                return;
-            }
-            tabStealth.Controls.Remove(tableStealth);
-            tableStealth.DataSource = null;
-            tableStealth.RowCount = _activePlayers.Count;
-            tableStealth.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
-
-            var StealthPhases = _logParser.BulkLog.GetStealthPhases();
-            if (_selectedPhase == "" || !StealthPhases.Contains(_selectedPhase))
-            {
-                var Phase = StealthPhases.FirstOrDefault();
-                if (Phase == null)
-                {
-                    return;
-                }
-                _selectedPhase = Phase;
-            }
-            lblSelectedPhaseStealth.Text = _selectedPhase;
-            cbStealthPhase.Items.Clear();
-            cbStealthPhase.Items.AddRange(StealthPhases);
-
-            tableStealth.TopLeftHeaderCell.Value = _selectedPhase;
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-            {
-                tableStealth.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableStealth.Columns[x].MinimumWidth = 10;
-            }
-            for (int y = 0; y < _activePlayers.Count; y++)
-            {
-                tableStealth.Rows[y].HeaderCell.Value = _activePlayers[y];
-                int stealthCount = 0;
-                int successCount = 0;
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-                {
-                    var StealthForPlayer = _logParser.BulkLog.Logs[x].GetStealthResult(_activePlayers[y]);
-                    var StealthForPhase = StealthForPlayer.Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
-
-                    var text = _logParser.BulkLog.Logs[x].GetStealthResult(_activePlayers[y]).Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
-                    if (text == null && _logParser.BulkLog.GetPlayers().Contains(_activePlayers[y]))
-                    {
-                        text = "No stealth";
-                    }
-                    else
-                    {
-                        stealthCount++;
-                        if (text.Equals("✓"))
-                        {
-                            successCount++;
-                        }
-                    }
-                    tableStealth.Rows[y].Cells[x].Value = text;
-                }
-
-                tableStealth.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = $"{successCount}/{stealthCount}";
-            }
-            tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tabStealth.Controls.Add(tableStealth);
-        }
-        private void UpdateDpsPanel()
-        {
-            if (tabsControl.SelectedTab != tabDps || _activePlayers.Count == 0)
-            {
-                return;
-            }
-            tabDps.Controls.Remove(tableDps);
-            tableDps.DataSource = null;
-            tableDps.RowCount = _activePlayers.Count + 1;
-            tableDps.ColumnCount = _logParser.BulkLog.Logs.Count() + 2;
-
-            var Phases = _logParser.BulkLog.GetPhases();
-            if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
-            {
-                var Phase = Phases.FirstOrDefault();
-                if (Phase == null)
-                {
-                    return;
-                }
-                _selectedPhase = Phase;
-            }
-            cbDpsPhase.Items.Clear();
-            cbDpsPhase.Items.AddRange(Phases);
-            lblSelectedPhaseDps.Text = _selectedPhase;
-
-            tableDps.TopLeftHeaderCell.Value = _selectedPhase;
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-            {
-                tableDps.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableDps.Columns[x].MinimumWidth = 10;
-                tableDps.Columns[x].DefaultCellStyle.Format = "N0";
-                tableDps.Columns[x].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
-            }
-            var count = _logParser.BulkLog.Logs.Count();
-            tableDps.Columns[count].HeaderCell.Value = "Average";
-            tableDps.Columns[count + 1].HeaderCell.Value = "Trimmed Mean";
-            tableDps.Columns[count].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            tableDps.Columns[count + 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            tableDps.Columns[count].DefaultCellStyle.Format = "N0";
-            tableDps.Columns[count].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
-            tableDps.Columns[count + 1].DefaultCellStyle.Format = "N0";
-            tableDps.Columns[count + 1].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
-            var TotalDps = new Dictionary<string, List<int>>();
-            for (int y = 0; y < _activePlayers.Count; y++)
-            {
-                tableDps.Rows[y].HeaderCell.Value = _activePlayers[y];
-                List<int> dpsnumbers = new();
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-                {
-                    if (TotalDps.ContainsKey(_logParser.BulkLog.Logs[x].GetFileName()) == false)
-                    {
-                        TotalDps.Add(_logParser.BulkLog.Logs[x].GetFileName(), new List<int>());
-                    }
-                    int dps = _logParser.BulkLog.Logs[x].GetPlayerDps(_activePlayers[y], _selectedPhase);
-                    float roundedDps = (float)Math.Round(dps / 1000f, 1);
-                    TotalDps[_logParser.BulkLog.Logs[x].GetFileName()].Add(dps);
-                    dpsnumbers.Add(dps);
-                    var text = $"{roundedDps}k";
-                    tableDps.Rows[y].Cells[x].Value = dps;// text;
-                }
-                var dpsNumbersWithoutZero = dpsnumbers.Where(x => x != 0).ToList();
-                var averageDps = dpsNumbersWithoutZero.Count == 0 ? 0 : dpsNumbersWithoutZero.Average();
-                float Average = (float)Math.Round(averageDps / 1000f);
-                tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = averageDps;//$"{Average}k";
-                float RoundedAverage = (float)Math.Round(TrimmedAverage(dpsnumbers).Average() / 1000f, 1);
-                tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count() + 1].Value = TrimmedAverage(dpsnumbers).Average();//$"{RoundedAverage}k";
-            }
-            int row = _activePlayers.Count + 1;
-
-            tableDps.Rows[_activePlayers.Count].HeaderCell.Value = "Total DPS";
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-            {
-                tableDps.Rows[_activePlayers.Count].Cells[x].Value = $"{(float)Math.Round(TotalDps[_logParser.BulkLog.Logs[x].GetFileName()].Sum() / 1000f, 1)}k";
-            }
-            tableDps.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tabDps.Controls.Add(tableDps);
-        }
-
-        private void UpdateBoonPanel()
-        {
-            if (tabsControl.SelectedTab != tabBoons)
-            {
-                return;
-            }
-            var Groups = _logParser.BulkLog.GetGroups();
-            if (_activePlayers.Count + Groups.Count() == 0)
-            {
-                return;
-            }
-            tabBoons.Controls.Remove(tableBoons);
-            tableBoons.DataSource = null;
-
-            tableBoons.RowCount = _activePlayers.Count + Groups.Count();
-            tableBoons.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
-
-            var Phases = _logParser.BulkLog.GetPhases();
-            if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
-            {
-                var Phase = Phases.FirstOrDefault();
-                if (Phase == null)
-                {
-                    return;
-                }
-                _selectedPhase = Phase;
-            }
-            cbBoonPhase.Items.Clear();
-            cbBoonPhase.Items.AddRange(Phases);
-            lblSelectedPhaseBoons.Text = _selectedPhase;
-
-            var boonNames = _logParser.BulkLog.GetBoonNames();
-            if (_selectedBoon == "" || !boonNames.Contains(_selectedBoon))
-            {
-                var Boon = boonNames.FirstOrDefault();
-                if (Boon == null)
-                {
-                    return;
-                }
-                _selectedBoon = Boon;
-            }
-
-            cbBoonBoons.Items.Clear();
-            cbBoonBoons.Items.AddRange(boonNames);
-            lblSelectedBoonBoons.Text = _selectedBoon;
-
-            tableBoons.TopLeftHeaderCell.Value = _selectedPhase;
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-            {
-                tableBoons.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableBoons.Columns[x].MinimumWidth = 10;
-            }
-            tableBoons.Columns[_logParser.BulkLog.Logs.Count()].HeaderCell.Value = "Trimmed Mean";
-            for (int y = 0; y < _activePlayers.Count; y++)
-            {
-                tableBoons.Rows[y].HeaderCell.Value = _activePlayers[y];
-                List<double> boonNumbers = new();
-                BuffStackTyping boonType = BuffStackTyping.Stacking;
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-                {
-                    double boonUptime = _logParser.BulkLog.Logs[x].GetBoon(_activePlayers[y], _selectedBoon, _selectedPhase);
-                    boonType = _logParser.BulkLog.Logs[x].GetBoonStackType(_selectedBoon);
-                    boonNumbers.Add(boonUptime);
-                    var text = $"{boonUptime.ToString("F1")}";
-                    if (boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
-                    {
-                        tableBoons.Columns[x].DefaultCellStyle.Format = "P1";
-                        boonUptime /= 100f;
-                    }
-                    else
-                    {
-                        tableBoons.Columns[x].DefaultCellStyle.Format = "F1";
-                    }
-                    tableBoons.Rows[y].Cells[x].Value = boonUptime;
-                }
-                float RoundedAverage = (float)Math.Round(TrimmedAverage(boonNumbers).Average(), 1);
-                var averageText = $"{RoundedAverage.ToString("F1")}";
-                if (boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
-                {
-                    tableBoons.Columns[_logParser.BulkLog.Logs.Count()].DefaultCellStyle.Format = "P1";
-                    RoundedAverage /= 100f;
-                }
-                else
-                {
-                    tableBoons.Columns[_logParser.BulkLog.Logs.Count()].DefaultCellStyle.Format = "F1";
-                }
-                tableBoons.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = RoundedAverage;
-            }
-            int row = _activePlayers.Count;
-            foreach (var group in Groups)
-            {
-                tableBoons.Rows[row].HeaderCell.Value = $"Group {group}";
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-                {
-                    var boonUptime = _logParser.BulkLog.Logs[x].GetBoon(group, _selectedBoon, _selectedPhase);
-                    var groupText = $"{boonUptime.ToString("F1")}";
-                    var bt = _logParser.BulkLog.Logs[x].GetBoonStackType(_selectedBoon);
-                    if (bt == BuffStackTyping.Queue || bt == BuffStackTyping.Regeneration)
-                    {
-                        tableBoons.Columns[x].DefaultCellStyle.Format = "P1";
-                        boonUptime /= 100f;
-                    }
-                    else
-                    {
-                        tableBoons.Columns[x].DefaultCellStyle.Format = "F1";
-                    }
-                    tableBoons.Rows[row].Cells[x].Value = boonUptime;
-                }
-                row++;
-            }
-            tableBoons.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tabBoons.Controls.Add(tableBoons);
-        }
-
-        private void UpdateMechanicPanel()
-        {
-            if (tabsControl.SelectedTab != tabMechanics)
-            {
-                return;
-            }
-            var Groups = _logParser.BulkLog.GetGroups();
-            if (_activePlayers.Count + Groups.Count() == 0)
-            {
-                return;
-            }
-            tabMechanics.Controls.Remove(tableMechanics);
-            tableMechanics.DataSource = null;
-
-            tableMechanics.RowCount = _activePlayers.Count + Groups.Count();
-            tableMechanics.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
-
-            var Phases = _logParser.BulkLog.GetPhases();
-            if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
-            {
-                var Phase = Phases.FirstOrDefault();
-                if (Phase == null)
-                {
-                    return;
-                }
-                _selectedPhase = Phase;
-            }
-            cbMechanicPhase.Items.Clear();
-            cbMechanicPhase.Items.AddRange(Phases);
-            lblSelectedPhaseMechanics.Text = _selectedPhase;
-
-            var MechanicNames = _logParser.BulkLog.GetMechanicNames(_selectedPhase);
-            if (_selectedMechanic == "" || !MechanicNames.Contains(_selectedMechanic))
-            {
-                var Mechanic = MechanicNames.FirstOrDefault();
-                if (Mechanic == null)
-                {
-                    return;
-                }
-                _selectedMechanic = Mechanic;
-            }
-
-            cbMechanicMechanics.Items.Clear();
-            cbMechanicMechanics.Items.AddRange(MechanicNames);
-            lblSelectedMechanic.Text = _selectedMechanic;
-
-            tableMechanics.TopLeftHeaderCell.Value = _selectedPhase;
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-            {
-                tableMechanics.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
-                tableMechanics.Columns[x].MinimumWidth = 10;
-            }
-            for (int y = 0; y < _activePlayers.Count; y++)
-            {
-                tableMechanics.Rows[y].HeaderCell.Value = _activePlayers[y];
-                List<double> MechanicNumbers = new();
-                BuffStackTyping MechanicType = BuffStackTyping.Stacking;
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
-                {
-                    var mechanicLogs = _logParser.BulkLog.Logs[x].GetMechanicLogs(_selectedMechanic, _selectedPhase).Where(x => x.Item1.Equals(_activePlayers[y]));
-                    StringBuilder sb = new();
-                    foreach (var log in mechanicLogs)
-                    {
-                        sb.Append($"{log.Item2 / 1000}s ");
-                    }
-                    tableMechanics.Rows[y].Cells[x].Value = sb.ToString();
-                }
-            }
-            tableMechanics.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tabMechanics.Controls.Add(tableMechanics);
-        }
-
-        private void cbStealthPhase_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cbStealthPhase.SelectedItem == null)
-            {
-                return;
-            }
-            _selectedPhase = cbStealthPhase.SelectedItem.ToString() ?? "";
-            UpdateStealthPanel();
-        }
-        private void cbDpsPhase_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cbDpsPhase.SelectedItem == null)
-            {
-                return;
-            }
-            _selectedPhase = cbDpsPhase.SelectedItem.ToString() ?? "";
-            UpdateDpsPanel();
-        }
-        private void cbBoonBoons_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cbBoonBoons.SelectedItem == null)
-            {
-                return;
-            }
-            _selectedBoon = cbBoonBoons.SelectedItem.ToString() ?? "";
-            UpdateBoonPanel();
-        }
-
-        private void cbBoonPhase_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cbBoonPhase.SelectedItem == null)
-            {
-                return;
-            }
-            _selectedPhase = cbBoonPhase.SelectedItem.ToString() ?? "";
-            UpdateBoonPanel();
-        }
-        private void cbMechanicMechanics_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cbMechanicMechanics.SelectedItem == null)
-            {
-                return;
-            }
-            _selectedMechanic = cbMechanicMechanics.SelectedItem.ToString() ?? "";
-            UpdateMechanicPanel();
-        }
-
-        private void cbMechanicPhase_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            if (cbMechanicPhase.SelectedItem == null)
-            {
-                return;
-            }
-            _selectedPhase = cbMechanicPhase.SelectedItem.ToString() ?? "";
-            UpdateMechanicPanel();
-        }
-
-
-        private void btnOpenLogs_Click(object sender, EventArgs e)
+        private void btnOpenLogs_Click(object? sender, EventArgs e)
         {
             var openFileDialog = new OpenFileDialog();
             openFileDialog.Filter = "zevtc files (*.zevtc)|*.zevtc";
@@ -581,52 +111,18 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     }
                 }
             }
+            _shockwavePanel = new ShockwaveUI(tableShockwave, tabShockwaves, _logParser, ActivePlayers);
+            _stealthPanel = new StealthAnalysisUI(tableStealth, lblSelectedPhaseStealth, cbStealthPhase, tabStealth, _logParser, ActivePlayers);
+            _dpsPanel = new DpsUI(tableDps, lblSelectedPhaseDps, cbDpsPhase, tabDps, _logParser, ActivePlayers);
+            _mechanicPanel = new MechanicsUI(tableMechanics, lblSelectedPhaseMechanics ,lblSelectedMechanic,cbMechanicPhase, cbMechanicMechanics, tabMechanics, _logParser, ActivePlayers);
+            _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, cbBoonBoons, cbBoonPhase,  tabBoons, _logParser, ActivePlayers);
             _playerPanel?.Refresh();
         }
 
-
-        private void btnDeleteSelected_Click(object sender, EventArgs e)
+        private void btnDeleteSelected_Click(object? sender, EventArgs e)
         {
             lbLoadedFiles.SelectedItems.Cast<string>().ToList().ForEach(file => { lbLoadedFiles.Items.Remove(file); _logParser.RemoveLog(file); });
-
             _playerPanel?.Refresh();
-        }
-
-
-        public List<int> TrimmedAverage(List<int> ints)
-        {
-            if (ints.Count == 0)
-            {
-                return ints;
-            }
-            var sortedInts = ints.OrderBy(x => x).ToList();
-            var Max = sortedInts.Max();
-            return sortedInts.Where(x => x >= Max * 0.6).ToList();
-        }
-        public List<double> TrimmedAverage(List<double> doubles)
-        {
-            if (doubles.Count == 0)
-            {
-                return doubles;
-            }
-            var sortedDoubles = doubles.OrderBy(x => x).ToList();
-            var Max = sortedDoubles.Max();
-            return sortedDoubles.Where(x => x >= Max * 0.6).ToList();
-        }
-
-        private void tableMechanics_ColumnHeaderMouseDoubleClick(object sender, DataGridViewCellMouseEventArgs e)
-        {
-            var dataGrid = sender as DataGridView;
-            if (dataGrid == null)
-            {
-                return;
-            }
-            var content = dataGrid.Columns[e.ColumnIndex].HeaderCell.Value;
-            if(content == null || !(content is string))
-            {
-                return;
-            }
-            System.Windows.Forms.Clipboard.SetText(content as string);
         }
     }
 }

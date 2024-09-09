@@ -178,7 +178,6 @@
             cbBoonBoons.Name = "cbBoonBoons";
             cbBoonBoons.Size = new Size(121, 23);
             cbBoonBoons.TabIndex = 13;
-            cbBoonBoons.SelectedIndexChanged += cbBoonBoons_SelectedIndexChanged;
             // 
             // cbBoonPhase
             // 
@@ -187,7 +186,6 @@
             cbBoonPhase.Name = "cbBoonPhase";
             cbBoonPhase.Size = new Size(121, 23);
             cbBoonPhase.TabIndex = 11;
-            cbBoonPhase.SelectedIndexChanged += cbBoonPhase_SelectedIndexChanged;
             // 
             // tableBoons
             // 
@@ -245,7 +243,6 @@
             cbMechanicMechanics.Name = "cbMechanicMechanics";
             cbMechanicMechanics.Size = new Size(121, 23);
             cbMechanicMechanics.TabIndex = 13;
-            cbMechanicMechanics.SelectedIndexChanged += cbMechanicMechanics_SelectedIndexChanged;
             // 
             // cbMechanicPhase
             // 
@@ -254,7 +251,6 @@
             cbMechanicPhase.Name = "cbMechanicPhase";
             cbMechanicPhase.Size = new Size(121, 23);
             cbMechanicPhase.TabIndex = 11;
-            cbMechanicPhase.SelectedIndexChanged += cbMechanicPhase_SelectedIndexChanged;
             // 
             // tableMechanics
             // 
@@ -266,7 +262,6 @@
             tableMechanics.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
             tableMechanics.Size = new Size(1050, 570);
             tableMechanics.TabIndex = 0;
-            tableMechanics.ColumnHeaderMouseDoubleClick += tableMechanics_ColumnHeaderMouseDoubleClick;
             // 
             // label7
             // 
@@ -320,7 +315,6 @@
             cbDpsPhase.Name = "cbDpsPhase";
             cbDpsPhase.Size = new Size(121, 23);
             cbDpsPhase.TabIndex = 9;
-            cbDpsPhase.SelectedIndexChanged += cbDpsPhase_SelectedIndexChanged;
             // 
             // tableDps
             // 
@@ -369,7 +363,6 @@
             cbStealthPhase.Name = "cbStealthPhase";
             cbStealthPhase.Size = new Size(121, 23);
             cbStealthPhase.TabIndex = 1;
-            cbStealthPhase.SelectedIndexChanged += cbStealthPhase_SelectedIndexChanged;
             // 
             // tableStealth
             // 
