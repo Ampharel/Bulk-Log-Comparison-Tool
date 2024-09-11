@@ -1,4 +1,5 @@
 ﻿using Bulk_Log_Comparison_Tool;
+using Bulk_Log_Comparison_Tool.DataClasses;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
 using System;
 using System.Collections.Generic;
@@ -33,66 +34,59 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             tabShockwaves.Controls.Remove(tableShockwave);
             tableShockwave.DataSource = null;
             tableShockwave.RowCount = ActivePlayers.Count;
-            tableShockwave.ColumnCount = _logParser.BulkLog.Logs.Count();
+            var Logs = _logParser.BulkLog.Logs;
+            tableShockwave.ColumnCount = Logs.Count();
 
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+            for (int x = 0; x < Logs.Count(); x++)
             {
-                tableShockwave.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+                tableShockwave.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
                 tableShockwave.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < ActivePlayers.Count; y++)
             {
+                var Player = ActivePlayers[y];
                 tableShockwave.Rows[y].HeaderCell.Value = ActivePlayers[y];
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+                for (int x = 0; x < Logs.Count(); x++)
                 {
-                    var phaseStart = _logParser.BulkLog.Logs[x].GetPhaseStart("Mordremoth");
-                    var phaseEnd = _logParser.BulkLog.Logs[x].GetPhaseEnd("Mordremoth");
-                    if (phaseStart == 0 || phaseEnd == 0)
-                    {
-                        tableShockwave.Rows[y].Cells[x].Value = "";
-                        continue;
-                    }
-                    var waveStart = phaseStart + _startPhaseOffset + _shockwaveCooldown;
-                    var wave = 0;
+                    Image image = null;
+                    var Log = Logs[x];
+                    image = GetImage(Log, Player, image, Logs[x].GetShockwaves(0), 0);
+                    image = GetImage(Log, Player, image, Logs[x].GetShockwaves(1), 1);
+                    image = GetImage(Log, Player, image, Logs[x].GetShockwaves(2), 2);
 
-                    var resultsForPlayer = "";
 
-                    while (true)
-                    {
-                        waveStart += GetWaveOffset(wave);
-                        var hadStab = _logParser.BulkLog.Logs[x].HasBoonDuringTime(ActivePlayers[y], "Stability", waveStart, waveStart + 1000);
-                        var wasAlive = _logParser.BulkLog.Logs[x].IsAlive(ActivePlayers[y], waveStart);
-                        if (!wasAlive)
-                        {
-                            resultsForPlayer += "☠";
-                        }
-                        else if (hadStab)
-                        {
-                            resultsForPlayer += "✓";
-                        }
-                        else
-                        {
-                            resultsForPlayer += "   ";
-                        }
 
-                        wave++;
-                        if (wave == 3)
-                        {
-                            wave = 0;
-                            waveStart += _shockwaveCooldown;
-                        }
-                        if (waveStart + GetWaveOffset(wave) > phaseEnd)
-                        {
-                            break;
-                        }
-                        resultsForPlayer += " | ";
-                    }
-                    tableShockwave.Rows[y].Cells[x].Value = resultsForPlayer;
+                    DataGridViewImageCell img = new DataGridViewImageCell();
+                    img.Value = image;
+                    tableShockwave.Rows[y].Cells[x] = img;
 
                 }
             }
             tableShockwave.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabShockwaves.Controls.Add(tableShockwave);
+        }
+
+        private Image GetImage(IParsedEvtcLog Log, string Player, Image image, long[] shockwaveTimes, int shockwaveType)
+        {
+            foreach (var time in shockwaveTimes)
+            {
+                var hadStab = Log.HasBoonDuringTime(Player, "Stability", time, time + 1000);
+                var wasAlive = Log.IsAlive(Player, time);
+                if (!wasAlive)
+                {
+                    image = image.StitchImages(GetSkullImage(shockwaveType));
+                }
+                else if (hadStab)
+                {
+                    image = image.StitchImages(GetCheckmarkImage(shockwaveType));
+                }
+                else
+                {
+                    image = image.StitchImages(GetCrossImage(shockwaveType));
+                }
+            }
+
+            return image;
         }
 
         private long GetWaveOffset(int wave)
@@ -110,5 +104,62 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     return -1;
             }
         }
+        enum StabStatus
+        {
+            Dead,
+            Stability,
+            None
+        };
+
+        private Image GetCheckmarkImage(int shockwaveType)
+        {
+            int width = 24; // adjust to your desired width
+            int height = 24; // adjust to your desired height
+            Image image = new Bitmap(width, height);
+            Graphics graphics = Graphics.FromImage(image);
+            Font font = new Font("Arial", 12);
+            StringFormat format = StringFormat.GenericDefault;
+            graphics.DrawString("✓", font, GetBrushColour(shockwaveType), 0, 6);
+            return image;
+        }
+        private Image GetCrossImage(int shockwaveType)
+        {
+            int width = 24; // adjust to your desired width
+            int height = 24; // adjust to your desired height
+            Image image = new Bitmap(width, height);
+            Graphics graphics = Graphics.FromImage(image);
+            Font font = new Font("Arial", 12);
+            StringFormat format = StringFormat.GenericDefault;
+            graphics.DrawString("✖", font, GetBrushColour(shockwaveType), 0, 6);
+            return image;
+        }
+        private Image GetSkullImage(int shockwaveType)
+        {
+            int width = 24; // adjust to your desired width
+            int height = 24; // adjust to your desired height
+            Image image = new Bitmap(width, height);
+            Graphics graphics = Graphics.FromImage(image);
+            Font font = new Font("Arial", 12);
+            StringFormat format = StringFormat.GenericDefault;
+            graphics.DrawString("☠", font, GetBrushColour(shockwaveType), 0, 6);
+            return image;
+        }
+
+        private Brush GetBrushColour(int shockwaveType)
+        {
+            switch (shockwaveType)
+            {
+                case 0:
+                    return Brushes.Green;
+                case 1:
+                    return Brushes.Blue;
+                case 2:
+                    return Brushes.Purple;
+                default:
+                    return Brushes.Black;
+            }
+        }
+
     }
+
 }

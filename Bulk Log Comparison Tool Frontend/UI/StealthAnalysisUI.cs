@@ -39,7 +39,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             tabStealth.Controls.Remove(tableStealth);
             tableStealth.DataSource = null;
             tableStealth.RowCount = ActivePlayers.Count;
-            tableStealth.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
+            var Logs = _logParser.BulkLog.Logs;
+            tableStealth.ColumnCount = Logs.Count() + 1;
 
             var StealthPhases = _logParser.BulkLog.GetStealthPhases();
             if (_selectedPhase == "" || !StealthPhases.Contains(_selectedPhase))
@@ -56,9 +57,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             cbStealthPhase.Items.AddRange(StealthPhases);
 
             tableStealth.TopLeftHeaderCell.Value = _selectedPhase;
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+            for (int x = 0; x < Logs.Count(); x++)
             {
-                tableStealth.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+                tableStealth.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
                 tableStealth.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < ActivePlayers.Count; y++)
@@ -66,12 +67,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 tableStealth.Rows[y].HeaderCell.Value = ActivePlayers[y];
                 int stealthCount = 0;
                 int successCount = 0;
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+                for (int x = 0; x < Logs.Count(); x++)
                 {
-                    var StealthForPlayer = _logParser.BulkLog.Logs[x].GetStealthResult(ActivePlayers[y]);
+                    var StealthForPlayer = Logs[x].GetStealthResult(ActivePlayers[y]);
                     var StealthForPhase = StealthForPlayer.Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
 
-                    var text = _logParser.BulkLog.Logs[x].GetStealthResult(ActivePlayers[y]).Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
+                    var text = Logs[x].GetStealthResult(ActivePlayers[y]).Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
                     if (text == null && _logParser.BulkLog.GetPlayers().Contains(ActivePlayers[y]))
                     {
                         text = "No stealth";
@@ -87,7 +88,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     tableStealth.Rows[y].Cells[x].Value = text;
                 }
 
-                tableStealth.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = $"{successCount}/{stealthCount}";
+                tableStealth.Rows[y].Cells[Logs.Count()].Value = $"{successCount}/{stealthCount}";
             }
             tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabStealth.Controls.Add(tableStealth);

@@ -1,14 +1,5 @@
-﻿using GW2EIEvtcParser.ParserHelpers;
-using GW2EIEvtcParser;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using static GW2EIEvtcParser.ParserHelper;
-using Bulk_Log_Comparison_Tool.Util;
-using GW2EIEvtcParser.EIData;
-using GW2EIEvtcParser.ParsedData;
+﻿using Bulk_Log_Comparison_Tool.Util;
+using Bulk_Log_Comparison_Tool.Enums;
 
 namespace Bulk_Log_Comparison_Tool.DataClasses
 {
@@ -25,6 +16,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public double GetBoon(string target, string boonName, long start, long end);
         public double GetBoon(int group, string boonName, string phaseName = "");
         public double GetBoon(int group, string boonName, long start, long end);
+        public long[] GetShockwaves(int shockwaveType);
         public bool HasBoonDuringTime(string target, string boonName, long start, long end);
         public bool IsAlive(string player, long time);
         public BuffStackTyping GetBoonStackType(string boonName);

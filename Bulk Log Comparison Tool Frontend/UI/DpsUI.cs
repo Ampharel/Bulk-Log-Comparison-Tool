@@ -48,7 +48,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             tabDps.Controls.Remove(tableDps);
             tableDps.DataSource = null;
             tableDps.RowCount = ActivePlayers.Count + 1;
-            tableDps.ColumnCount = _logParser.BulkLog.Logs.Count() + 2;
+            var Logs = _logParser.BulkLog.Logs;
+            tableDps.ColumnCount = Logs.Count() + 2;
 
             var Phases = _logParser.BulkLog.GetPhases();
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
@@ -65,14 +66,14 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             lblSelectedPhaseDps.Text = _selectedPhase;
 
             tableDps.TopLeftHeaderCell.Value = _selectedPhase;
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+            for (int x = 0; x < Logs.Count(); x++)
             {
-                tableDps.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+                tableDps.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
                 tableDps.Columns[x].MinimumWidth = 10;
                 tableDps.Columns[x].DefaultCellStyle.Format = "N0";
                 tableDps.Columns[x].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
             }
-            var count = _logParser.BulkLog.Logs.Count();
+            var count = Logs.Count();
             tableDps.Columns[count].HeaderCell.Value = "Average";
             tableDps.Columns[count + 1].HeaderCell.Value = "Trimmed Mean";
             tableDps.Columns[count].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
@@ -86,15 +87,15 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 tableDps.Rows[y].HeaderCell.Value = ActivePlayers[y];
                 List<int> dpsnumbers = new();
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+                for (int x = 0; x < Logs.Count(); x++)
                 {
-                    if (TotalDps.ContainsKey(_logParser.BulkLog.Logs[x].GetFileName()) == false)
+                    if (TotalDps.ContainsKey(Logs[x].GetFileName()) == false)
                     {
-                        TotalDps.Add(_logParser.BulkLog.Logs[x].GetFileName(), new List<int>());
+                        TotalDps.Add(Logs[x].GetFileName(), new List<int>());
                     }
-                    int dps = _logParser.BulkLog.Logs[x].GetPlayerDps(ActivePlayers[y], _selectedPhase);
+                    int dps = Logs[x].GetPlayerDps(ActivePlayers[y], _selectedPhase);
                     float roundedDps = (float)Math.Round(dps / 1000f, 1);
-                    TotalDps[_logParser.BulkLog.Logs[x].GetFileName()].Add(dps);
+                    TotalDps[Logs[x].GetFileName()].Add(dps);
                     dpsnumbers.Add(dps);
                     var text = $"{roundedDps}k";
                     tableDps.Rows[y].Cells[x].Value = dps;// text;
@@ -102,16 +103,16 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 var dpsNumbersWithoutZero = dpsnumbers.Where(x => x != 0).ToList();
                 var averageDps = dpsNumbersWithoutZero.Count == 0 ? 0 : dpsNumbersWithoutZero.Average();
                 float Average = (float)Math.Round(averageDps / 1000f);
-                tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = averageDps;//$"{Average}k";
+                tableDps.Rows[y].Cells[Logs.Count()].Value = averageDps;//$"{Average}k";
                 float RoundedAverage = (float)Math.Round(Util.TrimmedAverage(dpsnumbers).Average() / 1000f, 1);
-                tableDps.Rows[y].Cells[_logParser.BulkLog.Logs.Count() + 1].Value = Util.TrimmedAverage(dpsnumbers).Average();//$"{RoundedAverage}k";
+                tableDps.Rows[y].Cells[Logs.Count() + 1].Value = Util.TrimmedAverage(dpsnumbers).Average();//$"{RoundedAverage}k";
             }
             int row = ActivePlayers.Count + 1;
 
             tableDps.Rows[ActivePlayers.Count].HeaderCell.Value = "Total DPS";
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+            for (int x = 0; x < Logs.Count(); x++)
             {
-                tableDps.Rows[ActivePlayers.Count].Cells[x].Value = $"{(float)Math.Round(TotalDps[_logParser.BulkLog.Logs[x].GetFileName()].Sum() / 1000f, 1)}k";
+                tableDps.Rows[ActivePlayers.Count].Cells[x].Value = $"{(float)Math.Round(TotalDps[Logs[x].GetFileName()].Sum() / 1000f, 1)}k";
             }
             tableDps.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabDps.Controls.Add(tableDps);

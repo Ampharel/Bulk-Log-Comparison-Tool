@@ -10,8 +10,18 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
     public class BulkLog
     {
         private List<IParsedEvtcLog> _logs;
+        private readonly object _lock = new();
 
-        public List<IParsedEvtcLog> Logs => _logs;
+        public List<IParsedEvtcLog> Logs
+        {
+            get
+            {
+                lock (_lock)
+                {
+                    return _logs.ToList();
+                }
+            }
+        }
         private bool _stealthParsed = false;
         private Dictionary<string, Dictionary<string, string>> _stealthData = new();
 
@@ -27,29 +37,35 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
 
         public void AddLog(IParsedEvtcLog log)
         {
-            _logs.Add(log);
-            _stealthParsed = false;
+            lock (_lock)
+            {
+                _logs.Add(log);
+                _stealthParsed = false;
+            }
         }
 
         public void RemoveLog(string log)
         {
-            _logs.RemoveAll(x => log.StartsWith(x.GetFileName()));
-            _stealthParsed = false;
+            lock (_lock)
+            {
+                _logs.RemoveAll(x => log.StartsWith(x.GetFileName()));
+                _stealthParsed = false;
+            }
         }
 
         public int[] GetGroups()
         {
-            return _logs.SelectMany(x => x.GetGroups()).Distinct().ToArray();
+            return Logs.SelectMany(x => x.GetGroups()).Distinct().ToArray();
         }
 
         public string[] GetPlayers()
         {
-            return _logs.SelectMany(x => x.GetPlayers()).Distinct().ToArray();
+            return Logs.SelectMany(x => x.GetPlayers()).Distinct().ToArray();
         }
 
         public string[] GetPhases()
         {
-            return _logs.SelectMany(x => x.GetPhases()).Distinct().ToArray();
+            return Logs.SelectMany(x => x.GetPhases()).Distinct().ToArray();
         }
 
 
@@ -61,12 +77,12 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
 
         public string[] GetMechanicNames(string phaseName = "", long start = 0, long end = 0)
         {
-            return _logs.SelectMany(x => x.GetMechanicNames(phaseName, start, end)).Distinct().ToArray();
+            return Logs.SelectMany(x => x.GetMechanicNames(phaseName, start, end)).Distinct().ToArray();
         }
 
         public List<string> GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0)
         {
-            var result = _logs.SelectMany(x => x.GetMechanicLogs(mechanicName, phaseName, start, end)).ToList();
+            var result = Logs.SelectMany(x => x.GetMechanicLogs(mechanicName, phaseName, start, end)).ToList();
             return [""];
         }
 
@@ -78,7 +94,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
                 return [""];
             }
             var mechs = GetMechanicLogs(names.First(), "Full Fight", 0, 0);
-            return _logs.SelectMany(x => x.GetBoonNames()).Distinct().ToArray();
+            return Logs.SelectMany(x => x.GetBoonNames()).Distinct().ToArray();
         }
 
         public string GetStealthResult(string logName, string phase)
@@ -99,7 +115,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             }
             _stealthParsed = true;
             var Players = GetPlayers();
-            foreach (var log in _logs)
+            foreach (var log in Logs)
             {
                 _stealthData[log.GetFileName()] = new Dictionary<string, string>();
                 foreach (var player in Players)

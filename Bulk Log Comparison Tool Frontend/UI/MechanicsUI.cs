@@ -57,16 +57,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
         public override void UpdatePanel()
         {
-            var Groups = _logParser.BulkLog.GetGroups();
-            if (Groups.Count() == 0)
-            {
-                return;
-            }
             tabMechanics.Controls.Remove(tableMechanics);
             tableMechanics.DataSource = null;
 
-            tableMechanics.RowCount = ActivePlayers.Count + Groups.Count();
-            tableMechanics.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
+            var Logs = _logParser.BulkLog.Logs;
+            tableMechanics.RowCount = ActivePlayers.Count;
+            tableMechanics.ColumnCount = Logs.Count() + 1;
 
             var Phases = _logParser.BulkLog.GetPhases();
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
@@ -98,9 +94,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             lblSelectedMechanic.Text = _selectedMechanic;
 
             tableMechanics.TopLeftHeaderCell.Value = _selectedPhase;
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+            for (int x = 0; x < Logs.Count(); x++)
             {
-                tableMechanics.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+                tableMechanics.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
                 tableMechanics.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < ActivePlayers.Count; y++)
@@ -108,9 +104,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 string activePlayer = ActivePlayers[y];
                 tableMechanics.Rows[y].HeaderCell.Value = activePlayer;
                 List<double> MechanicNumbers = new();
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+                for (int x = 0; x < Logs.Count(); x++)
                 {
-                    var mechanicLogs = _logParser.BulkLog.Logs[x].GetMechanicLogs(_selectedMechanic, _selectedPhase).Where(x => x.Item1.Equals(activePlayer));
+                    var mechanicLogs = Logs[x].GetMechanicLogs(_selectedMechanic, _selectedPhase).Where(x => x.Item1.Equals(activePlayer));
                     StringBuilder sb = new();
                     foreach (var log in mechanicLogs)
                     {

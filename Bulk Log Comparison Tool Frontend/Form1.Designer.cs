@@ -31,6 +31,7 @@
             backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             panelPlayers = new Panel();
             panelStealth = new Panel();
+            btnOpenFolder = new Button();
             btnDeleteSelected = new Button();
             btnOpenLogs = new Button();
             lbLoadedFiles = new ListBox();
@@ -63,6 +64,7 @@
             tableStealth = new DataGridView();
             tabsControl = new TabControl();
             tabShockwaves = new TabPage();
+            label2 = new Label();
             tableShockwave = new DataGridView();
             panelStealth.SuspendLayout();
             tabBoons.SuspendLayout();
@@ -90,6 +92,7 @@
             // 
             // panelStealth
             // 
+            panelStealth.Controls.Add(btnOpenFolder);
             panelStealth.Controls.Add(btnDeleteSelected);
             panelStealth.Controls.Add(btnOpenLogs);
             panelStealth.Controls.Add(lbLoadedFiles);
@@ -99,9 +102,19 @@
             panelStealth.Size = new Size(172, 681);
             panelStealth.TabIndex = 2;
             // 
+            // btnOpenFolder
+            // 
+            btnOpenFolder.Location = new Point(9, 34);
+            btnOpenFolder.Name = "btnOpenFolder";
+            btnOpenFolder.Size = new Size(160, 23);
+            btnOpenFolder.TabIndex = 3;
+            btnOpenFolder.Text = "Open Folder";
+            btnOpenFolder.UseVisualStyleBackColor = true;
+            btnOpenFolder.Click += btnOpenFolder_Click;
+            // 
             // btnDeleteSelected
             // 
-            btnDeleteSelected.Location = new Point(9, 32);
+            btnDeleteSelected.Location = new Point(9, 63);
             btnDeleteSelected.Name = "btnDeleteSelected";
             btnDeleteSelected.Size = new Size(160, 23);
             btnDeleteSelected.TabIndex = 2;
@@ -125,10 +138,10 @@
             lbLoadedFiles.ForeColor = SystemColors.Menu;
             lbLoadedFiles.FormattingEnabled = true;
             lbLoadedFiles.ItemHeight = 15;
-            lbLoadedFiles.Location = new Point(9, 68);
+            lbLoadedFiles.Location = new Point(9, 98);
             lbLoadedFiles.Name = "lbLoadedFiles";
             lbLoadedFiles.SelectionMode = SelectionMode.MultiExtended;
-            lbLoadedFiles.Size = new Size(160, 589);
+            lbLoadedFiles.Size = new Size(160, 559);
             lbLoadedFiles.TabIndex = 0;
             // 
             // tabBoons
@@ -389,6 +402,7 @@
             // 
             // tabShockwaves
             // 
+            tabShockwaves.Controls.Add(label2);
             tabShockwaves.Controls.Add(tableShockwave);
             tabShockwaves.Location = new Point(4, 24);
             tabShockwaves.Name = "tabShockwaves";
@@ -398,13 +412,22 @@
             tabShockwaves.Text = "Shockwaves";
             tabShockwaves.UseVisualStyleBackColor = true;
             // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Location = new Point(8, 8);
+            label2.Name = "label2";
+            label2.Size = new Size(551, 15);
+            label2.TabIndex = 1;
+            label2.Text = "✓ = stability | ✖ = no stability | ☠ = dead  | Green = Mordemoth | Blue = SooWon | Purple = Obliterator";
+            // 
             // tableShockwave
             // 
             tableShockwave.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tableShockwave.Location = new Point(8, 6);
+            tableShockwave.Location = new Point(8, 26);
             tableShockwave.Name = "tableShockwave";
             tableShockwave.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableShockwave.Size = new Size(1067, 591);
+            tableShockwave.Size = new Size(1067, 571);
             tableShockwave.TabIndex = 0;
             // 
             // Form1
@@ -416,7 +439,6 @@
             Controls.Add(tabsControl);
             Controls.Add(panelPlayers);
             Controls.Add(panelStealth);
-            MaximizeBox = false;
             MinimumSize = new Size(128, 72);
             Name = "Form1";
             SizeGripStyle = SizeGripStyle.Hide;
@@ -437,6 +459,7 @@
             ((System.ComponentModel.ISupportInitialize)tableStealth).EndInit();
             tabsControl.ResumeLayout(false);
             tabShockwaves.ResumeLayout(false);
+            tabShockwaves.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)tableShockwave).EndInit();
             ResumeLayout(false);
         }
@@ -482,5 +505,6 @@
         private ComboBox comboBox1;
         private DataGridView tableShockwave;
         private Label label9;
+        private Button btnOpenFolder;
     }
 }

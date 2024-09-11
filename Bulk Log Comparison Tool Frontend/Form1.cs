@@ -9,6 +9,8 @@ using DarkModeForms;
 using System.Diagnostics.Metrics;
 using System.Text;
 using Bulk_Log_Comparison_Tool_Frontend.UI;
+using System.IO;
+using System.Collections.Concurrent;
 
 namespace Bulk_Log_Comparison_Tool_Frontend
 {
@@ -18,7 +20,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
         private List<string> _activePlayers = new();
         private List<string> ActivePlayers => _activePlayers;
-        private UILogParser _logParser = new(new LibraryParser(false));
+        private UILogParser _logParser = new();
         private PlayerPanel? _playerPanel;
         private PlayerUI? _activePanel;
         private PlayerUI? _boonPanel;
@@ -26,6 +28,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private PlayerUI? _dpsPanel;
         private PlayerUI? _stealthPanel;
         private PlayerUI? _shockwavePanel;
+
+        private ConcurrentQueue<string> _loadedFiles = new();
 
         public Form1()
         {
@@ -39,6 +43,63 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             _playerPanel = new(panelPlayers, _logParser.BulkLog);
             _playerPanel.PlayerSelectionChangedEvent += OnPlayerSelectionChanged;
             tabsControl.SelectedIndexChanged += (sender, e) => UpdatePanels();
+
+            SetupPanels();
+            ParseCustomPhases();
+            StartTimer();
+        }
+
+        private void SetupPanels()
+        {
+            _shockwavePanel = new ShockwaveUI(tableShockwave, tabShockwaves, _logParser, ActivePlayers);
+            _stealthPanel = new StealthAnalysisUI(tableStealth, lblSelectedPhaseStealth, cbStealthPhase, tabStealth, _logParser, ActivePlayers);
+            _dpsPanel = new DpsUI(tableDps, lblSelectedPhaseDps, cbDpsPhase, tabDps, _logParser, ActivePlayers);
+            _mechanicPanel = new MechanicsUI(tableMechanics, lblSelectedPhaseMechanics, lblSelectedMechanic, cbMechanicPhase, cbMechanicMechanics, tabMechanics, _logParser, ActivePlayers);
+            _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, cbBoonBoons, cbBoonPhase, tabBoons, _logParser, ActivePlayers);
+        }
+
+        private void StartTimer()
+        {
+            System.Windows.Forms.Timer timer = new System.Windows.Forms.Timer();
+            timer.Interval = 1000;
+            timer.Tick += new EventHandler(CheckQueue);
+            timer.Start();
+        }
+
+        private void ParseCustomPhases()
+        {
+            if (File.Exists("SpecificPhase.txt"))
+            {
+                var customPhases = File.ReadAllLines("SpecificPhase.txt").ToList();
+                foreach (var phase in customPhases)
+                {
+                    if (phase.StartsWith("#"))
+                    {
+                        continue;
+                    }
+                    var splitPhase = phase.Split('|');
+                    if (splitPhase.Length != 3)
+                    {
+                        continue;
+                    }
+                    _logParser.AddCustomPhase(splitPhase[0], long.Parse(splitPhase[1]), long.Parse(splitPhase[2]));
+                }
+            }
+        }
+
+        private void CheckQueue(object? sender, EventArgs e)
+        {
+            bool loadedFile = false;
+            while(_loadedFiles.TryDequeue(out string? file))
+            {
+                lbLoadedFiles.Items.Add(file);
+                loadedFile = true;
+            }
+            if(loadedFile)
+            {
+                _playerPanel?.Refresh();
+                UpdatePanels();
+            }
         }
 
 
@@ -50,7 +111,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
         private void UpdatePanels()
         {
-            if(_activePlayers.Count == 0)
+            if (_activePlayers.Count == 0)
             {
                 return;
             }
@@ -68,61 +129,71 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             openFileDialog.Multiselect = true;
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
+                List<Task> _runningTasks = new();
                 foreach (string file in openFileDialog.FileNames)
                 {
-                    if (_logParser.BulkLog.Logs.Any(x => x.GetFileName() == new FileInfo(file).Name))
-                    {
-                        continue;
-                    }
-                    try
-                    {
-                        lbLoadedFiles.Items.Add(new FileInfo(file).Name);
-                        _logParser.AddLog(file);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error loading file {file}: {ex.Message}");
-                    }
+                    _runningTasks.Add(Task.Run(() => LoadNewFile(file)));
                 }
+                Task.WhenAll(_runningTasks);
             }
-            if (File.Exists("SpecificPhase.txt"))
-            {
-                var customPhases = File.ReadAllLines("SpecificPhase.txt").ToList();
-                foreach (var phase in customPhases)
-                {
-                    if (phase.StartsWith("#"))
-                    {
-                        continue;
-                    }
-                    var splitPhase = phase.Split('|');
-                    if (splitPhase.Length != 3)
-                    {
-                        continue;
-                    }
-                    try
-                    {
-                        _logParser.BulkLog.Logs.ForEach(x => x.AddPhase(splitPhase[0], long.Parse(splitPhase[1]), long.Parse(splitPhase[2])));
-                    }
-                    catch (Exception ex)
-                    {
-                        var startSucceeded = long.TryParse(phase, out long start);
-                        var durationSucceeded = long.TryParse(phase, out long duration);
-                        MessageBox.Show($"Error in custom phase {phase}: {ex.Message}\nStart is {(startSucceeded ? "Valid" : "Not Valid")}\nDuration is {(durationSucceeded ? "Valid" : "Not Valid")}");
-                    }
-                }
-            }
-            _shockwavePanel = new ShockwaveUI(tableShockwave, tabShockwaves, _logParser, ActivePlayers);
-            _stealthPanel = new StealthAnalysisUI(tableStealth, lblSelectedPhaseStealth, cbStealthPhase, tabStealth, _logParser, ActivePlayers);
-            _dpsPanel = new DpsUI(tableDps, lblSelectedPhaseDps, cbDpsPhase, tabDps, _logParser, ActivePlayers);
-            _mechanicPanel = new MechanicsUI(tableMechanics, lblSelectedPhaseMechanics ,lblSelectedMechanic,cbMechanicPhase, cbMechanicMechanics, tabMechanics, _logParser, ActivePlayers);
-            _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, cbBoonBoons, cbBoonPhase,  tabBoons, _logParser, ActivePlayers);
-            _playerPanel?.Refresh();
+            
         }
 
         private void btnDeleteSelected_Click(object? sender, EventArgs e)
         {
             lbLoadedFiles.SelectedItems.Cast<string>().ToList().ForEach(file => { lbLoadedFiles.Items.Remove(file); _logParser.RemoveLog(file); });
             _playerPanel?.Refresh();
+        }
+
+        private string _directory = "";
+        private bool _running = false;
+
+        private void btnOpenFolder_Click(object sender, EventArgs e)
+        {
+            var openFolderDialog = new FolderBrowserDialog();
+            openFolderDialog.InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs\\");
+            if (openFolderDialog.ShowDialog() == DialogResult.OK) {
+                _directory = openFolderDialog.SelectedPath;
+                    }
+
+            if (!_running && _directory != "")
+            {
+                Task.Run(LoadNewFilesAsync);
+            }
+        }
+
+        private async void LoadNewFilesAsync()
+        {
+            _running = true;
+            while (_running)
+            {
+                var files = Directory.GetFiles(_directory, "*.zevtc");
+                List<Task> _runningTasks = new();
+                foreach (var file in files)
+                {
+                    _runningTasks.Add(Task.Run(() => LoadNewFile(file)));
+                }
+                await Task.WhenAll(_runningTasks);
+                await (Task.Delay(1000));
+            }
+        }
+
+        private void LoadNewFile(string file)
+        {
+            var FI = new FileInfo(file);
+            if (_logParser.BulkLog.Logs.Any(x => x.GetFileName() == FI.Name))
+            {
+                return;
+            }
+            try
+            {
+                _logParser.AddLog(file);
+                _loadedFiles.Enqueue(FI.Name);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error loading file {file}: {ex.Message}");
+            }
         }
     }
 }

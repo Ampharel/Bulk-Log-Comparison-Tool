@@ -64,8 +64,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             tabBoons.Controls.Remove(tableBoons);
             tableBoons.DataSource = null;
 
+            var Logs = _logParser.BulkLog.Logs;
             tableBoons.RowCount = ActivePlayers.Count + Groups.Count();
-            tableBoons.ColumnCount = _logParser.BulkLog.Logs.Count() + 1;
+            tableBoons.ColumnCount = Logs.Count() + 1;
 
             var Phases = _logParser.BulkLog.GetPhases();
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
@@ -97,21 +98,21 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             lblSelectedBoon.Text = _selectedBoon;
 
             tableBoons.TopLeftHeaderCell.Value = _selectedPhase;
-            for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+            for (int x = 0; x < Logs.Count(); x++)
             {
-                tableBoons.Columns[x].HeaderCell.Value = _logParser.BulkLog.Logs[x].GetFileName();
+                tableBoons.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
                 tableBoons.Columns[x].MinimumWidth = 10;
             }
-            tableBoons.Columns[_logParser.BulkLog.Logs.Count()].HeaderCell.Value = "Trimmed Mean";
+            tableBoons.Columns[Logs.Count()].HeaderCell.Value = "Trimmed Mean";
             for (int y = 0; y < ActivePlayers.Count; y++)
             {
                 tableBoons.Rows[y].HeaderCell.Value = ActivePlayers[y];
                 List<double> boonNumbers = new();
                 BuffStackTyping boonType = BuffStackTyping.Stacking;
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+                for (int x = 0; x < Logs.Count(); x++)
                 {
-                    double boonUptime = _logParser.BulkLog.Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase);
-                    boonType = _logParser.BulkLog.Logs[x].GetBoonStackType(_selectedBoon);
+                    double boonUptime = Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase);
+                    boonType = Logs[x].GetBoonStackType(_selectedBoon);
                     boonNumbers.Add(boonUptime);
                     var text = $"{boonUptime.ToString("F1")}";
                     if (boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
@@ -129,24 +130,24 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 var averageText = $"{RoundedAverage.ToString("F1")}";
                 if (boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
                 {
-                    tableBoons.Columns[_logParser.BulkLog.Logs.Count()].DefaultCellStyle.Format = "P1";
+                    tableBoons.Columns[Logs.Count()].DefaultCellStyle.Format = "P1";
                     RoundedAverage /= 100f;
                 }
                 else
                 {
-                    tableBoons.Columns[_logParser.BulkLog.Logs.Count()].DefaultCellStyle.Format = "F1";
+                    tableBoons.Columns[Logs.Count()].DefaultCellStyle.Format = "F1";
                 }
-                tableBoons.Rows[y].Cells[_logParser.BulkLog.Logs.Count()].Value = RoundedAverage;
+                tableBoons.Rows[y].Cells[Logs.Count()].Value = RoundedAverage;
             }
             int row = ActivePlayers.Count;
             foreach (var group in Groups)
             {
                 tableBoons.Rows[row].HeaderCell.Value = $"Group {group}";
-                for (int x = 0; x < _logParser.BulkLog.Logs.Count(); x++)
+                for (int x = 0; x < Logs.Count(); x++)
                 {
-                    var boonUptime = _logParser.BulkLog.Logs[x].GetBoon(group, _selectedBoon, _selectedPhase);
+                    var boonUptime = Logs[x].GetBoon(group, _selectedBoon, _selectedPhase);
                     var groupText = $"{boonUptime.ToString("F1")}";
-                    var bt = _logParser.BulkLog.Logs[x].GetBoonStackType(_selectedBoon);
+                    var bt = Logs[x].GetBoonStackType(_selectedBoon);
                     if (bt == BuffStackTyping.Queue || bt == BuffStackTyping.Regeneration)
                     {
                         tableBoons.Columns[x].DefaultCellStyle.Format = "P1";

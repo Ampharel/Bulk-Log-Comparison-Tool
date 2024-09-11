@@ -1,21 +1,11 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
 using GW2EIEvtcParser;
 using GW2EIEvtcParser.EIData;
-using Bulk_Log_Comparison_Tool;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 using static GW2EIEvtcParser.ParserHelper;
-using System.Collections;
 using static GW2EIEvtcParser.ArcDPSEnums;
 using Bulk_Log_Comparison_Tool.Util;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using System.Xml.Linq;
 using GW2EIEvtcParser.ParsedData;
+using Bulk_Log_Comparison_Tool.Enums;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
@@ -164,6 +154,32 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var result = _log.MechanicData.GetPresentMechanics(_log,start,end);
             return result.Select(x => x.FullName).ToArray();
         }
+
+        public long[] GetShockwaves(int shockwaveType)
+        {
+            var guid = GetShockwaveGUID(shockwaveType);
+            if (_log.CombatData.TryGetEffectEventsByGUID(guid, out IReadOnlyList<EffectEvent> shockwaves))
+            {
+                return shockwaves.Select(x => x.Time).ToArray();
+            }
+            return [0];
+        }
+
+        private string GetShockwaveGUID(int shockwaveType)
+        {
+            switch (shockwaveType)
+            {
+                case 0:
+                    return EffectGUIDs.HarvestTempleMordremothShockwave1;
+                case 1:
+                    return EffectGUIDs.HarvestTempleTsunami1;
+                case 2:
+                    return EffectGUIDs.HarvestTempleVoidObliteratorShockwave;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
         public Mechanic? GetMechanic(string mechanicName,long start, long end)
         {  
             return _log.MechanicData.GetPresentMechanics(_log, start, end).FirstOrDefault(x => x.FullName.Equals(mechanicName));
@@ -416,7 +432,9 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         public bool IsAlive(string player, long time)
         {
             AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == player);
-            return !Target?.IsDead(_log, time) ?? false;
+            var IsDead = Target?.IsDead(_log, time) ?? false;
+            var IsDC = Target?.IsDC(_log, time) ?? false;
+            return !IsDead && !IsDC;
         }
     }
 }
