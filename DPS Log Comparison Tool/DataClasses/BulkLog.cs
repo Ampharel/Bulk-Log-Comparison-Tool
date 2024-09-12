@@ -18,7 +18,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             {
                 lock (_lock)
                 {
-                    return _logs.ToList();
+                    return _logs.OrderBy(x => x.GetFileName()).ToList();
                 }
             }
         }

@@ -75,7 +75,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     var text = Logs[x].GetStealthResult(ActivePlayers[y]).Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
                     if (text == null && _logParser.BulkLog.GetPlayers().Contains(ActivePlayers[y]))
                     {
-                        text = "No stealth";
+                        text = " ";
                     }
                     else
                     {

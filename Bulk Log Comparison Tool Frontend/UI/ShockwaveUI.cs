@@ -76,26 +76,49 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
         private Image GetImage(IParsedEvtcLog Log, string Player, Image image, List<(long,int)> shockwaves)
         {
+            var mechanic = "";
             var sortedShockwaves = shockwaves.OrderBy(x => x.Item1);
             foreach (var shockwave in sortedShockwaves)
             {
+                switch (shockwave.Item2)
+                {
+                    case 0:
+                        mechanic = "Mordremoth Shockwave";
+                        break;
+                    case 1:
+                        mechanic = "Soo-Won Tsunami";
+                        break;
+                    case 2:
+                        mechanic = "Obliterator Shockwave"; //Name needs checking
+                        break;
+                }
                 if(!Log.HasPlayer(Player))
                 {
                     continue;
                 }
                 var hadStab = Log.HasBoonDuringTime(Player, "Stability", shockwave.Item1, shockwave.Item1 + 1000);
+                var wasHit = Log.GetMechanicLogs("Mordremoth Shockwave", start: shockwave.Item1, end: shockwave.Item1 + 1000).Where(x => x.Item1.Equals(Player)).Count() > 0;
+
                 var wasAlive = Log.IsAlive(Player, shockwave.Item1);
                 if (!wasAlive)
                 {
                     image = image.StitchImages(GetSkullImage(shockwave.Item2));
                 }
+                else if (hadStab && wasHit)
+                {
+                    image = image.StitchImages(GetShieldImage(shockwave.Item2));
+                }
                 else if (hadStab)
                 {
                     image = image.StitchImages(GetCheckmarkImage(shockwave.Item2));
                 }
+                else if (wasHit)
+                {
+                    image = image.StitchImages(GetDownedImage(shockwave.Item2));
+                }
                 else
                 {
-                    image = image.StitchImages(GetCrossImage(shockwave.Item2));
+                    image = image.StitchImages(GetWarningImage(shockwave.Item2));
                 }
             }
 
@@ -124,37 +147,61 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             None
         };
 
+        private const string fontName = "Segoe UI Symbol";
+
         private Image GetCheckmarkImage(int shockwaveType)
         {
-            int width = 24; // adjust to your desired width
-            int height = 24; // adjust to your desired height
+            int width = 32; // adjust to your desired width
+            int height = 32; // adjust to your desired height
             Image image = new Bitmap(width, height);
             Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font("Arial", 12);
+            Font font = new Font(fontName, 16);
             StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("✓", font, GetBrushColour(shockwaveType), 0, 6);
+            graphics.DrawString("✓", font, GetBrushColour(shockwaveType), 0, 0);
             return image;
         }
-        private Image GetCrossImage(int shockwaveType)
+        private Image GetWarningImage(int shockwaveType)
         {
-            int width = 24; // adjust to your desired width
-            int height = 24; // adjust to your desired height
+            int width = 32; // adjust to your desired width
+            int height = 32; // adjust to your desired height
             Image image = new Bitmap(width, height);
             Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font("Arial", 12);
+            Font font = new Font(fontName, 16);
             StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("✖", font, GetBrushColour(shockwaveType), 0, 6);
+            graphics.DrawString("⚠", font, GetBrushColour(shockwaveType), 0, 0);
             return image;
         }
         private Image GetSkullImage(int shockwaveType)
         {
-            int width = 24; // adjust to your desired width
-            int height = 24; // adjust to your desired height
+            int width = 32; // adjust to your desired width
+            int height = 32; // adjust to your desired height
             Image image = new Bitmap(width, height);
             Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font("Arial", 12);
+            Font font = new Font(fontName, 16);
             StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("☠", font, GetBrushColour(shockwaveType), 0, 6);
+            graphics.DrawString("☠", font, GetBrushColour(shockwaveType), 0, 0);
+            return image;
+        }
+        private Image GetShieldImage(int shockwaveType)
+        {
+            int width = 32; // adjust to your desired width
+            int height = 32; // adjust to your desired height
+            Image image = new Bitmap(width, height);
+            Graphics graphics = Graphics.FromImage(image);
+            Font font = new Font(fontName, 16);
+            StringFormat format = StringFormat.GenericDefault;
+            graphics.DrawString("🛡", font, GetBrushColour(shockwaveType), 0, 0);
+            return image;
+        }
+        private Image GetDownedImage(int shockwaveType)
+        {
+            int width = 32; // adjust to your desired width
+            int height = 32; // adjust to your desired height
+            Image image = new Bitmap(width, height);
+            Graphics graphics = Graphics.FromImage(image);
+            Font font = new Font(fontName, 16);
+            StringFormat format = StringFormat.GenericDefault;
+            graphics.DrawString("🔻", font, GetBrushColour(shockwaveType), 0, 0);
             return image;
         }
 

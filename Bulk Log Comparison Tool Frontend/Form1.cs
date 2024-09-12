@@ -151,6 +151,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
             if (!_running && _directory != "")
             {
+                _oldLogs.Clear();
                 _oldLogs.AddRange(Directory.GetFiles(_directory, "*.zevtc"));
                 Task.Run(LoadNewFilesAsync);
             }
@@ -166,6 +167,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 foreach (var file in files)
                 {
                     if (_oldLogs.Contains(file)) continue;
+                    _oldLogs.Add(file);
                     _runningTasks.Add(Task.Run(() => LoadNewFile(file)));
                 }
                 await Task.WhenAll(_runningTasks);

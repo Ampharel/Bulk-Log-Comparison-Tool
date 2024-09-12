@@ -144,6 +144,7 @@
             lbLoadedFiles.Name = "lbLoadedFiles";
             lbLoadedFiles.SelectionMode = SelectionMode.MultiExtended;
             lbLoadedFiles.Size = new Size(160, 559);
+            lbLoadedFiles.Sorted = true;
             lbLoadedFiles.TabIndex = 0;
             // 
             // tabBoons
@@ -205,6 +206,7 @@
             // tableBoons
             // 
             tableBoons.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tableBoons.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             tableBoons.Location = new Point(8, 37);
             tableBoons.Name = "tableBoons";
             tableBoons.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
@@ -272,6 +274,7 @@
             tableMechanics.AllowUserToOrderColumns = true;
             tableMechanics.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tableMechanics.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
+            tableMechanics.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             tableMechanics.Location = new Point(8, 37);
             tableMechanics.Name = "tableMechanics";
             tableMechanics.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
@@ -305,7 +308,7 @@
             tabDps.Padding = new Padding(3);
             tabDps.Size = new Size(1081, 603);
             tabDps.TabIndex = 1;
-            tabDps.Text = "Dps";
+            tabDps.Text = "Dps & CC";
             tabDps.UseVisualStyleBackColor = true;
             // 
             // cbDefiance
@@ -356,6 +359,7 @@
             // tableDps
             // 
             tableDps.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tableDps.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             tableDps.Location = new Point(8, 37);
             tableDps.Name = "tableDps";
             tableDps.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
@@ -404,6 +408,7 @@
             // tableStealth
             // 
             tableStealth.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tableStealth.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             tableStealth.Location = new Point(8, 37);
             tableStealth.Name = "tableStealth";
             tableStealth.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
@@ -439,15 +444,17 @@
             // label2
             // 
             label2.AutoSize = true;
+            label2.Font = new Font("Segoe UI Symbol", 9F);
             label2.Location = new Point(8, 8);
             label2.Name = "label2";
-            label2.Size = new Size(551, 15);
+            label2.Size = new Size(807, 15);
             label2.TabIndex = 1;
-            label2.Text = "✓ = stability | ✖ = no stability | ☠ = dead  | Green = Mordemoth | Blue = SooWon | Purple = Obliterator";
+            label2.Text = "✓ = stability and jumped | ⚠ = no stability and jumped | 🛡 = stability saved  | 🔻 = downed | Green = Mordemoth | Blue = SooWon | Purple = Obliterator";
             // 
             // tableShockwave
             // 
             tableShockwave.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tableShockwave.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             tableShockwave.Location = new Point(8, 26);
             tableShockwave.Name = "tableShockwave";
             tableShockwave.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
