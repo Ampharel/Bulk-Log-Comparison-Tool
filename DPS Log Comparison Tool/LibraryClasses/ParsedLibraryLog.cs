@@ -52,7 +52,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return phase.Item1.Targets.Select(x => x.Character).ToArray();
         }
 
-        public int GetPlayerDps(string accountName, string phaseName = "", DamageTyping damageType = DamageTyping.All)
+        public double GetPlayerDps(string accountName, string phaseName = "", bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All)
         {
             var phase = GetPhaseFromName(phaseName);
             if (phase.Item1 == null)
@@ -60,38 +60,68 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var target = phase.Item1.Targets;
             if (target == null)
                 return 0;
-            return GetPlayerDps(accountName, GetPhaseStart(phaseName), GetPhaseEnd(phaseName), target.Select(x => x.Character).ToArray(), damageType);
+            return GetPlayerDps(accountName, GetPhaseStart(phaseName), GetPhaseEnd(phaseName), target.ToArray(), cumulative, defiance, damageType);
         }
 
-        public int GetPlayerDps(string accountName, long start, long end, string[] targetNames, DamageTyping damageType = DamageTyping.All)
+        public double GetPlayerDps(string accountName, long start, long end, AbstractSingleActor[] targets, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All)
         {
             var player = _log.PlayerList.FirstOrDefault(x => x.Account == accountName);
             if (player == null) return 0;
-            var targets = _log.FightData.GetMainTargets(_log).Where(x => targetNames.Contains(x.Character));
+            if(targets == null)
+            {
+                return 0;
+            }
 
-            int dps = 0;
+            double dps = 0;
             foreach (var target in targets)
             {
                 if (target == null) return 0;
 
                 var DamageList = player.GetDPSStats(target, _log, start, end);
 
+                if (defiance)
+                {
+                    dps += DamageList.BreakbarDamage;
+                    continue;
+                }
 
-                if ((damageType & DamageTyping.Power) != 0)
+                if (!cumulative)
                 {
-                    dps += DamageList.PowerDps;
+                    if ((damageType & DamageTyping.Power) != 0)
+                    {
+                        dps += DamageList.PowerDps;
+                    }
+                    if ((damageType & DamageTyping.Condition) != 0)
+                    {
+                        dps += DamageList.CondiDps;
+                    }
+                    if ((damageType & DamageTyping.LifeLeech) != 0)
+                    {
+                        dps += DamageList.LifeLeechDps;
+                    }
+                    if ((damageType & DamageTyping.Barrier) != 0)
+                    {
+                        dps += DamageList.BarrierDps;
+                    }
                 }
-                if ((damageType & DamageTyping.Condition) != 0)
+                else
                 {
-                    dps += DamageList.CondiDps;
-                }
-                if ((damageType & DamageTyping.LifeLeech) != 0)
-                {
-                    dps += DamageList.LifeLeechDps;
-                }
-                if ((damageType & DamageTyping.Barrier) != 0)
-                {
-                    dps += DamageList.BarrierDps;
+                    if ((damageType & DamageTyping.Power) != 0)
+                    {
+                        dps += DamageList.PowerDamage;
+                    }
+                    if ((damageType & DamageTyping.Condition) != 0)
+                    {
+                        dps += DamageList.CondiDamage;
+                    }
+                    if ((damageType & DamageTyping.LifeLeech) != 0)
+                    {
+                        dps += DamageList.LifeLeechDamage;
+                    }
+                    if ((damageType & DamageTyping.Barrier) != 0)
+                    {
+                        dps += DamageList.BarrierDamage;
+                    }
                 }
             }
 
@@ -436,5 +466,6 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var IsDC = Target?.IsDC(_log, time) ?? false;
             return !IsDead && !IsDC;
         }
+
     }
 }

@@ -20,21 +20,46 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         private readonly ComboBox cbDpsPhase;
         private readonly TabPage tabDps;
         private readonly UILogParser _logParser;
+        private readonly CheckBox _cumulative;
+        private readonly CheckBox _defiance;
 
 
-        public DpsUI(DataGridView tableDps, Label lblSelectedPhaseDps, ComboBox cbDpsPhase, TabPage tabDps, UILogParser logParser, List<string> activePlayers) : base(activePlayers)
+        public DpsUI(DataGridView tableDps, Label lblSelectedPhaseDps, ComboBox cbDpsPhase, TabPage tabDps, UILogParser logParser, List<string> activePlayers, CheckBox cumulative, CheckBox defiance) : base(activePlayers)
         {
             this.tableDps = tableDps;
             this.lblSelectedPhaseDps = lblSelectedPhaseDps;
             this.cbDpsPhase = cbDpsPhase;
             this.tabDps = tabDps;
             _logParser = logParser;
+            _cumulative = cumulative;
+            _defiance = defiance;
             cbDpsPhase.SelectedIndexChanged += OnCbDpsPhaseSelectedIndexChanged;
+            _cumulative.CheckedChanged += OnCheckboxCumulativeCheckedChanged;
+            _defiance.CheckedChanged += OnCheckboxDefianceCheckedChanged;
+        }
+
+        private void OnCheckboxCumulativeCheckedChanged(object? sender, EventArgs e)
+        {
+            UpdatePanel();
         }
 
         public void OnCbDpsPhaseSelectedIndexChanged(object? sender, EventArgs e)
         {
             _selectedPhase = cbDpsPhase.SelectedItem?.ToString() ?? "";
+            UpdatePanel();
+        }
+
+        public void OnCheckboxDefianceCheckedChanged(object? sender, EventArgs e)
+        {
+            if(_defiance.Checked)
+            {
+                _cumulative.Checked = true;
+                _cumulative.Enabled = false;
+            }
+            else
+            {
+                _cumulative.Enabled = true;
+            }
             UpdatePanel();
         }
 
@@ -82,18 +107,18 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             tableDps.Columns[count].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
             tableDps.Columns[count + 1].DefaultCellStyle.Format = "N0";
             tableDps.Columns[count + 1].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
-            var TotalDps = new Dictionary<string, List<int>>();
+            var TotalDps = new Dictionary<string, List<double>>();
             for (int y = 0; y < ActivePlayers.Count; y++)
             {
                 tableDps.Rows[y].HeaderCell.Value = ActivePlayers[y];
-                List<int> dpsnumbers = new();
+                List<double> dpsnumbers = new();
                 for (int x = 0; x < Logs.Count(); x++)
                 {
                     if (TotalDps.ContainsKey(Logs[x].GetFileName()) == false)
                     {
-                        TotalDps.Add(Logs[x].GetFileName(), new List<int>());
+                        TotalDps.Add(Logs[x].GetFileName(), new List<double>());
                     }
-                    int dps = Logs[x].GetPlayerDps(ActivePlayers[y], _selectedPhase);
+                    double dps = Logs[x].GetPlayerDps(ActivePlayers[y], _selectedPhase, _cumulative.Checked, _defiance.Checked);
                     float roundedDps = (float)Math.Round(dps / 1000f, 1);
                     TotalDps[Logs[x].GetFileName()].Add(dps);
                     dpsnumbers.Add(dps);

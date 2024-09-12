@@ -66,6 +66,8 @@
             tabShockwaves = new TabPage();
             label2 = new Label();
             tableShockwave = new DataGridView();
+            cbCumulative = new CheckBox();
+            cbDefiance = new CheckBox();
             panelStealth.SuspendLayout();
             tabBoons.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tableBoons).BeginInit();
@@ -292,6 +294,8 @@
             // 
             // tabDps
             // 
+            tabDps.Controls.Add(cbDefiance);
+            tabDps.Controls.Add(cbCumulative);
             tabDps.Controls.Add(lblSelectedPhaseDps);
             tabDps.Controls.Add(label3);
             tabDps.Controls.Add(cbDpsPhase);
@@ -430,6 +434,26 @@
             tableShockwave.Size = new Size(1067, 571);
             tableShockwave.TabIndex = 0;
             // 
+            // cbCumulative
+            // 
+            cbCumulative.AutoSize = true;
+            cbCumulative.Location = new Point(380, 10);
+            cbCumulative.Name = "cbCumulative";
+            cbCumulative.Size = new Size(87, 19);
+            cbCumulative.TabIndex = 12;
+            cbCumulative.Text = "Cumulative";
+            cbCumulative.UseVisualStyleBackColor = true;
+            // 
+            // cbDefiance
+            // 
+            cbDefiance.AutoSize = true;
+            cbDefiance.Location = new Point(473, 10);
+            cbDefiance.Name = "cbDefiance";
+            cbDefiance.Size = new Size(72, 19);
+            cbDefiance.TabIndex = 13;
+            cbDefiance.Text = "Defiance";
+            cbDefiance.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -506,5 +530,7 @@
         private DataGridView tableShockwave;
         private Label label9;
         private Button btnOpenFolder;
+        private CheckBox cbCumulative;
+        private CheckBox cbDefiance;
     }
 }

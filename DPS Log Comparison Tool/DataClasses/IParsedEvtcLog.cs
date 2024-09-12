@@ -1,5 +1,6 @@
 ﻿using Bulk_Log_Comparison_Tool.Util;
 using Bulk_Log_Comparison_Tool.Enums;
+using GW2EIEvtcParser.EIData;
 
 namespace Bulk_Log_Comparison_Tool.DataClasses
 {
@@ -7,8 +8,8 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
     {
         public string GetFileName();
         public string GetLogStart();
-        public int GetPlayerDps(string accountName, string phaseName = "", DamageTyping damageType = DamageTyping.All);
-        public int GetPlayerDps(string accountName, long start, long end, string[] targetNames, DamageTyping damageType = DamageTyping.All);
+        public double GetPlayerDps(string accountName, string phaseName = "", bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
+        protected double GetPlayerDps(string accountName, long start, long end, AbstractSingleActor[] targets, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
         public string[] GetPhases();
         public void AddPhase(string name, long start, long duration);
         public string[] GetTargets(string phaseName = "");
