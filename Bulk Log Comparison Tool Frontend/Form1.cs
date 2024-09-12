@@ -148,6 +148,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private string _directory = "";
         private bool _running = false;
 
+        private List<string> _oldLogs = new();
+
         private void btnOpenFolder_Click(object sender, EventArgs e)
         {
             var openFolderDialog = new FolderBrowserDialog();
@@ -158,6 +160,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
             if (!_running && _directory != "")
             {
+                _oldLogs.AddRange(Directory.GetFiles(_directory, "*.zevtc"));
                 Task.Run(LoadNewFilesAsync);
             }
         }
@@ -171,6 +174,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 List<Task> _runningTasks = new();
                 foreach (var file in files)
                 {
+                    if (_oldLogs.Contains(file)) continue;
                     _runningTasks.Add(Task.Run(() => LoadNewFile(file)));
                 }
                 await Task.WhenAll(_runningTasks);

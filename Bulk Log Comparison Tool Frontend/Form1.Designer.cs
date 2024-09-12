@@ -53,6 +53,8 @@
             label7 = new Label();
             label8 = new Label();
             tabDps = new TabPage();
+            cbDefiance = new CheckBox();
+            cbCumulative = new CheckBox();
             lblSelectedPhaseDps = new Label();
             label3 = new Label();
             cbDpsPhase = new ComboBox();
@@ -66,8 +68,6 @@
             tabShockwaves = new TabPage();
             label2 = new Label();
             tableShockwave = new DataGridView();
-            cbCumulative = new CheckBox();
-            cbDefiance = new CheckBox();
             panelStealth.SuspendLayout();
             tabBoons.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tableBoons).BeginInit();
@@ -110,7 +110,7 @@
             btnOpenFolder.Name = "btnOpenFolder";
             btnOpenFolder.Size = new Size(160, 23);
             btnOpenFolder.TabIndex = 3;
-            btnOpenFolder.Text = "Open Folder";
+            btnOpenFolder.Text = "Open new logs in Folder";
             btnOpenFolder.UseVisualStyleBackColor = true;
             btnOpenFolder.Click += btnOpenFolder_Click;
             // 
@@ -308,6 +308,26 @@
             tabDps.Text = "Dps";
             tabDps.UseVisualStyleBackColor = true;
             // 
+            // cbDefiance
+            // 
+            cbDefiance.AutoSize = true;
+            cbDefiance.Location = new Point(473, 10);
+            cbDefiance.Name = "cbDefiance";
+            cbDefiance.Size = new Size(72, 19);
+            cbDefiance.TabIndex = 13;
+            cbDefiance.Text = "Defiance";
+            cbDefiance.UseVisualStyleBackColor = true;
+            // 
+            // cbCumulative
+            // 
+            cbCumulative.AutoSize = true;
+            cbCumulative.Location = new Point(380, 10);
+            cbCumulative.Name = "cbCumulative";
+            cbCumulative.Size = new Size(87, 19);
+            cbCumulative.TabIndex = 12;
+            cbCumulative.Text = "Cumulative";
+            cbCumulative.UseVisualStyleBackColor = true;
+            // 
             // lblSelectedPhaseDps
             // 
             lblSelectedPhaseDps.AutoSize = true;
@@ -433,26 +453,6 @@
             tableShockwave.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
             tableShockwave.Size = new Size(1067, 571);
             tableShockwave.TabIndex = 0;
-            // 
-            // cbCumulative
-            // 
-            cbCumulative.AutoSize = true;
-            cbCumulative.Location = new Point(380, 10);
-            cbCumulative.Name = "cbCumulative";
-            cbCumulative.Size = new Size(87, 19);
-            cbCumulative.TabIndex = 12;
-            cbCumulative.Text = "Cumulative";
-            cbCumulative.UseVisualStyleBackColor = true;
-            // 
-            // cbDefiance
-            // 
-            cbDefiance.AutoSize = true;
-            cbDefiance.Location = new Point(473, 10);
-            cbDefiance.Name = "cbDefiance";
-            cbDefiance.Size = new Size(72, 19);
-            cbDefiance.TabIndex = 13;
-            cbDefiance.Text = "Defiance";
-            cbDefiance.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
