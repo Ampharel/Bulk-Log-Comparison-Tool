@@ -50,9 +50,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 {
                     Image image = null;
                     var Log = Logs[x];
-                    image = GetImage(Log, Player, image, Logs[x].GetShockwaves(0), 0);
-                    image = GetImage(Log, Player, image, Logs[x].GetShockwaves(1), 1);
-                    image = GetImage(Log, Player, image, Logs[x].GetShockwaves(2), 2);
+                    List<(long, int)> shockwaves = new();
+                    shockwaves = GetShockwaves(Logs, x, shockwaves,0);
+                    shockwaves = GetShockwaves(Logs, x, shockwaves,1);
+                    shockwaves = GetShockwaves(Logs, x, shockwaves,2);
+
+                    image = GetImage(Log, Player, image, shockwaves);
 
 
 
@@ -66,23 +69,33 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             tabShockwaves.Controls.Add(tableShockwave);
         }
 
-        private Image GetImage(IParsedEvtcLog Log, string Player, Image image, long[] shockwaveTimes, int shockwaveType)
+        private List<(long, int)> GetShockwaves(List<IParsedEvtcLog> Logs, int x, List<(long, int)> shockwaves, int shockwaveType)
         {
-            foreach (var time in shockwaveTimes)
+            foreach (var shockwave in Logs[x].GetShockwaves(shockwaveType))
             {
-                var hadStab = Log.HasBoonDuringTime(Player, "Stability", time, time + 1000);
-                var wasAlive = Log.IsAlive(Player, time);
+                shockwaves.Add((shockwave, shockwaveType));
+            }
+            return shockwaves;
+        }
+
+        private Image GetImage(IParsedEvtcLog Log, string Player, Image image, List<(long,int)> shockwaves)
+        {
+            var sortedShockwaves = shockwaves.OrderBy(x => x.Item1);
+            foreach (var shockwave in sortedShockwaves)
+            {
+                var hadStab = Log.HasBoonDuringTime(Player, "Stability", shockwave.Item1, shockwave.Item1 + 1000);
+                var wasAlive = Log.IsAlive(Player, shockwave.Item1);
                 if (!wasAlive)
                 {
-                    image = image.StitchImages(GetSkullImage(shockwaveType));
+                    image = image.StitchImages(GetSkullImage(shockwave.Item2));
                 }
                 else if (hadStab)
                 {
-                    image = image.StitchImages(GetCheckmarkImage(shockwaveType));
+                    image = image.StitchImages(GetCheckmarkImage(shockwave.Item2));
                 }
                 else
                 {
-                    image = image.StitchImages(GetCrossImage(shockwaveType));
+                    image = image.StitchImages(GetCrossImage(shockwave.Item2));
                 }
             }
 
