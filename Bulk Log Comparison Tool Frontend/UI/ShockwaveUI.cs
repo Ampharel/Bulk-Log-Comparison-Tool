@@ -1,12 +1,5 @@
-﻿using Bulk_Log_Comparison_Tool;
-using Bulk_Log_Comparison_Tool.DataClasses;
+﻿using Bulk_Log_Comparison_Tool.DataClasses;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
 
 namespace Bulk_Log_Comparison_Tool_Frontend.UI
 {

@@ -5,7 +5,6 @@ using static GW2EIEvtcParser.ParserHelper;
 using static GW2EIEvtcParser.ArcDPSEnums;
 using Bulk_Log_Comparison_Tool.Util;
 using GW2EIEvtcParser.ParsedData;
-using Bulk_Log_Comparison_Tool.Enums;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {

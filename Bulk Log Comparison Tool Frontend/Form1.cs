@@ -1,15 +1,6 @@
 ﻿using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
-using Bulk_Log_Comparison_Tool.LibraryClasses;
-using static System.Net.Mime.MediaTypeNames;
-using System.Windows.Forms;
-using Bulk_Log_Comparison_Tool.Util;
-using System.Globalization;
-using System.Linq;
 using DarkModeForms;
-using System.Diagnostics.Metrics;
-using System.Text;
 using Bulk_Log_Comparison_Tool_Frontend.UI;
-using System.IO;
 using System.Collections.Concurrent;
 
 namespace Bulk_Log_Comparison_Tool_Frontend

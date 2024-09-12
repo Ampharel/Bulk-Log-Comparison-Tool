@@ -1,13 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Text.RegularExpressions;
-using System.Numerics;
+﻿using System.Text;
 using Bulk_Log_Comparison_Tool.DataClasses;
-using Bulk_Log_Comparison_Tool.Util;
-using GW2EIEvtcParser.EIData;
 
 namespace Bulk_Log_Comparison_Tool
 {
