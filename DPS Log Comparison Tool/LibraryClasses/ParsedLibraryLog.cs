@@ -165,6 +165,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return 0;
         }
 
+        public bool HasPlayer(string accountName)
+        {
+            return _log.PlayerList.Any(x => x.Account == accountName);
+        }
+
         public double GetBoon(int group, string boonName, string phaseName = "")
         {
             var phase = GetPhaseFromName(phaseName);
@@ -191,7 +196,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             {
                 return shockwaves.Select(x => x.Time).ToArray();
             }
-            return [0];
+            return [];
         }
 
         private string GetShockwaveGUID(int shockwaveType)

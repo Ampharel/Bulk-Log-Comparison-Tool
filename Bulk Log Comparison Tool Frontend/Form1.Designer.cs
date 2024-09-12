@@ -205,10 +205,10 @@
             // tableBoons
             // 
             tableBoons.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tableBoons.Location = new Point(6, 37);
+            tableBoons.Location = new Point(8, 37);
             tableBoons.Name = "tableBoons";
             tableBoons.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableBoons.Size = new Size(1050, 570);
+            tableBoons.Size = new Size(1067, 560);
             tableBoons.TabIndex = 0;
             // 
             // lblSelectedMechanic
@@ -272,10 +272,10 @@
             tableMechanics.AllowUserToOrderColumns = true;
             tableMechanics.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tableMechanics.ClipboardCopyMode = DataGridViewClipboardCopyMode.EnableWithoutHeaderText;
-            tableMechanics.Location = new Point(6, 37);
+            tableMechanics.Location = new Point(8, 37);
             tableMechanics.Name = "tableMechanics";
             tableMechanics.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableMechanics.Size = new Size(1050, 570);
+            tableMechanics.Size = new Size(1067, 560);
             tableMechanics.TabIndex = 0;
             // 
             // label7
@@ -356,10 +356,10 @@
             // tableDps
             // 
             tableDps.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tableDps.Location = new Point(6, 37);
+            tableDps.Location = new Point(8, 37);
             tableDps.Name = "tableDps";
             tableDps.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableDps.Size = new Size(1050, 570);
+            tableDps.Size = new Size(1067, 560);
             tableDps.TabIndex = 0;
             // 
             // tabStealth
@@ -404,10 +404,10 @@
             // tableStealth
             // 
             tableStealth.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tableStealth.Location = new Point(6, 37);
+            tableStealth.Location = new Point(8, 37);
             tableStealth.Name = "tableStealth";
             tableStealth.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableStealth.Size = new Size(1050, 560);
+            tableStealth.Size = new Size(1067, 560);
             tableStealth.TabIndex = 0;
             // 
             // tabsControl

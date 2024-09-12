@@ -18,6 +18,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public double GetBoon(int group, string boonName, string phaseName = "");
         public double GetBoon(int group, string boonName, long start, long end);
         public long[] GetShockwaves(int shockwaveType);
+        public bool HasPlayer(string accountName);
         public bool HasBoonDuringTime(string target, string boonName, long start, long end);
         public bool IsAlive(string player, long time);
         public BuffStackTyping GetBoonStackType(string boonName);

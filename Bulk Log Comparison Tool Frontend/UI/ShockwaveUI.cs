@@ -52,9 +52,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
 
 
-                    DataGridViewImageCell img = new DataGridViewImageCell();
-                    img.Value = image;
-                    tableShockwave.Rows[y].Cells[x] = img;
+                    if (image != null)
+                    {
+                        DataGridViewImageCell img = new DataGridViewImageCell();
+                        img.Value = image;
+                        tableShockwave.Rows[y].Cells[x] = img;
+                    }
 
                 }
             }
@@ -76,6 +79,10 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             var sortedShockwaves = shockwaves.OrderBy(x => x.Item1);
             foreach (var shockwave in sortedShockwaves)
             {
+                if(!Log.HasPlayer(Player))
+                {
+                    continue;
+                }
                 var hadStab = Log.HasBoonDuringTime(Player, "Stability", shockwave.Item1, shockwave.Item1 + 1000);
                 var wasAlive = Log.IsAlive(Player, shockwave.Item1);
                 if (!wasAlive)
