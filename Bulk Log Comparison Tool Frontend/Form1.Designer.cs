@@ -308,7 +308,7 @@
             tabDps.Padding = new Padding(3);
             tabDps.Size = new Size(1081, 603);
             tabDps.TabIndex = 1;
-            tabDps.Text = "Dps & CC";
+            tabDps.Text = "Dps and CC";
             tabDps.UseVisualStyleBackColor = true;
             // 
             // cbDefiance
