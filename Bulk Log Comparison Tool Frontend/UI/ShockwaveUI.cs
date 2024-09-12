@@ -96,8 +96,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 {
                     continue;
                 }
-                var hadStab = Log.HasBoonDuringTime(Player, "Stability", shockwave.Item1, shockwave.Item1 + 1000);
-                var wasHit = Log.GetMechanicLogs("Mordremoth Shockwave", start: shockwave.Item1, end: shockwave.Item1 + 1000).Where(x => x.Item1.Equals(Player)).Count() > 0;
+                var hadStab = Log.HasBoonDuringTime(Player, "Stability", shockwave.Item1, shockwave.Item1 + 2000);
+                var wasHit = Log.GetMechanicLogs(mechanic, start: shockwave.Item1, end: shockwave.Item1 + 2000).Where(x => x.Item1.Equals(Player)).Count() > 0;
 
                 var wasAlive = Log.IsAlive(Player, shockwave.Item1);
                 if (!wasAlive)
