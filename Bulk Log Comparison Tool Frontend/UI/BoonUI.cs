@@ -1,6 +1,7 @@
 ﻿using Bulk_Log_Comparison_Tool;
 using Bulk_Log_Comparison_Tool.Util;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
+using Microsoft.VisualBasic.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -111,6 +112,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 BuffStackTyping boonType = BuffStackTyping.Stacking;
                 for (int x = 0; x < Logs.Count(); x++)
                 {
+                    if (!Logs[x].HasPlayer(ActivePlayers[y]))
+                    {
+                        tableBoons.Rows[y].Cells[x].Value = "";
+                        continue;
+                    }
                     double boonUptime = Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase);
                     boonType = Logs[x].GetBoonStackType(_selectedBoon);
                     boonNumbers.Add(boonUptime);
@@ -138,6 +144,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     tableBoons.Columns[Logs.Count()].DefaultCellStyle.Format = "F1";
                 }
                 tableBoons.Rows[y].Cells[Logs.Count()].Value = RoundedAverage;
+
+
             }
             int row = ActivePlayers.Count;
             foreach (var group in Groups)

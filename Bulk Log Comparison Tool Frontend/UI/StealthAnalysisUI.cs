@@ -69,6 +69,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 int successCount = 0;
                 for (int x = 0; x < Logs.Count(); x++)
                 {
+                    if (!Logs[x].HasPlayer(ActivePlayers[y]))
+                    {
+                        tableStealth.Rows[y].Cells[x].Value = "";
+                        continue;
+                    }
                     var StealthForPlayer = Logs[x].GetStealthResult(ActivePlayers[y]);
                     var StealthForPhase = StealthForPlayer.Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
 

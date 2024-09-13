@@ -114,6 +114,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 List<double> dpsnumbers = new();
                 for (int x = 0; x < Logs.Count(); x++)
                 {
+                    if (!Logs[x].HasPlayer(ActivePlayers[y]))
+                    {
+                        tableDps.Rows[y].Cells[x].Value = "";
+                        continue;
+                    }
                     if (TotalDps.ContainsKey(Logs[x].GetFileName()) == false)
                     {
                         TotalDps.Add(Logs[x].GetFileName(), new List<double>());
