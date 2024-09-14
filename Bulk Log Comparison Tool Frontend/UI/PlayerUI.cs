@@ -8,6 +8,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 {
     internal abstract class PlayerUI
     {
+        public Font columnFont = new Font("Verdana",20f);
         private readonly List<string> _activePlayers;
 
         public PlayerUI(List<string> activePlayers)

@@ -97,6 +97,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             for (int x = 0; x < Logs.Count(); x++)
             {
                 tableMechanics.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
+                tableMechanics.Columns[x].DefaultCellStyle.Font = columnFont;
                 tableMechanics.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < ActivePlayers.Count; y++)

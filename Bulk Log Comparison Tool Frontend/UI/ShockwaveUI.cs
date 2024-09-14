@@ -33,6 +33,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             for (int x = 0; x < Logs.Count(); x++)
             {
                 tableShockwave.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
+                tableShockwave.Columns[x].DefaultCellStyle.Font = columnFont;
                 tableShockwave.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < ActivePlayers.Count; y++)

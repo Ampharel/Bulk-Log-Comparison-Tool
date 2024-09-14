@@ -22,19 +22,35 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         private readonly ComboBox cbPhase;
         private readonly ComboBox cbBoon;
         private readonly TabPage tabBoons;
+        private readonly CheckBox boonDuration;
+        private readonly NumericUpDown time;
         private readonly UILogParser _logParser;
 
-        public BoonUI(DataGridView tableBoons, Label lblSelectedBoon, Label lblSelectedPhase, ComboBox cbBoon, ComboBox cbPhase, TabPage tabBoons, UILogParser logParser, List<string> activePlayers) : base(activePlayers)
+        public BoonUI(DataGridView tableBoons, Label lblSelectedBoon, Label lblSelectedPhase, ComboBox cbPhase, ComboBox cbBoon, TabPage tabBoons, CheckBox boonDuration, NumericUpDown time, UILogParser logParser, List<string> activePlayers):base(activePlayers)
         {
             this.tableBoons = tableBoons;
             this.lblSelectedBoon = lblSelectedBoon;
             this.lblSelectedPhase = lblSelectedPhase;
-            this.cbBoon = cbBoon;
             this.cbPhase = cbPhase;
+            this.cbBoon = cbBoon;
             this.tabBoons = tabBoons;
             _logParser = logParser;
+            this.boonDuration = boonDuration;
+            this.time = time;
             cbBoon.SelectedIndexChanged += OnCbBoonSelectedIndexChanged;
             cbPhase.SelectedIndexChanged += OnCbPhaseSelectedIndexChanged;
+            boonDuration.CheckedChanged += OnBoonDurationCheckedChanged;
+            time.ValueChanged += OnTimeValueChanged;
+        }
+
+        private void OnTimeValueChanged(object? sender, EventArgs e)
+        {
+            UpdatePanel();
+        }
+
+        private void OnBoonDurationCheckedChanged(object? sender, EventArgs e)
+        {
+            UpdatePanel();
         }
 
         private void OnCbBoonSelectedIndexChanged(object? sender, EventArgs e)
@@ -93,7 +109,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 }
                 _selectedBoon = Boon;
             }
-
+            var boonType = Logs.FirstOrDefault()?.GetBoonStackType(_selectedBoon) ?? BuffStackTyping.Stacking;
+            var cellFormat = GetCellFormat(boonType);
             cbBoon.Items.Clear();
             cbBoon.Items.AddRange(boonNames);
             lblSelectedBoon.Text = _selectedBoon;
@@ -102,14 +119,15 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             for (int x = 0; x < Logs.Count(); x++)
             {
                 tableBoons.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
+                tableBoons.Columns[x].DefaultCellStyle.Font = columnFont;
+                tableBoons.Columns[x].DefaultCellStyle.Format = cellFormat;
                 tableBoons.Columns[x].MinimumWidth = 10;
             }
-            tableBoons.Columns[Logs.Count()].HeaderCell.Value = "Trimmed Mean";
+            tableBoons.Columns[Logs.Count()].HeaderCell.Value = "Average";
             for (int y = 0; y < ActivePlayers.Count; y++)
             {
                 tableBoons.Rows[y].HeaderCell.Value = ActivePlayers[y];
                 List<double> boonNumbers = new();
-                BuffStackTyping boonType = BuffStackTyping.Stacking;
                 for (int x = 0; x < Logs.Count(); x++)
                 {
                     if (!Logs[x].HasPlayer(ActivePlayers[y]))
@@ -117,32 +135,13 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                         tableBoons.Rows[y].Cells[x].Value = "";
                         continue;
                     }
-                    double boonUptime = Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase);
-                    boonType = Logs[x].GetBoonStackType(_selectedBoon);
+                    double boonUptime = Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase, (long)time.Value, boonDuration.Checked);
                     boonNumbers.Add(boonUptime);
-                    var text = $"{boonUptime.ToString("F1")}";
-                    if (boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
-                    {
-                        tableBoons.Columns[x].DefaultCellStyle.Format = "P1";
-                        boonUptime /= 100f;
-                    }
-                    else
-                    {
-                        tableBoons.Columns[x].DefaultCellStyle.Format = "F1";
-                    }
                     tableBoons.Rows[y].Cells[x].Value = boonUptime;
                 }
-                float RoundedAverage = (float)Math.Round(Util.TrimmedAverage(boonNumbers).Average(), 1);
-                var averageText = $"{RoundedAverage.ToString("F1")}";
-                if (boonType == BuffStackTyping.Queue || boonType == BuffStackTyping.Regeneration)
-                {
-                    tableBoons.Columns[Logs.Count()].DefaultCellStyle.Format = "P1";
-                    RoundedAverage /= 100f;
-                }
-                else
-                {
-                    tableBoons.Columns[Logs.Count()].DefaultCellStyle.Format = "F1";
-                }
+                float RoundedAverage = (float)Math.Round(boonNumbers.Average(), 1);
+                tableBoons.Columns[Logs.Count()].DefaultCellStyle.Format = cellFormat;
+                tableBoons.Columns[Logs.Count()].DefaultCellStyle.Font = columnFont;
                 tableBoons.Rows[y].Cells[Logs.Count()].Value = RoundedAverage;
 
 
@@ -153,24 +152,27 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 tableBoons.Rows[row].HeaderCell.Value = $"Group {group}";
                 for (int x = 0; x < Logs.Count(); x++)
                 {
-                    var boonUptime = Logs[x].GetBoon(group, _selectedBoon, _selectedPhase);
-                    var groupText = $"{boonUptime.ToString("F1")}";
-                    var bt = Logs[x].GetBoonStackType(_selectedBoon);
-                    if (bt == BuffStackTyping.Queue || bt == BuffStackTyping.Regeneration)
-                    {
-                        tableBoons.Columns[x].DefaultCellStyle.Format = "P1";
-                        boonUptime /= 100f;
-                    }
-                    else
-                    {
-                        tableBoons.Columns[x].DefaultCellStyle.Format = "F1";
-                    }
+                    var boonUptime = Logs[x].GetBoon(group, _selectedBoon, _selectedPhase, (long)time.Value, boonDuration.Checked);
                     tableBoons.Rows[row].Cells[x].Value = boonUptime;
                 }
                 row++;
             }
             tableBoons.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabBoons.Controls.Add(tableBoons);
+        }
+
+        private string GetCellFormat(BuffStackTyping bt)
+        {
+            if (boonDuration.Checked)
+            {
+                return "F1";
+            }
+            return bt switch
+            {
+                BuffStackTyping.Queue => "P1",
+                BuffStackTyping.Regeneration => "P1",
+                _ => "F1",
+            };
         }
     }
 }

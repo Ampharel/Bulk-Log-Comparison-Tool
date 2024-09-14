@@ -5,6 +5,8 @@ using static GW2EIEvtcParser.ParserHelper;
 using static GW2EIEvtcParser.ArcDPSEnums;
 using Bulk_Log_Comparison_Tool.Util;
 using GW2EIEvtcParser.ParsedData;
+using System;
+using System.Numerics;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
@@ -132,15 +134,23 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return ConvertStackTypeEnum(_log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)).Select(x => x.StackType).FirstOrDefault());
         }
 
-        public double GetBoon(string target, string boonName, string phaseName = "")
+        public double GetBoon(string target, string boonName, string phaseName = "", long time = 0, bool duration = false)
         {
             var phase = GetPhaseFromName(phaseName);
             if (phase.Item1 == null)
                 return 0;
-            return GetBoon(target, boonName, GetPhaseStart(phaseName), GetPhaseEnd(phaseName));
+            var endTime = time == 0 ? GetPhaseEnd(phaseName) : GetPhaseStart(phaseName) + time;
+            if (duration)
+            {
+                return GetBoonDurationInPhase(target, boonName, phaseName, time);
+            }
+            else
+            {
+                return GetBoon(target, boonName, GetPhaseStart(phaseName), endTime);
+            }
         }
 
-        public double GetBoon(string target, string boonName, long start, long end)
+        private double GetBoon(string target, string boonName, long start, long end, long time = 0, bool duration = false)
         { 
             AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
             if (Target == null)
@@ -159,7 +169,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 Buffs.TryGetValue(Boon.ID, out var value);
                 if (value != null)
                 {
-                    return value.Uptime;
+                    var uptime = value.Uptime;
+                    if(Boon.StackType == BuffStackType.Queue || Boon.StackType == BuffStackType.Regeneration)
+                    {
+                        uptime /= 100f;
+                    }
+                    return uptime;
                 }
             }
             return 0;
@@ -170,12 +185,19 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return _log.PlayerList.Any(x => x.Account == accountName);
         }
 
-        public double GetBoon(int group, string boonName, string phaseName = "")
+        public double GetBoon(int group, string boonName, string phaseName = "", long time = 0, bool duration = false)
         {
-            var phase = GetPhaseFromName(phaseName);
-            if (phase.Item1 == null)
+            var groupMembers = _log.PlayerList.Where(x => x.Group == group);
+            List<double> boonUptimes = new();
+            foreach (var player in groupMembers)
+            {
+                boonUptimes.Add(GetBoon(player.Account, boonName, phaseName, time, duration));
+            }
+            if(boonUptimes.Count == 0)
+            {
                 return 0;
-            return GetBoon(group, boonName, GetPhaseStart(phaseName), GetPhaseEnd(phaseName));
+            }
+            return boonUptimes.Average();
         }
 
         public string[] GetMechanicNames(string phaseName = "", long start = 0, long end = 0)
@@ -235,29 +257,6 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return result.Select(x => (x.Actor.Account, x.Time - start)).ToArray();
         }
 
-        public double GetBoon(int group, string boonName, long start, long end)
-        {
-            var groupMembers = _log.PlayerList.Where(x => x.Group == group);
-            var boons = new List<double>();
-            foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
-            {
-                foreach (var player in groupMembers)
-                {
-                    var Buffs = player.GetBuffs(BuffEnum.Self, _log, start, end);
-                    Buffs.TryGetValue(Boon.ID, out var value);
-                    if (value != null)
-                    {
-                        boons.Add(value.Uptime);
-                    }
-                }
-            }
-            if(boons.Count == 0)
-            {
-                return 0;
-            }
-            return boons.Average();
-        }
-
         private BuffStackTyping ConvertStackTypeEnum(BuffStackType type)
         {
             switch (type)
@@ -304,7 +303,6 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     continue;
                 }
-
                 List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedStealthEvents = _log.CombatData.GetBuffRemoveAllData(10269).Where(x => x.Time >= Invis.Time && x.Time <= Invis.Time + 20000).ToList();
                 List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedRevealedEvents = _log.CombatData.GetBuffRemoveAllData(890).Where(x => x.Time >= Invis.Time && x.Time <= Invis.Time + 20000).ToList();
                 if (RemovedStealthEvents.Count == 0)
@@ -368,6 +366,57 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return StealthResult;
         }
 
+        private long GetBoonDurationInPhase(string target, string boonName, string phase, long time = 0)
+        {
+            var phaseData = GetPhaseFromName(phase);
+            if (phaseData.Item1 == null)
+                return 0;
+            return GetBoonDuration(target, boonName, phaseData.Item2 + time * 1000);
+        }
+        private long GetBoonDuration(string target, string boonName, long time)
+        {
+            AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
+            if (Target == null)
+            {
+                Target = _log.FightData.GetMainTargets(_log).FirstOrDefault(x => x.Equals("target"));
+                if (Target == null)
+                {
+                    return 0;
+                }
+            }
+
+            var maxDuration = 30000L;
+            if(boonName == "Swiftness")
+            {
+                maxDuration = 60000L;
+            }
+
+            long currentTime = 0;
+            long currentDuration = 0;
+
+            foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
+            {
+                var _buffEvents = _log.CombatData.GetBuffDataByIDByDst(Boon.ID, Target.AgentItem);
+                foreach (var buff in _buffEvents)
+                {
+                    var buffApplyEvent = buff as BuffApplyEvent;
+                    if(buffApplyEvent == null)
+                    {
+                        continue;
+                    }
+                    if (buffApplyEvent.Time > time)
+                    {
+                        break;
+                    }
+                    currentDuration -= buffApplyEvent.Time - currentTime;
+                    currentDuration = Math.Max(0, currentDuration);
+                    currentDuration = Math.Min(currentDuration, maxDuration);
+                    currentTime = buffApplyEvent.Time;
+                    currentDuration += buffApplyEvent.AppliedDuration;
+                }
+            }
+            return Math.Max(0, currentDuration - (time - currentTime)) / 1000L;
+        }
 
         private (PhaseData?,long,long) GetPhaseFromName(string phaseName)
         {

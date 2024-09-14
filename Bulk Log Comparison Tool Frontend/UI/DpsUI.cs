@@ -74,7 +74,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             tableDps.DataSource = null;
             tableDps.RowCount = ActivePlayers.Count + 1;
             var Logs = _logParser.BulkLog.Logs;
-            tableDps.ColumnCount = Logs.Count() + 2;
+            tableDps.ColumnCount = Logs.Count() + 1;
 
             var Phases = _logParser.BulkLog.GetPhases();
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
@@ -95,18 +95,16 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 tableDps.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
                 tableDps.Columns[x].MinimumWidth = 10;
+                tableDps.Columns[x].DefaultCellStyle.Font = columnFont;
                 tableDps.Columns[x].DefaultCellStyle.Format = "N0";
                 tableDps.Columns[x].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
             }
             var count = Logs.Count();
             tableDps.Columns[count].HeaderCell.Value = "Average";
-            tableDps.Columns[count + 1].HeaderCell.Value = "Trimmed Mean";
+            tableDps.Columns[count].DefaultCellStyle.Font = columnFont;
             tableDps.Columns[count].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            tableDps.Columns[count + 1].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             tableDps.Columns[count].DefaultCellStyle.Format = "N0";
             tableDps.Columns[count].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
-            tableDps.Columns[count + 1].DefaultCellStyle.Format = "N0";
-            tableDps.Columns[count + 1].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
             var TotalDps = new Dictionary<string, List<double>>();
             for (int y = 0; y < ActivePlayers.Count; y++)
             {
@@ -133,9 +131,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 var dpsNumbersWithoutZero = dpsnumbers.Where(x => x != 0).ToList();
                 var averageDps = dpsNumbersWithoutZero.Count == 0 ? 0 : dpsNumbersWithoutZero.Average();
                 float Average = (float)Math.Round(averageDps / 1000f);
+                tableDps.Columns[Logs.Count()].DefaultCellStyle.Font = columnFont;
                 tableDps.Rows[y].Cells[Logs.Count()].Value = averageDps;//$"{Average}k";
-                float RoundedAverage = (float)Math.Round(Util.TrimmedAverage(dpsnumbers).Average() / 1000f, 1);
-                tableDps.Rows[y].Cells[Logs.Count() + 1].Value = Util.TrimmedAverage(dpsnumbers).Average();//$"{RoundedAverage}k";
             }
             int row = ActivePlayers.Count + 1;
 

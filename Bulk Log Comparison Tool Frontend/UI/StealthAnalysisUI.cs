@@ -60,6 +60,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             for (int x = 0; x < Logs.Count(); x++)
             {
                 tableStealth.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
+                tableStealth.Columns[x].DefaultCellStyle.Font = columnFont;
                 tableStealth.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < ActivePlayers.Count; y++)
@@ -94,6 +95,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 }
 
                 tableStealth.Rows[y].Cells[Logs.Count()].Value = $"{successCount}/{stealthCount}";
+                tableStealth.Columns[Logs.Count()].DefaultCellStyle.Font = columnFont;
             }
             tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabStealth.Controls.Add(tableStealth);

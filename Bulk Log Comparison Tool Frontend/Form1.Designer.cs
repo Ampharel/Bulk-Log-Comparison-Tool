@@ -31,12 +31,16 @@
             backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
             panelPlayers = new Panel();
             panelStealth = new Panel();
+            lblFontSize = new Label();
+            nudFontSize = new NumericUpDown();
             btnOpenFolder = new Button();
             btnDeleteSelected = new Button();
             btnOpenLogs = new Button();
             lbLoadedFiles = new ListBox();
             backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             tabBoons = new TabPage();
+            nudBoonTime = new NumericUpDown();
+            cbBoonTime = new CheckBox();
             label9 = new Label();
             lblSelectedBoonBoons = new Label();
             lblSelectedPhaseBoons = new Label();
@@ -69,7 +73,9 @@
             label2 = new Label();
             tableShockwave = new DataGridView();
             panelStealth.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudFontSize).BeginInit();
             tabBoons.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)nudBoonTime).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tableBoons).BeginInit();
             tabMechanics.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tableMechanics).BeginInit();
@@ -94,6 +100,8 @@
             // 
             // panelStealth
             // 
+            panelStealth.Controls.Add(lblFontSize);
+            panelStealth.Controls.Add(nudFontSize);
             panelStealth.Controls.Add(btnOpenFolder);
             panelStealth.Controls.Add(btnDeleteSelected);
             panelStealth.Controls.Add(btnOpenLogs);
@@ -103,6 +111,25 @@
             panelStealth.Name = "panelStealth";
             panelStealth.Size = new Size(172, 681);
             panelStealth.TabIndex = 2;
+            // 
+            // lblFontSize
+            // 
+            lblFontSize.AutoSize = true;
+            lblFontSize.Location = new Point(9, 94);
+            lblFontSize.Name = "lblFontSize";
+            lblFontSize.Size = new Size(54, 15);
+            lblFontSize.TabIndex = 5;
+            lblFontSize.Text = "Font Size";
+            // 
+            // nudFontSize
+            // 
+            nudFontSize.Location = new Point(69, 92);
+            nudFontSize.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
+            nudFontSize.Name = "nudFontSize";
+            nudFontSize.Size = new Size(91, 23);
+            nudFontSize.TabIndex = 4;
+            nudFontSize.Value = new decimal(new int[] { 12, 0, 0, 0 });
+            nudFontSize.ValueChanged += nudFontSize_ValueChanged;
             // 
             // btnOpenFolder
             // 
@@ -140,15 +167,17 @@
             lbLoadedFiles.ForeColor = SystemColors.Menu;
             lbLoadedFiles.FormattingEnabled = true;
             lbLoadedFiles.ItemHeight = 15;
-            lbLoadedFiles.Location = new Point(9, 98);
+            lbLoadedFiles.Location = new Point(9, 128);
             lbLoadedFiles.Name = "lbLoadedFiles";
             lbLoadedFiles.SelectionMode = SelectionMode.MultiExtended;
-            lbLoadedFiles.Size = new Size(160, 559);
+            lbLoadedFiles.Size = new Size(160, 529);
             lbLoadedFiles.Sorted = true;
             lbLoadedFiles.TabIndex = 0;
             // 
             // tabBoons
             // 
+            tabBoons.Controls.Add(nudBoonTime);
+            tabBoons.Controls.Add(cbBoonTime);
             tabBoons.Controls.Add(label9);
             tabBoons.Controls.Add(lblSelectedBoonBoons);
             tabBoons.Controls.Add(lblSelectedPhaseBoons);
@@ -161,6 +190,24 @@
             tabBoons.TabIndex = 2;
             tabBoons.Text = "Boons";
             tabBoons.UseVisualStyleBackColor = true;
+            // 
+            // nudBoonTime
+            // 
+            nudBoonTime.Location = new Point(809, 3);
+            nudBoonTime.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
+            nudBoonTime.Name = "nudBoonTime";
+            nudBoonTime.Size = new Size(120, 23);
+            nudBoonTime.TabIndex = 19;
+            // 
+            // cbBoonTime
+            // 
+            cbBoonTime.AutoSize = true;
+            cbBoonTime.Location = new Point(935, 5);
+            cbBoonTime.Name = "cbBoonTime";
+            cbBoonTime.Size = new Size(99, 19);
+            cbBoonTime.TabIndex = 18;
+            cbBoonTime.Text = "Boons at time";
+            cbBoonTime.UseVisualStyleBackColor = true;
             // 
             // label9
             // 
@@ -476,8 +523,11 @@
             StartPosition = FormStartPosition.WindowsDefaultBounds;
             Text = "BLCT";
             panelStealth.ResumeLayout(false);
+            panelStealth.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)nudFontSize).EndInit();
             tabBoons.ResumeLayout(false);
             tabBoons.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)nudBoonTime).EndInit();
             ((System.ComponentModel.ISupportInitialize)tableBoons).EndInit();
             tabMechanics.ResumeLayout(false);
             tabMechanics.PerformLayout();
@@ -539,5 +589,9 @@
         private Button btnOpenFolder;
         private CheckBox cbCumulative;
         private CheckBox cbDefiance;
+        private CheckBox cbBoonTime;
+        private NumericUpDown nudBoonTime;
+        private Label lblFontSize;
+        private NumericUpDown nudFontSize;
     }
 }

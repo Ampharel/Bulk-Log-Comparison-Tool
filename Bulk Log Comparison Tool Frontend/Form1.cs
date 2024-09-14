@@ -22,6 +22,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
         private ConcurrentQueue<string> _loadedFiles = new();
 
+        private Font tableFont;
+
         public Form1()
         {
             InitializeComponent();
@@ -35,7 +37,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             _playerPanel.PlayerSelectionChangedEvent += OnPlayerSelectionChanged;
             tabsControl.SelectedIndexChanged += (sender, e) => UpdatePanels();
 
+            tableFont = new Font("Verdana", (float)nudFontSize.Value);
             SetupPanels();
+            UpdateFonts();
             ParseCustomPhases();
             StartTimer();
         }
@@ -44,9 +48,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         {
             _shockwavePanel = new ShockwaveUI(tableShockwave, tabShockwaves, _logParser, ActivePlayers);
             _stealthPanel = new StealthAnalysisUI(tableStealth, lblSelectedPhaseStealth, cbStealthPhase, tabStealth, _logParser, ActivePlayers);
-            _dpsPanel = new DpsUI(tableDps, lblSelectedPhaseDps, cbDpsPhase, tabDps, _logParser, ActivePlayers, cbCumulative,cbDefiance);
+            _dpsPanel = new DpsUI(tableDps, lblSelectedPhaseDps, cbDpsPhase, tabDps, _logParser, ActivePlayers, cbCumulative, cbDefiance);
             _mechanicPanel = new MechanicsUI(tableMechanics, lblSelectedPhaseMechanics, lblSelectedMechanic, cbMechanicPhase, cbMechanicMechanics, tabMechanics, _logParser, ActivePlayers);
-            _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, cbBoonBoons, cbBoonPhase, tabBoons, _logParser, ActivePlayers);
+            _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, cbBoonPhase, cbBoonBoons, tabBoons, cbBoonTime, nudBoonTime, _logParser, ActivePlayers);
         }
 
         private void StartTimer()
@@ -81,12 +85,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private void CheckQueue(object? sender, EventArgs e)
         {
             bool loadedFile = false;
-            while(_loadedFiles.TryDequeue(out string? file))
+            while (_loadedFiles.TryDequeue(out string? file))
             {
                 lbLoadedFiles.Items.Add(file);
                 loadedFile = true;
             }
-            if(loadedFile)
+            if (loadedFile)
             {
                 _playerPanel?.Refresh();
                 UpdatePanels();
@@ -127,7 +131,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 }
                 Task.WhenAll(_runningTasks);
             }
-            
+
         }
 
         private void btnDeleteSelected_Click(object? sender, EventArgs e)
@@ -145,9 +149,10 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         {
             var openFolderDialog = new FolderBrowserDialog();
             openFolderDialog.InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs\\");
-            if (openFolderDialog.ShowDialog() == DialogResult.OK) {
+            if (openFolderDialog.ShowDialog() == DialogResult.OK)
+            {
                 _directory = openFolderDialog.SelectedPath;
-                    }
+            }
 
             if (!_running && _directory != "")
             {
@@ -191,6 +196,22 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             {
                 MessageBox.Show($"Error loading file {file}: {ex.Message}");
             }
+        }
+
+        private void nudFontSize_ValueChanged(object sender, EventArgs e)
+        {
+            UpdateFonts();
+            UpdatePanels();
+        }
+
+        private void UpdateFonts()
+        {
+            tableFont = new Font("Verdana", (float)nudFontSize.Value);
+            _boonPanel.columnFont = tableFont;
+            _mechanicPanel.columnFont = tableFont;
+            _dpsPanel.columnFont = tableFont;
+            _stealthPanel.columnFont = tableFont;
+            _shockwavePanel.columnFont = tableFont;
         }
     }
 }
