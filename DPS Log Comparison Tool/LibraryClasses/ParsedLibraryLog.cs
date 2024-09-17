@@ -53,12 +53,21 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return phase.Item1.Targets.Select(x => x.Character).ToArray();
         }
 
-        public double GetPlayerDps(string accountName, string phaseName = "", bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All)
+        public double GetPlayerDps(string accountName, string phaseName = "", bool allTarget = false, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All)
         {
             var phase = GetPhaseFromName(phaseName);
             if (phase.Item1 == null)
                 return 0;
-            var target = phase.Item1.Targets;
+
+            IReadOnlyList<AbstractSingleActor> target = null;
+            if (phaseName == "Full Fight" && allTarget)
+            {
+                target = _log.FightData.GetPhases(_log).SelectMany(x => x.Targets).DistinctBy(x => x.Character).ToArray();
+            }
+            else
+            {
+                target = phase.Item1.Targets;
+            }
             if (target == null)
                 return 0;
             return GetPlayerDps(accountName, GetPhaseStart(phaseName), GetPhaseEnd(phaseName), target.ToArray(), cumulative, defiance, damageType);

@@ -72,6 +72,7 @@
             tabShockwaves = new TabPage();
             label2 = new Label();
             tableShockwave = new DataGridView();
+            cbAllTargets = new CheckBox();
             panelStealth.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudFontSize).BeginInit();
             tabBoons.SuspendLayout();
@@ -344,6 +345,7 @@
             // 
             // tabDps
             // 
+            tabDps.Controls.Add(cbAllTargets);
             tabDps.Controls.Add(cbDefiance);
             tabDps.Controls.Add(cbCumulative);
             tabDps.Controls.Add(lblSelectedPhaseDps);
@@ -508,6 +510,16 @@
             tableShockwave.Size = new Size(1067, 571);
             tableShockwave.TabIndex = 0;
             // 
+            // cbAllTargets
+            // 
+            cbAllTargets.AutoSize = true;
+            cbAllTargets.Location = new Point(551, 8);
+            cbAllTargets.Name = "cbAllTargets";
+            cbAllTargets.Size = new Size(80, 19);
+            cbAllTargets.TabIndex = 14;
+            cbAllTargets.Text = "All Targets";
+            cbAllTargets.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -593,5 +605,6 @@
         private NumericUpDown nudBoonTime;
         private Label lblFontSize;
         private NumericUpDown nudFontSize;
+        private CheckBox cbAllTargets;
     }
 }

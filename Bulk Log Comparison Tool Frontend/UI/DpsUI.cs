@@ -22,9 +22,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         private readonly UILogParser _logParser;
         private readonly CheckBox _cumulative;
         private readonly CheckBox _defiance;
+        private readonly CheckBox _allTargets;
 
 
-        public DpsUI(DataGridView tableDps, Label lblSelectedPhaseDps, ComboBox cbDpsPhase, TabPage tabDps, UILogParser logParser, List<string> activePlayers, CheckBox cumulative, CheckBox defiance) : base(activePlayers)
+
+
+        public DpsUI(DataGridView tableDps, Label lblSelectedPhaseDps, ComboBox cbDpsPhase, TabPage tabDps, UILogParser logParser, List<string> activePlayers, CheckBox cumulative, CheckBox defiance, CheckBox allTargets) : base(activePlayers)
         {
             this.tableDps = tableDps;
             this.lblSelectedPhaseDps = lblSelectedPhaseDps;
@@ -33,9 +36,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             _logParser = logParser;
             _cumulative = cumulative;
             _defiance = defiance;
+            _allTargets = allTargets;
             cbDpsPhase.SelectedIndexChanged += OnCbDpsPhaseSelectedIndexChanged;
             _cumulative.CheckedChanged += OnCheckboxCumulativeCheckedChanged;
             _defiance.CheckedChanged += OnCheckboxDefianceCheckedChanged;
+            _allTargets.CheckedChanged += OnCheckboxTargetsCheckedChanged;
         }
 
         private void OnCheckboxCumulativeCheckedChanged(object? sender, EventArgs e)
@@ -63,9 +68,17 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             UpdatePanel();
         }
 
+        public void OnCheckboxTargetsCheckedChanged(object? sender, EventArgs e)
+        {
+            UpdatePanel();
+        }
+
         ~DpsUI()
         {
             cbDpsPhase.SelectedIndexChanged -= OnCbDpsPhaseSelectedIndexChanged;
+            _cumulative.CheckedChanged -= OnCheckboxCumulativeCheckedChanged;
+            _defiance.CheckedChanged -= OnCheckboxDefianceCheckedChanged;
+            _allTargets.CheckedChanged -= OnCheckboxTargetsCheckedChanged;
         }
 
         public override void UpdatePanel()
@@ -114,14 +127,14 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 {
                     if (!Logs[x].HasPlayer(ActivePlayers[y]))
                     {
-                        tableDps.Rows[y].Cells[x].Value = "";
+                        tableDps.Rows[y].Cells[x].Value = 0;
                         continue;
                     }
                     if (TotalDps.ContainsKey(Logs[x].GetFileName()) == false)
                     {
                         TotalDps.Add(Logs[x].GetFileName(), new List<double>());
                     }
-                    double dps = Logs[x].GetPlayerDps(ActivePlayers[y], _selectedPhase, _cumulative.Checked, _defiance.Checked);
+                    double dps = Logs[x].GetPlayerDps(ActivePlayers[y], _selectedPhase, _allTargets.Checked, _cumulative.Checked, _defiance.Checked);
                     float roundedDps = (float)Math.Round(dps / 1000f, 1);
                     TotalDps[Logs[x].GetFileName()].Add(dps);
                     dpsnumbers.Add(dps);
