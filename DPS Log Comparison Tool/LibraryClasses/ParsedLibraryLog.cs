@@ -293,11 +293,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 PhaseData? FromPhase = null;
                 foreach (var ph in phases)
                 {
+                    FromPhase = ph;
                     if (ph.Start != 0 && ph.End > Invis.EndTime)
                     {
                         break;
                     }
-                    FromPhase = ph;
                 }
                 if (FromPhase == null)
                 {
