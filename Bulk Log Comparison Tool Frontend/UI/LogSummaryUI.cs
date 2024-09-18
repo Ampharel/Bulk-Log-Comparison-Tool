@@ -89,9 +89,16 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 var downed = _selectedLog.GetDownReasons(Player);
                 tableDeaths.Rows[y].HeaderCell.Value = Player;
 
-                for (int x = 0; x < downed.Count; x++)
+                for (int x = 0; x < maxDowns; x++)
                 {
-                    tableDeaths.Rows[y].Cells[x].Value = downed[x] ?? "";
+                    if(x < downed.Count())
+                    {
+                        tableDeaths.Rows[y].Cells[x].Value = downed[x] ?? "";
+                    }
+                    else
+                    {
+                        tableDeaths.Rows[y].Cells[x].Value = "";
+                    }
                 }
             }
 
