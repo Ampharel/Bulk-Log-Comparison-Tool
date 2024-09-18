@@ -2,6 +2,7 @@
 using DarkModeForms;
 using Bulk_Log_Comparison_Tool_Frontend.UI;
 using System.Collections.Concurrent;
+using Bulk_Log_Comparison_Tool_Frontend.Utils;
 
 namespace Bulk_Log_Comparison_Tool_Frontend
 {
@@ -224,6 +225,15 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         {
             tableFont = new Font("Verdana", (float)nudFontSize.Value);
             IPanel.columnFont = tableFont;
+            tableBoons.UpdateTableFont();
+            tableDps.UpdateTableFont();
+            tableMechanics.UpdateTableFont();
+            tableShockwave.UpdateTableFont();
+            tableStealth.UpdateTableFont();
+            tableDeaths.UpdateTableFont();
+            tableMechanicsSummary.UpdateTableFont();
+            tableShockwaveSummary.UpdateTableFont();
+            tableStealthSummary.UpdateTableFont();
         }
     }
 }

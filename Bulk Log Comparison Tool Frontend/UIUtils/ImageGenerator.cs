@@ -1,5 +1,6 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
 using Bulk_Log_Comparison_Tool_Frontend.UI;
+using Bulk_Log_Comparison_Tool_Frontend.Utils;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -77,7 +78,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             int height = 32; // adjust to your desired height
             Image image = new Bitmap(width, height);
             Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, 16);
+            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
             StringFormat format = StringFormat.GenericDefault;
             graphics.DrawString("✓", font, GetBrushColour(shockwaveType), 0, 0);
             return image;
@@ -88,7 +89,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             int height = 32; // adjust to your desired height
             Image image = new Bitmap(width, height);
             Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, 16);
+            Font font = new Font(fontName, IPanel.columnFont.Size+4);
             StringFormat format = StringFormat.GenericDefault;
             graphics.DrawString("⚠", font, GetBrushColour(shockwaveType), 0, 0);
             return image;
@@ -99,7 +100,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             int height = 32; // adjust to your desired height
             Image image = new Bitmap(width, height);
             Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, 16);
+            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
             StringFormat format = StringFormat.GenericDefault;
             graphics.DrawString("☠", font, GetBrushColour(shockwaveType), 0, 0);
             return image;
@@ -110,7 +111,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             int height = 32; // adjust to your desired height
             Image image = new Bitmap(width, height);
             Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, 16);
+            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
             StringFormat format = StringFormat.GenericDefault;
             graphics.DrawString("🛡", font, GetBrushColour(shockwaveType), 0, 0);
             return image;
@@ -121,7 +122,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             int height = 32; // adjust to your desired height
             Image image = new Bitmap(width, height);
             Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, 16);
+            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
             StringFormat format = StringFormat.GenericDefault;
             graphics.DrawString("🔻", font, GetBrushColour(shockwaveType), 0, 0);
             return image;

@@ -108,13 +108,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 tableDps.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
                 tableDps.Columns[x].MinimumWidth = 10;
-                tableDps.Columns[x].DefaultCellStyle.Font = IPanel.columnFont;
                 tableDps.Columns[x].DefaultCellStyle.Format = "N0";
                 tableDps.Columns[x].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
             }
             var count = Logs.Count();
             tableDps.Columns[count].HeaderCell.Value = "Average";
-            tableDps.Columns[count].DefaultCellStyle.Font = IPanel.columnFont;
             tableDps.Columns[count].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             tableDps.Columns[count].DefaultCellStyle.Format = "N0";
             tableDps.Columns[count].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
@@ -142,7 +140,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 var dpsNumbersWithoutZero = dpsnumbers.Where(x => x != 0).ToList();
                 var averageDps = dpsNumbersWithoutZero.Count == 0 ? 0 : dpsNumbersWithoutZero.Average();
                 float Average = (float)Math.Round(averageDps / 1000f);
-                tableDps.Columns[Logs.Count()].DefaultCellStyle.Font = IPanel.columnFont;
                 tableDps.Rows[y].Cells[Logs.Count()].Value = DpsToText(averageDps);//$"{Average}k";
             }
             int row = ActivePlayers.Count + 1;

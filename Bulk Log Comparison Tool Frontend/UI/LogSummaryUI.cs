@@ -91,7 +91,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
                 for (int x = 0; x < downed.Count; x++)
                 {
-                    tableDeaths.Rows[y].Cells[x].Value = downed[x];
+                    tableDeaths.Rows[y].Cells[x].Value = downed[x] ?? "";
                 }
             }
 
@@ -114,7 +114,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             for (int i = 0; i < mechanicNames.Length; i++)
             {
                 tableMechanics.Columns[i].HeaderCell.Value = mechanics[i];
-                tableMechanics.Columns[i].DefaultCellStyle.Font = IPanel.columnFont;
             }
             tableMechanics.RowCount = players.Length;
 
@@ -200,7 +199,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             for (int x = 0; x < stealthPhases.Length; x++)
             {
                 tableStealth.Columns[x].HeaderCell.Value = stealthPhases[x];
-                tableStealth.Columns[x].DefaultCellStyle.Font = IPanel.columnFont;
             }
 
             for (int y = 0; y < players.Length; y++)

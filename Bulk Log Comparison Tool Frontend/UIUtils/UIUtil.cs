@@ -1,11 +1,12 @@
-﻿
-namespace Bulk_Log_Comparison_Tool_Frontend.UI
+﻿using Bulk_Log_Comparison_Tool_Frontend.UI;
+
+namespace Bulk_Log_Comparison_Tool_Frontend.Utils
 {
     internal static class UIUtil
     {
         public static Image StitchImages(this Image image1, Image image2)
         {
-            if(image1 == null)
+            if (image1 == null)
             {
                 return image2;
             }
@@ -18,7 +19,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             return newImage;
         }
 
-
+        public static void UpdateTableFont(this DataGridView table)
+        {
+            table.DefaultCellStyle.Font = IPanel.columnFont;
+            table.ColumnHeadersDefaultCellStyle.Font = IPanel.columnFont;
+            table.RowHeadersDefaultCellStyle.Font = IPanel.columnFont;
+        }
     }
 
 }
