@@ -20,8 +20,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         private readonly UILogParser logParser;
         private readonly ComboBox logComboBox;
 
-        private readonly string[] mechanicNames = ["Debilitated", "Spread Bait", "Red Bait", "Orb push", "Last Laugh", "Infirmity"];
-        private readonly string[] mechanics = ["Debilitated Applied", "Spread Bait", "Red Bait", "Orb push", "Void Explosion", "Infirmity"];
+        private readonly string[] mechanicNames = ["Debilitated", "Spread Bait", "Red Bait", "Orb Push", "Last Laugh", "Infirmity"];
+        private readonly string[] mechanics = ["Debilitated Applied", "Spread Bait", "Red Bait", "Orb Push", "Void Explosion", "Infirmity"];
 
         private ImageGenerator imageGenerator = new ImageGenerator();
 
