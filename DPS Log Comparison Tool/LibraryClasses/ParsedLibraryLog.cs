@@ -260,7 +260,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var mech = GetMechanic(mechanicName, start, end);
             if(mech == null)
             {
-                return [("",0)];
+                return [];
             }
             var result = _log.MechanicData.GetMechanicLogs(_log, mech, start, end).ToList();
             return result.Select(x => (x.Actor.Account, x.Time - start)).ToArray();
@@ -533,5 +533,17 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return !IsDead && !IsDC;
         }
 
+        public List<string> GetDownReasons(string accountName)
+        {
+            var downEvents = _log.CombatData.GetDownEvents(_log.PlayerAgents.FirstOrDefault(x => x.Name.Contains(accountName)));
+            var deathEvents = _log.CombatData.GetDeadEvents(_log.PlayerAgents.FirstOrDefault(x => x.Name.Contains(accountName)));
+            var dmgTakenEvents = _log.CombatData.GetDamageTakenData(_log.PlayerAgents.FirstOrDefault(x => x.Name.Contains(accountName)));
+            List<string> downedReasons = new();
+            foreach(var downed in downEvents)
+            {
+                downedReasons.Add(dmgTakenEvents.Where(x => x.Time == downed.Time).ToList().Select(x => x.Skill.Name).First());
+            }
+            return downedReasons;
+        }
     }
 }

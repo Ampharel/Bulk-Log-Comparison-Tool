@@ -21,6 +21,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public bool IsAlive(string player, long time);
         public BuffStackTyping GetBoonStackType(string boonName);
         public List<(string, string)> GetStealthResult(string accountName);
+        public List<string> GetDownReasons(string accountName);
 
         public string[] GetPlayers();
         public int[] GetGroups();

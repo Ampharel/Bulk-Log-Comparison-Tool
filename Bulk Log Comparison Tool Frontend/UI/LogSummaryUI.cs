@@ -16,21 +16,25 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         private readonly DataGridView tableStealth;
         private readonly DataGridView tableShockwave;
         private readonly DataGridView tableMechanics;
+        private readonly DataGridView tableDeaths;
         private readonly UILogParser logParser;
         private readonly ComboBox logComboBox;
 
+        private readonly string[] mechanicNames = ["Debilitated", "Spread Bait", "Red Bait", "Orb push", "Last Laugh", "Infirmity"];
+        private readonly string[] mechanics = ["Debilitated Applied", "Spread Bait", "Red Bait", "Orb push", "Void Explosion", "Infirmity"];
 
         private ImageGenerator imageGenerator = new ImageGenerator();
 
-        public LogSummaryUI(TabPage tabSummary, DataGridView tableStealth, DataGridView tableShockwaves, DataGridView tableMechanics, UILogParser logParser, ComboBox logComboBox)
+        public LogSummaryUI(TabPage tabSummary, DataGridView tableStealth, DataGridView tableShockwave, DataGridView tableMechanics, DataGridView tableDeaths, UILogParser logParser, ComboBox logComboBox)
         {
             _tabSummary = tabSummary;
             this.tableStealth = tableStealth;
-            tableShockwave = tableShockwaves;
+            this.tableShockwave = tableShockwave;
             this.tableMechanics = tableMechanics;
+            this.tableDeaths = tableDeaths;
             this.logParser = logParser;
             this.logComboBox = logComboBox;
-            this.logComboBox.SelectedIndexChanged += OnLogComboBoxSelectedIndexChanged;
+            logComboBox.SelectedIndexChanged += OnLogComboBoxSelectedIndexChanged;
         }
 
         ~LogSummaryUI()
@@ -54,6 +58,79 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             UpdateStealthTable();
             UpdateShockwaveTable();
+            UpdateMechanicsTable();
+            UpdateDeathTable();
+        }
+
+        private void UpdateDeathTable()
+        {
+            if (_selectedLog == null)
+            {
+                return;
+            }
+            var players = _selectedLog.GetPlayers();
+            var maxDowns = 1;
+            foreach (var player in players)
+            {
+                var downed = _selectedLog.GetDownReasons(player);
+                if (downed.Count() > maxDowns)
+                {
+                    maxDowns = downed.Count();
+                }
+            }
+            _tabSummary.Controls.Remove(tableDeaths);
+            tableDeaths.DataSource = null;
+            tableDeaths.TopLeftHeaderCell.Value = "Downs";
+            tableDeaths.ColumnCount = maxDowns;
+            tableDeaths.RowCount = players.Length;
+            for (int y = 0; y < players.Length; y++)
+            {
+                var Player = players[y];
+                var downed = _selectedLog.GetDownReasons(Player);
+                tableDeaths.Rows[y].HeaderCell.Value = Player;
+
+                for (int x = 0; x < downed.Count; x++)
+                {
+                    tableDeaths.Rows[y].Cells[x].Value = downed[x];
+                }
+            }
+
+            tableDeaths.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+
+            _tabSummary.Controls.Add(tableDeaths);
+        }
+
+        private void UpdateMechanicsTable()
+        {
+            if (_selectedLog == null)
+            {
+                return;
+            }
+            var players = _selectedLog.GetPlayers();
+            _tabSummary.Controls.Remove(tableMechanics);
+            tableMechanics.DataSource = null;
+            tableMechanics.ColumnCount = 6;
+            tableMechanics.TopLeftHeaderCell.Value = "Mechanics";
+            for (int i = 0; i < mechanicNames.Length; i++)
+            {
+                tableMechanics.Columns[i].HeaderCell.Value = mechanics[i];
+                tableMechanics.Columns[i].DefaultCellStyle.Font = IPanel.columnFont;
+            }
+            tableMechanics.RowCount = players.Length;
+
+            for (int x = 0; x < mechanics.Length; x++)
+            {
+                var mechs = _selectedLog.GetMechanicLogs(mechanics[x].Split(':').Last().TrimStart(' '), "Full Fight");
+                for (int y = 0; y < players.Length; y++)
+                {
+                    var Player = players[y];
+                    tableMechanics.Rows[y].HeaderCell.Value = Player;
+                    tableMechanics.Rows[y].Cells[x].Value = mechs.Where(x => x.Item1 == Player).Count();
+                }
+            }
+            tableMechanics.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
+
+            _tabSummary.Controls.Add(tableMechanics);
         }
 
         private void UpdateShockwaveTable()
@@ -66,6 +143,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             _tabSummary.Controls.Remove(tableShockwave);
             tableShockwave.DataSource = null;
             tableShockwave.ColumnCount = 1;
+            tableShockwave.TopLeftHeaderCell.Value = "Shockwaves";
             tableShockwave.RowCount = players.Length;
 
             for (int y = 0; y < players.Length; y++)
@@ -113,6 +191,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             _tabSummary.Controls.Remove(tableStealth);
             tableStealth.DataSource = null;
             tableStealth.RowCount = players.Length;
+            tableStealth.TopLeftHeaderCell.Value = "Stealth";
 
             var bulkLog = new BulkLog(new List<IParsedEvtcLog> { _selectedLog });
             string[] stealthPhases = bulkLog.GetStealthPhases();

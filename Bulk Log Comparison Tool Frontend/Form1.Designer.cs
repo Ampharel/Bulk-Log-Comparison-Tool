@@ -73,8 +73,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableStealth = new DataGridView();
             tabsControl = new TabControl();
             tabSummary = new TabPage();
-            dataGridView4 = new DataGridView();
-            dataGridView3 = new DataGridView();
+            tableDeaths = new DataGridView();
+            tableMechanicsSummary = new DataGridView();
             tableShockwaveSummary = new DataGridView();
             tableStealthSummary = new DataGridView();
             comboSummaryLog = new ComboBox();
@@ -94,8 +94,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             ((System.ComponentModel.ISupportInitialize)tableStealth).BeginInit();
             tabsControl.SuspendLayout();
             tabSummary.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)dataGridView4).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)dataGridView3).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tableDeaths).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tableMechanicsSummary).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tableShockwaveSummary).BeginInit();
             ((System.ComponentModel.ISupportInitialize)tableStealthSummary).BeginInit();
             tabShockwaves.SuspendLayout();
@@ -504,8 +504,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // 
             // tabSummary
             // 
-            tabSummary.Controls.Add(dataGridView4);
-            tabSummary.Controls.Add(dataGridView3);
+            tabSummary.Controls.Add(tableDeaths);
+            tabSummary.Controls.Add(tableMechanicsSummary);
             tabSummary.Controls.Add(tableShockwaveSummary);
             tabSummary.Controls.Add(tableStealthSummary);
             tabSummary.Controls.Add(comboSummaryLog);
@@ -516,29 +516,29 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabSummary.Text = "QuickSummary";
             tabSummary.UseVisualStyleBackColor = true;
             // 
-            // dataGridView4
+            // tableDeaths
             // 
-            dataGridView4.AllowUserToAddRows = false;
-            dataGridView4.AllowUserToDeleteRows = false;
-            dataGridView4.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dataGridView4.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView4.Location = new Point(536, 317);
-            dataGridView4.Name = "dataGridView4";
-            dataGridView4.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            dataGridView4.Size = new Size(529, 278);
-            dataGridView4.TabIndex = 6;
+            tableDeaths.AllowUserToAddRows = false;
+            tableDeaths.AllowUserToDeleteRows = false;
+            tableDeaths.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tableDeaths.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            tableDeaths.Location = new Point(536, 317);
+            tableDeaths.Name = "tableDeaths";
+            tableDeaths.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            tableDeaths.Size = new Size(529, 278);
+            tableDeaths.TabIndex = 6;
             // 
-            // dataGridView3
+            // tableMechanicsSummary
             // 
-            dataGridView3.AllowUserToAddRows = false;
-            dataGridView3.AllowUserToDeleteRows = false;
-            dataGridView3.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            dataGridView3.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridView3.Location = new Point(536, 32);
-            dataGridView3.Name = "dataGridView3";
-            dataGridView3.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            dataGridView3.Size = new Size(529, 279);
-            dataGridView3.TabIndex = 5;
+            tableMechanicsSummary.AllowUserToAddRows = false;
+            tableMechanicsSummary.AllowUserToDeleteRows = false;
+            tableMechanicsSummary.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tableMechanicsSummary.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            tableMechanicsSummary.Location = new Point(536, 32);
+            tableMechanicsSummary.Name = "tableMechanicsSummary";
+            tableMechanicsSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            tableMechanicsSummary.Size = new Size(529, 279);
+            tableMechanicsSummary.TabIndex = 5;
             // 
             // tableShockwaveSummary
             // 
@@ -636,8 +636,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             ((System.ComponentModel.ISupportInitialize)tableStealth).EndInit();
             tabsControl.ResumeLayout(false);
             tabSummary.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)dataGridView4).EndInit();
-            ((System.ComponentModel.ISupportInitialize)dataGridView3).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tableDeaths).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tableMechanicsSummary).EndInit();
             ((System.ComponentModel.ISupportInitialize)tableShockwaveSummary).EndInit();
             ((System.ComponentModel.ISupportInitialize)tableStealthSummary).EndInit();
             tabShockwaves.ResumeLayout(false);
@@ -699,7 +699,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private ComboBox comboSummaryLog;
         private DataGridView tableStealthSummary;
         private DataGridView tableShockwaveSummary;
-        private DataGridView dataGridView4;
-        private DataGridView dataGridView3;
+        private DataGridView tableDeaths;
+        private DataGridView tableMechanicsSummary;
     }
 }
