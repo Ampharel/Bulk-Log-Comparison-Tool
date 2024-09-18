@@ -1,19 +1,16 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
+using Bulk_Log_Comparison_Tool_Frontend.Compare;
 
 namespace Bulk_Log_Comparison_Tool_Frontend.UI
 {
     internal class ShockwaveUI : PlayerUI
     {
-
-        private readonly long _startPhaseOffset = 3000;
-        private readonly long _shockwaveCooldown = 18315;
-        private readonly long _shockwave2Internal = 2408;
-        private readonly long _shockwave3Internal = 1934;
-
         private readonly DataGridView tableShockwave;
         private readonly TabPage tabShockwaves;
         private readonly UILogParser _logParser;
+
+        private ImageGenerator imageGenerator = new ImageGenerator();
 
         public ShockwaveUI(DataGridView tableShockwave, TabPage tabShockwaves, UILogParser logParser, List<string> activePlayers) : base(activePlayers)
         {
@@ -33,7 +30,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             for (int x = 0; x < Logs.Count(); x++)
             {
                 tableShockwave.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
-                tableShockwave.Columns[x].DefaultCellStyle.Font = columnFont;
+                tableShockwave.Columns[x].DefaultCellStyle.Font = IPanel.columnFont;
                 tableShockwave.Columns[x].MinimumWidth = 10;
             }
             for (int y = 0; y < ActivePlayers.Count; y++)
@@ -49,7 +46,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     shockwaves = GetShockwaves(Logs, x, shockwaves,1);
                     shockwaves = GetShockwaves(Logs, x, shockwaves,2);
 
-                    image = GetImage(Log, Player, image, shockwaves);
+                    image = imageGenerator.GetImage(Log, Player, image, shockwaves);
 
 
 
@@ -74,153 +71,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             return shockwaves;
         }
-
-        private Image GetImage(IParsedEvtcLog Log, string Player, Image image, List<(long,int)> shockwaves)
-        {
-            var mechanic = "";
-            var sortedShockwaves = shockwaves.OrderBy(x => x.Item1);
-            foreach (var shockwave in sortedShockwaves)
-            {
-                switch (shockwave.Item2)
-                {
-                    case 0:
-                        mechanic = "Mordremoth Shockwave";
-                        break;
-                    case 1:
-                        mechanic = "Soo-Won Tsunami";
-                        break;
-                    case 2:
-                        mechanic = "Obliterator Shockwave"; //Name needs checking
-                        break;
-                }
-                if(!Log.HasPlayer(Player))
-                {
-                    continue;
-                }
-                var hadStab = Log.HasBoonDuringTime(Player, "Stability", shockwave.Item1, shockwave.Item1 + 2000);
-                var wasHit = Log.GetMechanicLogs(mechanic, start: shockwave.Item1, end: shockwave.Item1 + 2000).Where(x => x.Item1.Equals(Player)).Count() > 0;
-
-                var wasAlive = Log.IsAlive(Player, shockwave.Item1);
-                if (!wasAlive)
-                {
-                    image = image.StitchImages(GetSkullImage(shockwave.Item2));
-                }
-                else if (hadStab && wasHit)
-                {
-                    image = image.StitchImages(GetShieldImage(shockwave.Item2));
-                }
-                else if (hadStab)
-                {
-                    image = image.StitchImages(GetCheckmarkImage(shockwave.Item2));
-                }
-                else if (wasHit)
-                {
-                    image = image.StitchImages(GetDownedImage(shockwave.Item2));
-                }
-                else
-                {
-                    image = image.StitchImages(GetWarningImage(shockwave.Item2));
-                }
-            }
-
-            return image;
-        }
-
-        private long GetWaveOffset(int wave)
-        {
-
-            switch (wave)
-            {
-                case 0:
-                    return 0;
-                case 1:
-                    return _shockwave2Internal;
-                case 2:
-                    return _shockwave3Internal;
-                default:
-                    return -1;
-            }
-        }
-        enum StabStatus
-        {
-            Dead,
-            Stability,
-            None
-        };
-
-        private const string fontName = "Segoe UI Symbol";
-
-        private Image GetCheckmarkImage(int shockwaveType)
-        {
-            int width = 32; // adjust to your desired width
-            int height = 32; // adjust to your desired height
-            Image image = new Bitmap(width, height);
-            Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, 16);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("✓", font, GetBrushColour(shockwaveType), 0, 0);
-            return image;
-        }
-        private Image GetWarningImage(int shockwaveType)
-        {
-            int width = 32; // adjust to your desired width
-            int height = 32; // adjust to your desired height
-            Image image = new Bitmap(width, height);
-            Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, 16);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("⚠", font, GetBrushColour(shockwaveType), 0, 0);
-            return image;
-        }
-        private Image GetSkullImage(int shockwaveType)
-        {
-            int width = 32; // adjust to your desired width
-            int height = 32; // adjust to your desired height
-            Image image = new Bitmap(width, height);
-            Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, 16);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("☠", font, GetBrushColour(shockwaveType), 0, 0);
-            return image;
-        }
-        private Image GetShieldImage(int shockwaveType)
-        {
-            int width = 32; // adjust to your desired width
-            int height = 32; // adjust to your desired height
-            Image image = new Bitmap(width, height);
-            Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, 16);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("🛡", font, GetBrushColour(shockwaveType), 0, 0);
-            return image;
-        }
-        private Image GetDownedImage(int shockwaveType)
-        {
-            int width = 32; // adjust to your desired width
-            int height = 32; // adjust to your desired height
-            Image image = new Bitmap(width, height);
-            Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, 16);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("🔻", font, GetBrushColour(shockwaveType), 0, 0);
-            return image;
-        }
-
-        private Brush GetBrushColour(int shockwaveType)
-        {
-            switch (shockwaveType)
-            {
-                case 0:
-                    return Brushes.Green;
-                case 1:
-                    return Brushes.Blue;
-                case 2:
-                    return Brushes.Purple;
-                default:
-                    return Brushes.Black;
-            }
-        }
-
     }
 
 }

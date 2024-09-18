@@ -108,13 +108,13 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 tableDps.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
                 tableDps.Columns[x].MinimumWidth = 10;
-                tableDps.Columns[x].DefaultCellStyle.Font = columnFont;
+                tableDps.Columns[x].DefaultCellStyle.Font = IPanel.columnFont;
                 tableDps.Columns[x].DefaultCellStyle.Format = "N0";
                 tableDps.Columns[x].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
             }
             var count = Logs.Count();
             tableDps.Columns[count].HeaderCell.Value = "Average";
-            tableDps.Columns[count].DefaultCellStyle.Font = columnFont;
+            tableDps.Columns[count].DefaultCellStyle.Font = IPanel.columnFont;
             tableDps.Columns[count].AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
             tableDps.Columns[count].DefaultCellStyle.Format = "N0";
             tableDps.Columns[count].DefaultCellStyle.FormatProvider = new CultureInfo("ru-RU");
@@ -127,7 +127,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 {
                     if (!Logs[x].HasPlayer(ActivePlayers[y]))
                     {
-                        tableDps.Rows[y].Cells[x].Value = 0;
+                        tableDps.Rows[y].Cells[x].Value = "";
                         continue;
                     }
                     if (TotalDps.ContainsKey(Logs[x].GetFileName()) == false)
@@ -135,27 +135,43 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                         TotalDps.Add(Logs[x].GetFileName(), new List<double>());
                     }
                     double dps = Logs[x].GetPlayerDps(ActivePlayers[y], _selectedPhase, _allTargets.Checked, _cumulative.Checked, _defiance.Checked);
-                    float roundedDps = (float)Math.Round(dps / 1000f, 1);
                     TotalDps[Logs[x].GetFileName()].Add(dps);
                     dpsnumbers.Add(dps);
-                    var text = $"{roundedDps}k";
-                    tableDps.Rows[y].Cells[x].Value = dps;// text;
+                    tableDps.Rows[y].Cells[x].Value = DpsToText(dps);// text;
                 }
                 var dpsNumbersWithoutZero = dpsnumbers.Where(x => x != 0).ToList();
                 var averageDps = dpsNumbersWithoutZero.Count == 0 ? 0 : dpsNumbersWithoutZero.Average();
                 float Average = (float)Math.Round(averageDps / 1000f);
-                tableDps.Columns[Logs.Count()].DefaultCellStyle.Font = columnFont;
-                tableDps.Rows[y].Cells[Logs.Count()].Value = averageDps;//$"{Average}k";
+                tableDps.Columns[Logs.Count()].DefaultCellStyle.Font = IPanel.columnFont;
+                tableDps.Rows[y].Cells[Logs.Count()].Value = DpsToText(averageDps);//$"{Average}k";
             }
             int row = ActivePlayers.Count + 1;
 
-            tableDps.Rows[ActivePlayers.Count].HeaderCell.Value = "Total DPS";
+            tableDps.Rows[ActivePlayers.Count].HeaderCell.Value = GetTotalHeaderType();
             for (int x = 0; x < Logs.Count(); x++)
             {
-                tableDps.Rows[ActivePlayers.Count].Cells[x].Value = $"{(float)Math.Round(TotalDps[Logs[x].GetFileName()].Sum() / 1000f, 1)}k";
+                tableDps.Rows[ActivePlayers.Count].Cells[x].Value = DpsToText(TotalDps[Logs[x].GetFileName()].Sum());
             }
             tableDps.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabDps.Controls.Add(tableDps);
+        }
+
+        private string GetTotalHeaderType()
+        {
+            if(_defiance.Checked)
+            {
+                return "Total CC";
+            }
+            return "Total DPS";
+        }
+
+        private string DpsToText(double dps)
+        {
+            if(_defiance.Checked)
+            {
+                return dps.ToString("N0");
+            }
+            return (dps / 1000).ToString("F1") + "k";
         }
     }
 }

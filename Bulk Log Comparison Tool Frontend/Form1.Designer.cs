@@ -1,4 +1,6 @@
-﻿namespace Bulk_Log_Comparison_Tool_Frontend
+﻿using Bulk_Log_Comparison_Tool_Frontend.Compare;
+
+namespace Bulk_Log_Comparison_Tool_Frontend
 {
     partial class Form1
     {
@@ -44,35 +46,41 @@
             label9 = new Label();
             lblSelectedBoonBoons = new Label();
             lblSelectedPhaseBoons = new Label();
-            cbBoonBoons = new ComboBox();
-            cbBoonPhase = new ComboBox();
+            comboBoonBoons = new ComboBox();
+            comboBoonPhase = new ComboBox();
             tableBoons = new DataGridView();
             lblSelectedMechanic = new Label();
             label4 = new Label();
             tabMechanics = new TabPage();
             lblSelectedPhaseMechanics = new Label();
-            cbMechanicMechanics = new ComboBox();
-            cbMechanicPhase = new ComboBox();
+            comboMechanicMechanics = new ComboBox();
+            comboMechanicPhase = new ComboBox();
             tableMechanics = new DataGridView();
             label7 = new Label();
             label8 = new Label();
             tabDps = new TabPage();
+            cbAllTargets = new CheckBox();
             cbDefiance = new CheckBox();
             cbCumulative = new CheckBox();
             lblSelectedPhaseDps = new Label();
             label3 = new Label();
-            cbDpsPhase = new ComboBox();
+            comboDpsPhase = new ComboBox();
             tableDps = new DataGridView();
             tabStealth = new TabPage();
             lblSelectedPhaseStealth = new Label();
             label1 = new Label();
-            cbStealthPhase = new ComboBox();
+            comboStealthPhase = new ComboBox();
             tableStealth = new DataGridView();
             tabsControl = new TabControl();
+            tabSummary = new TabPage();
+            dataGridView4 = new DataGridView();
+            dataGridView3 = new DataGridView();
+            tableShockwaveSummary = new DataGridView();
+            tableStealthSummary = new DataGridView();
+            comboSummaryLog = new ComboBox();
             tabShockwaves = new TabPage();
             label2 = new Label();
             tableShockwave = new DataGridView();
-            cbAllTargets = new CheckBox();
             panelStealth.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudFontSize).BeginInit();
             tabBoons.SuspendLayout();
@@ -85,6 +93,11 @@
             tabStealth.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tableStealth).BeginInit();
             tabsControl.SuspendLayout();
+            tabSummary.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)dataGridView4).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridView3).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tableShockwaveSummary).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tableStealthSummary).BeginInit();
             tabShockwaves.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tableShockwave).BeginInit();
             SuspendLayout();
@@ -127,7 +140,7 @@
             nudFontSize.Location = new Point(69, 92);
             nudFontSize.Maximum = new decimal(new int[] { 200, 0, 0, 0 });
             nudFontSize.Name = "nudFontSize";
-            nudFontSize.Size = new Size(91, 23);
+            nudFontSize.Size = new Size(100, 23);
             nudFontSize.TabIndex = 4;
             nudFontSize.Value = new decimal(new int[] { 12, 0, 0, 0 });
             nudFontSize.ValueChanged += nudFontSize_ValueChanged;
@@ -182,8 +195,8 @@
             tabBoons.Controls.Add(label9);
             tabBoons.Controls.Add(lblSelectedBoonBoons);
             tabBoons.Controls.Add(lblSelectedPhaseBoons);
-            tabBoons.Controls.Add(cbBoonBoons);
-            tabBoons.Controls.Add(cbBoonPhase);
+            tabBoons.Controls.Add(comboBoonBoons);
+            tabBoons.Controls.Add(comboBoonPhase);
             tabBoons.Controls.Add(tableBoons);
             tabBoons.Location = new Point(4, 24);
             tabBoons.Name = "tabBoons";
@@ -194,7 +207,7 @@
             // 
             // nudBoonTime
             // 
-            nudBoonTime.Location = new Point(809, 3);
+            nudBoonTime.Location = new Point(809, 6);
             nudBoonTime.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             nudBoonTime.Name = "nudBoonTime";
             nudBoonTime.Size = new Size(120, 23);
@@ -203,7 +216,7 @@
             // cbBoonTime
             // 
             cbBoonTime.AutoSize = true;
-            cbBoonTime.Location = new Point(935, 5);
+            cbBoonTime.Location = new Point(935, 10);
             cbBoonTime.Name = "cbBoonTime";
             cbBoonTime.Size = new Size(99, 19);
             cbBoonTime.TabIndex = 18;
@@ -230,26 +243,26 @@
             // lblSelectedPhaseBoons
             // 
             lblSelectedPhaseBoons.AutoSize = true;
-            lblSelectedPhaseBoons.Location = new Point(177, 6);
+            lblSelectedPhaseBoons.Location = new Point(307, 6);
             lblSelectedPhaseBoons.Name = "lblSelectedPhaseBoons";
             lblSelectedPhaseBoons.Size = new Size(0, 15);
             lblSelectedPhaseBoons.TabIndex = 15;
             // 
-            // cbBoonBoons
+            // comboBoonBoons
             // 
-            cbBoonBoons.FormattingEnabled = true;
-            cbBoonBoons.Location = new Point(566, 3);
-            cbBoonBoons.Name = "cbBoonBoons";
-            cbBoonBoons.Size = new Size(121, 23);
-            cbBoonBoons.TabIndex = 13;
+            comboBoonBoons.FormattingEnabled = true;
+            comboBoonBoons.Location = new Point(566, 6);
+            comboBoonBoons.Name = "comboBoonBoons";
+            comboBoonBoons.Size = new Size(121, 23);
+            comboBoonBoons.TabIndex = 13;
             // 
-            // cbBoonPhase
+            // comboBoonPhase
             // 
-            cbBoonPhase.FormattingEnabled = true;
-            cbBoonPhase.Location = new Point(50, 3);
-            cbBoonPhase.Name = "cbBoonPhase";
-            cbBoonPhase.Size = new Size(121, 23);
-            cbBoonPhase.TabIndex = 11;
+            comboBoonPhase.FormattingEnabled = true;
+            comboBoonPhase.Location = new Point(50, 6);
+            comboBoonPhase.Name = "comboBoonPhase";
+            comboBoonPhase.Size = new Size(250, 23);
+            comboBoonPhase.TabIndex = 11;
             // 
             // tableBoons
             // 
@@ -264,7 +277,7 @@
             // lblSelectedMechanic
             // 
             lblSelectedMechanic.AutoSize = true;
-            lblSelectedMechanic.Location = new Point(660, 6);
+            lblSelectedMechanic.Location = new Point(800, 6);
             lblSelectedMechanic.Name = "lblSelectedMechanic";
             lblSelectedMechanic.Size = new Size(0, 15);
             lblSelectedMechanic.TabIndex = 14;
@@ -282,9 +295,9 @@
             // 
             tabMechanics.Controls.Add(lblSelectedPhaseMechanics);
             tabMechanics.Controls.Add(lblSelectedMechanic);
-            tabMechanics.Controls.Add(cbMechanicMechanics);
+            tabMechanics.Controls.Add(comboMechanicMechanics);
             tabMechanics.Controls.Add(label4);
-            tabMechanics.Controls.Add(cbMechanicPhase);
+            tabMechanics.Controls.Add(comboMechanicPhase);
             tabMechanics.Controls.Add(tableMechanics);
             tabMechanics.Location = new Point(4, 24);
             tabMechanics.Name = "tabMechanics";
@@ -296,26 +309,26 @@
             // lblSelectedPhaseMechanics
             // 
             lblSelectedPhaseMechanics.AutoSize = true;
-            lblSelectedPhaseMechanics.Location = new Point(177, 6);
+            lblSelectedPhaseMechanics.Location = new Point(307, 6);
             lblSelectedPhaseMechanics.Name = "lblSelectedPhaseMechanics";
             lblSelectedPhaseMechanics.Size = new Size(0, 15);
             lblSelectedPhaseMechanics.TabIndex = 15;
             // 
-            // cbMechanicMechanics
+            // comboMechanicMechanics
             // 
-            cbMechanicMechanics.FormattingEnabled = true;
-            cbMechanicMechanics.Location = new Point(533, 3);
-            cbMechanicMechanics.Name = "cbMechanicMechanics";
-            cbMechanicMechanics.Size = new Size(121, 23);
-            cbMechanicMechanics.TabIndex = 13;
+            comboMechanicMechanics.FormattingEnabled = true;
+            comboMechanicMechanics.Location = new Point(533, 6);
+            comboMechanicMechanics.Name = "comboMechanicMechanics";
+            comboMechanicMechanics.Size = new Size(250, 23);
+            comboMechanicMechanics.TabIndex = 13;
             // 
-            // cbMechanicPhase
+            // comboMechanicPhase
             // 
-            cbMechanicPhase.FormattingEnabled = true;
-            cbMechanicPhase.Location = new Point(50, 3);
-            cbMechanicPhase.Name = "cbMechanicPhase";
-            cbMechanicPhase.Size = new Size(121, 23);
-            cbMechanicPhase.TabIndex = 11;
+            comboMechanicPhase.FormattingEnabled = true;
+            comboMechanicPhase.Location = new Point(50, 6);
+            comboMechanicPhase.Name = "comboMechanicPhase";
+            comboMechanicPhase.Size = new Size(250, 23);
+            comboMechanicPhase.TabIndex = 11;
             // 
             // tableMechanics
             // 
@@ -350,7 +363,7 @@
             tabDps.Controls.Add(cbCumulative);
             tabDps.Controls.Add(lblSelectedPhaseDps);
             tabDps.Controls.Add(label3);
-            tabDps.Controls.Add(cbDpsPhase);
+            tabDps.Controls.Add(comboDpsPhase);
             tabDps.Controls.Add(tableDps);
             tabDps.Location = new Point(4, 24);
             tabDps.Name = "tabDps";
@@ -359,6 +372,16 @@
             tabDps.TabIndex = 1;
             tabDps.Text = "Dps and CC";
             tabDps.UseVisualStyleBackColor = true;
+            // 
+            // cbAllTargets
+            // 
+            cbAllTargets.AutoSize = true;
+            cbAllTargets.Location = new Point(551, 10);
+            cbAllTargets.Name = "cbAllTargets";
+            cbAllTargets.Size = new Size(80, 19);
+            cbAllTargets.TabIndex = 14;
+            cbAllTargets.Text = "All Targets";
+            cbAllTargets.UseVisualStyleBackColor = true;
             // 
             // cbDefiance
             // 
@@ -383,7 +406,7 @@
             // lblSelectedPhaseDps
             // 
             lblSelectedPhaseDps.AutoSize = true;
-            lblSelectedPhaseDps.Location = new Point(177, 9);
+            lblSelectedPhaseDps.Location = new Point(307, 6);
             lblSelectedPhaseDps.Name = "lblSelectedPhaseDps";
             lblSelectedPhaseDps.Size = new Size(0, 15);
             lblSelectedPhaseDps.TabIndex = 11;
@@ -391,19 +414,19 @@
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(6, 9);
+            label3.Location = new Point(6, 6);
             label3.Name = "label3";
             label3.Size = new Size(38, 15);
             label3.TabIndex = 10;
             label3.Text = "Phase";
             // 
-            // cbDpsPhase
+            // comboDpsPhase
             // 
-            cbDpsPhase.FormattingEnabled = true;
-            cbDpsPhase.Location = new Point(50, 6);
-            cbDpsPhase.Name = "cbDpsPhase";
-            cbDpsPhase.Size = new Size(121, 23);
-            cbDpsPhase.TabIndex = 9;
+            comboDpsPhase.FormattingEnabled = true;
+            comboDpsPhase.Location = new Point(50, 6);
+            comboDpsPhase.Name = "comboDpsPhase";
+            comboDpsPhase.Size = new Size(250, 23);
+            comboDpsPhase.TabIndex = 9;
             // 
             // tableDps
             // 
@@ -419,7 +442,7 @@
             // 
             tabStealth.Controls.Add(lblSelectedPhaseStealth);
             tabStealth.Controls.Add(label1);
-            tabStealth.Controls.Add(cbStealthPhase);
+            tabStealth.Controls.Add(comboStealthPhase);
             tabStealth.Controls.Add(tableStealth);
             tabStealth.Location = new Point(4, 24);
             tabStealth.Name = "tabStealth";
@@ -432,7 +455,7 @@
             // lblSelectedPhaseStealth
             // 
             lblSelectedPhaseStealth.AutoSize = true;
-            lblSelectedPhaseStealth.Location = new Point(177, 9);
+            lblSelectedPhaseStealth.Location = new Point(307, 6);
             lblSelectedPhaseStealth.Name = "lblSelectedPhaseStealth";
             lblSelectedPhaseStealth.Size = new Size(0, 15);
             lblSelectedPhaseStealth.TabIndex = 8;
@@ -440,19 +463,19 @@
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(6, 9);
+            label1.Location = new Point(6, 6);
             label1.Name = "label1";
             label1.Size = new Size(38, 15);
             label1.TabIndex = 7;
             label1.Text = "Phase";
             // 
-            // cbStealthPhase
+            // comboStealthPhase
             // 
-            cbStealthPhase.FormattingEnabled = true;
-            cbStealthPhase.Location = new Point(50, 6);
-            cbStealthPhase.Name = "cbStealthPhase";
-            cbStealthPhase.Size = new Size(121, 23);
-            cbStealthPhase.TabIndex = 1;
+            comboStealthPhase.FormattingEnabled = true;
+            comboStealthPhase.Location = new Point(50, 6);
+            comboStealthPhase.Name = "comboStealthPhase";
+            comboStealthPhase.Size = new Size(250, 23);
+            comboStealthPhase.TabIndex = 1;
             // 
             // tableStealth
             // 
@@ -466,6 +489,7 @@
             // 
             // tabsControl
             // 
+            tabsControl.Controls.Add(tabSummary);
             tabsControl.Controls.Add(tabStealth);
             tabsControl.Controls.Add(tabDps);
             tabsControl.Controls.Add(tabBoons);
@@ -477,6 +501,76 @@
             tabsControl.SelectedIndex = 0;
             tabsControl.Size = new Size(1089, 631);
             tabsControl.TabIndex = 8;
+            // 
+            // tabSummary
+            // 
+            tabSummary.Controls.Add(dataGridView4);
+            tabSummary.Controls.Add(dataGridView3);
+            tabSummary.Controls.Add(tableShockwaveSummary);
+            tabSummary.Controls.Add(tableStealthSummary);
+            tabSummary.Controls.Add(comboSummaryLog);
+            tabSummary.Location = new Point(4, 24);
+            tabSummary.Name = "tabSummary";
+            tabSummary.Size = new Size(1081, 603);
+            tabSummary.TabIndex = 4;
+            tabSummary.Text = "QuickSummary";
+            tabSummary.UseVisualStyleBackColor = true;
+            // 
+            // dataGridView4
+            // 
+            dataGridView4.AllowUserToAddRows = false;
+            dataGridView4.AllowUserToDeleteRows = false;
+            dataGridView4.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridView4.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView4.Location = new Point(536, 317);
+            dataGridView4.Name = "dataGridView4";
+            dataGridView4.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            dataGridView4.Size = new Size(529, 278);
+            dataGridView4.TabIndex = 6;
+            // 
+            // dataGridView3
+            // 
+            dataGridView3.AllowUserToAddRows = false;
+            dataGridView3.AllowUserToDeleteRows = false;
+            dataGridView3.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            dataGridView3.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dataGridView3.Location = new Point(536, 32);
+            dataGridView3.Name = "dataGridView3";
+            dataGridView3.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            dataGridView3.Size = new Size(529, 279);
+            dataGridView3.TabIndex = 5;
+            // 
+            // tableShockwaveSummary
+            // 
+            tableShockwaveSummary.AllowUserToAddRows = false;
+            tableShockwaveSummary.AllowUserToDeleteRows = false;
+            tableShockwaveSummary.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            tableShockwaveSummary.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            tableShockwaveSummary.Location = new Point(3, 317);
+            tableShockwaveSummary.Name = "tableShockwaveSummary";
+            tableShockwaveSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            tableShockwaveSummary.Size = new Size(527, 278);
+            tableShockwaveSummary.TabIndex = 4;
+            // 
+            // tableStealthSummary
+            // 
+            tableStealthSummary.AllowUserToAddRows = false;
+            tableStealthSummary.AllowUserToDeleteRows = false;
+            tableStealthSummary.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            tableStealthSummary.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            tableStealthSummary.Location = new Point(3, 32);
+            tableStealthSummary.Name = "tableStealthSummary";
+            tableStealthSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            tableStealthSummary.Size = new Size(527, 279);
+            tableStealthSummary.TabIndex = 3;
+            // 
+            // comboSummaryLog
+            // 
+            comboSummaryLog.FormattingEnabled = true;
+            comboSummaryLog.Location = new Point(3, 3);
+            comboSummaryLog.Name = "comboSummaryLog";
+            comboSummaryLog.Size = new Size(150, 23);
+            comboSummaryLog.TabIndex = 2;
             // 
             // tabShockwaves
             // 
@@ -510,16 +604,6 @@
             tableShockwave.Size = new Size(1067, 571);
             tableShockwave.TabIndex = 0;
             // 
-            // cbAllTargets
-            // 
-            cbAllTargets.AutoSize = true;
-            cbAllTargets.Location = new Point(551, 8);
-            cbAllTargets.Name = "cbAllTargets";
-            cbAllTargets.Size = new Size(80, 19);
-            cbAllTargets.TabIndex = 14;
-            cbAllTargets.Text = "All Targets";
-            cbAllTargets.UseVisualStyleBackColor = true;
-            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -551,6 +635,11 @@
             tabStealth.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)tableStealth).EndInit();
             tabsControl.ResumeLayout(false);
+            tabSummary.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)dataGridView4).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dataGridView3).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tableShockwaveSummary).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tableStealthSummary).EndInit();
             tabShockwaves.ResumeLayout(false);
             tabShockwaves.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)tableShockwave).EndInit();
@@ -570,26 +659,26 @@
         private Label lblSelectedBoonBoons;
         private Label lblSelectedPhaseBoons;
         private Label lblSelectedMechanic;
-        private ComboBox cbBoonBoons;
+        private ComboBox comboBoonBoons;
         private Label label4;
-        private ComboBox cbBoonPhase;
+        private ComboBox comboBoonPhase;
         private DataGridView tableBoons;
         private TabPage tabMechanics;
         private Label lblSelectedPhaseMechanics;
         private Label label7;
-        private ComboBox cbMechanicMechanics;
+        private ComboBox comboMechanicMechanics;
         private Label label8;
-        private ComboBox cbMechanicPhase;
+        private ComboBox comboMechanicPhase;
         private DataGridView tableMechanics;
         private TabPage tabDps;
         private Label lblSelectedPhaseDps;
         private Label label3;
-        private ComboBox cbDpsPhase;
+        private ComboBox comboDpsPhase;
         private DataGridView tableDps;
         private TabPage tabStealth;
         private Label lblSelectedPhaseStealth;
         private Label label1;
-        private ComboBox cbStealthPhase;
+        private ComboBox comboStealthPhase;
         private DataGridView tableStealth;
         private TabControl tabsControl;
         private TabPage tabShockwaves;
@@ -606,5 +695,11 @@
         private Label lblFontSize;
         private NumericUpDown nudFontSize;
         private CheckBox cbAllTargets;
+        private TabPage tabSummary;
+        private ComboBox comboSummaryLog;
+        private DataGridView tableStealthSummary;
+        private DataGridView tableShockwaveSummary;
+        private DataGridView dataGridView4;
+        private DataGridView dataGridView3;
     }
 }

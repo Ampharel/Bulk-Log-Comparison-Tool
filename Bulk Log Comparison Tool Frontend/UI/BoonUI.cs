@@ -119,7 +119,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             for (int x = 0; x < Logs.Count(); x++)
             {
                 tableBoons.Columns[x].HeaderCell.Value = Logs[x].GetFileName();
-                tableBoons.Columns[x].DefaultCellStyle.Font = columnFont;
+                tableBoons.Columns[x].DefaultCellStyle.Font = IPanel.columnFont;
                 tableBoons.Columns[x].DefaultCellStyle.Format = cellFormat;
                 tableBoons.Columns[x].MinimumWidth = 10;
             }
@@ -141,7 +141,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 }
                 float RoundedAverage = (float)Math.Round(boonNumbers.Average(), 1);
                 tableBoons.Columns[Logs.Count()].DefaultCellStyle.Format = cellFormat;
-                tableBoons.Columns[Logs.Count()].DefaultCellStyle.Font = columnFont;
+                tableBoons.Columns[Logs.Count()].DefaultCellStyle.Font = IPanel.columnFont;
                 tableBoons.Rows[y].Cells[Logs.Count()].Value = RoundedAverage;
 
 

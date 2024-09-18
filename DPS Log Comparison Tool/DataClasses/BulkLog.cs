@@ -44,6 +44,14 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             }
         }
 
+        public IParsedEvtcLog? GetLog(string logName)
+        {
+            lock (_lock)
+            {
+                return _logs.FirstOrDefault(x => x.GetFileName() == logName);
+            }
+        }
+
         public void RemoveLog(string log)
         {
             lock (_lock)

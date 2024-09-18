@@ -19,6 +19,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private PlayerUI? _dpsPanel;
         private PlayerUI? _stealthPanel;
         private PlayerUI? _shockwavePanel;
+        private IPanel? _summaryPanel;
 
         private ConcurrentQueue<string> _loadedFiles = new();
 
@@ -47,10 +48,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private void SetupPanels()
         {
             _shockwavePanel = new ShockwaveUI(tableShockwave, tabShockwaves, _logParser, ActivePlayers);
-            _stealthPanel = new StealthAnalysisUI(tableStealth, lblSelectedPhaseStealth, cbStealthPhase, tabStealth, _logParser, ActivePlayers);
-            _dpsPanel = new DpsUI(tableDps, lblSelectedPhaseDps, cbDpsPhase, tabDps, _logParser, ActivePlayers, cbCumulative, cbDefiance, cbAllTargets);
-            _mechanicPanel = new MechanicsUI(tableMechanics, lblSelectedPhaseMechanics, lblSelectedMechanic, cbMechanicPhase, cbMechanicMechanics, tabMechanics, _logParser, ActivePlayers);
-            _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, cbBoonPhase, cbBoonBoons, tabBoons, cbBoonTime, nudBoonTime, _logParser, ActivePlayers);
+            _stealthPanel = new StealthAnalysisUI(tableStealth, lblSelectedPhaseStealth, comboStealthPhase, tabStealth, _logParser, ActivePlayers);
+            _dpsPanel = new DpsUI(tableDps, lblSelectedPhaseDps, comboDpsPhase, tabDps, _logParser, ActivePlayers, cbCumulative, cbDefiance, cbAllTargets);
+            _mechanicPanel = new MechanicsUI(tableMechanics, lblSelectedPhaseMechanics, lblSelectedMechanic, comboMechanicPhase, comboMechanicMechanics, tabMechanics, _logParser, ActivePlayers);
+            _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, comboBoonPhase, comboBoonBoons, tabBoons, cbBoonTime, nudBoonTime, _logParser, ActivePlayers);
+            _summaryPanel = new LogSummaryUI(tabSummary, tableStealthSummary, tableShockwaveSummary, dataGridView3, _logParser, comboSummaryLog);
         }
 
         private void StartTimer()
@@ -63,9 +65,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
         private void ParseCustomPhases()
         {
-            if (File.Exists("SpecificPhase.txt"))
+            if (File.Exists("CustomPhase.txt"))
             {
-                var customPhases = File.ReadAllLines("SpecificPhase.txt").ToList();
+                var customPhases = File.ReadAllLines("CustomPhase.txt").ToList();
                 foreach (var phase in customPhases)
                 {
                     if (phase.StartsWith("#"))
@@ -80,6 +82,17 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     _logParser.AddCustomPhase(splitPhase[0], long.Parse(splitPhase[1]), long.Parse(splitPhase[2]));
                 }
             }
+            else
+            {
+                File.WriteAllLines("CustomPhase.txt", 
+                    [
+                        "# Adding custom phases can be done using the following syntax:",
+                        "# {PhaseName}:{Description}|StartTimeInPhase|Duration",
+                        "# Example:",
+                        "# Primordus:before first chomp|0|14",
+                        "# Lines starting with a # will be ignored"
+                    ]);
+            }
         }
 
         private void CheckQueue(object? sender, EventArgs e)
@@ -88,6 +101,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             while (_loadedFiles.TryDequeue(out string? file))
             {
                 lbLoadedFiles.Items.Add(file);
+                comboSummaryLog.Items.Add(file);
+                comboSummaryLog.SelectedIndex = comboSummaryLog.Items.Count-1;
                 loadedFile = true;
             }
             if (loadedFile)
@@ -115,6 +130,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             if (tabsControl.SelectedTab == tabDps) _dpsPanel?.UpdateActivePlayers(ActivePlayers);
             if (tabsControl.SelectedTab == tabMechanics) _mechanicPanel?.UpdateActivePlayers(ActivePlayers);
             if (tabsControl.SelectedTab == tabBoons) _boonPanel?.UpdateActivePlayers(ActivePlayers);
+            if (tabsControl.SelectedTab == tabSummary) _summaryPanel?.UpdatePanel();    
         }
 
         private void btnOpenLogs_Click(object? sender, EventArgs e)
@@ -207,11 +223,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private void UpdateFonts()
         {
             tableFont = new Font("Verdana", (float)nudFontSize.Value);
-            _boonPanel.columnFont = tableFont;
-            _mechanicPanel.columnFont = tableFont;
-            _dpsPanel.columnFont = tableFont;
-            _stealthPanel.columnFont = tableFont;
-            _shockwavePanel.columnFont = tableFont;
+            IPanel.columnFont = tableFont;
         }
     }
 }

@@ -302,6 +302,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 PhaseData? FromPhase = null;
                 foreach (var ph in phases)
                 {
+                    if (ph.Name.Contains("Breakbar"))
+                    {
+                        continue;
+                    }
                     FromPhase = ph;
                     if (ph.Start != 0 && ph.End > Invis.EndTime)
                     {
