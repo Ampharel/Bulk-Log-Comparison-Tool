@@ -1,6 +1,7 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
 using Bulk_Log_Comparison_Tool_Frontend.Compare;
+using Bulk_Log_Comparison_Tool_Frontend.Utils;
 using Microsoft.VisualBasic.Logging;
 using System;
 using System.Collections.Generic;
@@ -79,7 +80,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 }
             }
             _tabSummary.Controls.Remove(tableDeaths);
-            tableDeaths.DataSource = null;
+            tableDeaths.ClearTable();
             tableDeaths.TopLeftHeaderCell.Value = "Downs";
             tableDeaths.ColumnCount = maxDowns;
             tableDeaths.RowCount = players.Length;
@@ -115,7 +116,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             var players = _selectedLog.GetPlayers();
             _tabSummary.Controls.Remove(tableMechanics);
-            tableMechanics.DataSource = null;
+            tableMechanics.ClearTable();
             tableMechanics.ColumnCount = 6;
             tableMechanics.TopLeftHeaderCell.Value = "Mechanics";
             for (int i = 0; i < mechanicNames.Length; i++)
@@ -147,7 +148,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             var players = _selectedLog.GetPlayers();
             _tabSummary.Controls.Remove(tableShockwave);
-            tableShockwave.DataSource = null;
+            tableShockwave.ClearTable();
             tableShockwave.ColumnCount = 1;
             tableShockwave.TopLeftHeaderCell.Value = "Shockwaves";
             tableShockwave.RowCount = players.Length;
@@ -195,12 +196,20 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             var players = _selectedLog.GetPlayers();
             _tabSummary.Controls.Remove(tableStealth);
-            tableStealth.DataSource = null;
+
+            tableStealth.ClearTable();
             tableStealth.RowCount = players.Length;
             tableStealth.TopLeftHeaderCell.Value = "Stealth";
+            tableStealth.ColumnCount = 1;
 
             var bulkLog = new BulkLog(new List<IParsedEvtcLog> { _selectedLog });
             string[] stealthPhases = bulkLog.GetStealthPhases();
+            if (stealthPhases.Count() == 0)
+            {
+                tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
+                _tabSummary.Controls.Add(tableStealth);
+                return;
+            }
             tableStealth.ColumnCount = stealthPhases.Count();
 
             for (int x = 0; x < stealthPhases.Length; x++)

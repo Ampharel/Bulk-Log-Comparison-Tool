@@ -25,6 +25,25 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Utils
             table.ColumnHeadersDefaultCellStyle.Font = IPanel.columnFont;
             table.RowHeadersDefaultCellStyle.Font = IPanel.columnFont;
         }
+        public static void ClearTable(this DataGridView table)
+        {
+            for(int i = table.Rows.Count - 1; i >= 0; i--)
+            {
+                for(int j = table.Columns.Count - 1; j >= 0; j--)
+                {
+                    if (table.Rows[i].Cells[j].Value is Image image)
+                    {
+                        //table.Rows[i].Cells[j].Value = null;
+                        image.Dispose();
+                    }
+                    else if (table.Rows[i].Cells[j].Value is string)
+                    {
+                        table.Rows[i].Cells[j].Value = "";
+                    }
+                }
+            }
+            table.Columns.Clear();
+        }
     }
 
 }

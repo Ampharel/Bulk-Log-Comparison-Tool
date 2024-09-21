@@ -1,5 +1,6 @@
 ﻿using Bulk_Log_Comparison_Tool;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
+using Bulk_Log_Comparison_Tool_Frontend.Utils;
 
 namespace Bulk_Log_Comparison_Tool_Frontend.UI
 {
@@ -37,7 +38,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         public override void UpdatePanel()
         {
             tabStealth.Controls.Remove(tableStealth);
-            tableStealth.DataSource = null;
+            tableStealth.ClearTable();
             tableStealth.RowCount = ActivePlayers.Count;
             var Logs = _logParser.BulkLog.Logs;
             tableStealth.ColumnCount = Logs.Count() + 1;

@@ -1,6 +1,7 @@
 ﻿using Bulk_Log_Comparison_Tool;
 using Bulk_Log_Comparison_Tool.Util;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
+using Bulk_Log_Comparison_Tool_Frontend.Utils;
 using Microsoft.VisualBasic.Logging;
 using System;
 using System.Collections.Generic;
@@ -79,7 +80,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 return;
             }
             tabBoons.Controls.Remove(tableBoons);
-            tableBoons.DataSource = null;
+            tableBoons.ClearTable();
 
             var Logs = _logParser.BulkLog.Logs;
             tableBoons.RowCount = ActivePlayers.Count + Groups.Count();

@@ -1,6 +1,7 @@
 ﻿using Bulk_Log_Comparison_Tool;
 using Bulk_Log_Comparison_Tool.Util;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
+using Bulk_Log_Comparison_Tool_Frontend.Utils;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -84,7 +85,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         public override void UpdatePanel()
         {
             tabDps.Controls.Remove(tableDps);
-            tableDps.DataSource = null;
+            tableDps.ClearTable();
             tableDps.RowCount = ActivePlayers.Count + 1;
             var Logs = _logParser.BulkLog.Logs;
             tableDps.ColumnCount = Logs.Count() + 1;
