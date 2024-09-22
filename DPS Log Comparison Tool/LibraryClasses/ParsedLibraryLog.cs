@@ -541,7 +541,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             List<string> downedReasons = new();
             foreach(var downed in downEvents)
             {
-                downedReasons.Add(dmgTakenEvents.Where(x => x.Time == downed.Time).ToList().Select(x => x.Skill.Name).First());
+                downedReasons.Add(dmgTakenEvents.Where(x => Math.Abs(x.Time - downed.Time) < 10).ToList().Select(x => x.Skill.Name).First());
             }
             return downedReasons;
         }

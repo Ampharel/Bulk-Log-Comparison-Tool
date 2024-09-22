@@ -3,6 +3,8 @@ using DarkModeForms;
 using Bulk_Log_Comparison_Tool_Frontend.UI;
 using System.Collections.Concurrent;
 using Bulk_Log_Comparison_Tool_Frontend.Utils;
+using Bulk_Log_Comparison_Tool_Frontend.Properties;
+using System.Drawing.Printing;
 
 namespace Bulk_Log_Comparison_Tool_Frontend
 {
@@ -66,6 +68,22 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
         private void ParseCustomPhases()
         {
+            if (!File.Exists("Settings.txt"))
+            {
+                File.WriteAllLines("Settings.txt", ["font=8"]);
+            }
+            var settings = File.ReadAllLines("Settings.txt");
+            foreach (var setting in settings)
+            {
+                if (setting.StartsWith("font="))
+                {
+                    var size = setting.Split('=')[1];
+                    if(int.TryParse(size, out int sizeInt))
+                    {
+                        nudFontSize.Value = sizeInt;
+                    }
+                }
+            }
             if (File.Exists("CustomPhase.txt"))
             {
                 var customPhases = File.ReadAllLines("CustomPhase.txt").ToList();
@@ -94,6 +112,21 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                         "# Lines starting with a # will be ignored"
                     ]);
             }
+        }
+
+        private void SaveSettings(string key, string value)
+        {
+            var settings = File.ReadAllLines("Settings.txt").ToList();
+            var index = settings.FindIndex(x => x.StartsWith(key));
+            if (index != -1)
+            {
+                settings[index] = $"{key}={value}";
+            }
+            else
+            {
+                settings.Add($"{key}={value}");
+            }
+            File.WriteAllLines("Settings.txt", settings);
         }
 
         private void CheckQueue(object? sender, EventArgs e)
@@ -217,6 +250,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
         private void nudFontSize_ValueChanged(object sender, EventArgs e)
         {
+            SaveSettings("font", nudFontSize.Value.ToString());
             UpdateFonts();
             UpdatePanels();
         }
