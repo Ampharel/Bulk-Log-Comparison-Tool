@@ -151,7 +151,7 @@ namespace Bulk_Log_Comparison_Tool
                 sb.Append($"{phase},");
                 foreach(var log in logs.Logs)
                 {
-                    var StealthResult = logs.GetStealthResult(log.GetFileName(), phase, Enums.StealthAlgoritmns.MimiTiming);
+                    var StealthResult = logs.GetStealthResult(log.GetFileName(), phase, Enums.StealthAlgoritmns.Timing);
                     sb.Append($"{StealthResult},");
                 }
                 sb.Append("\n");

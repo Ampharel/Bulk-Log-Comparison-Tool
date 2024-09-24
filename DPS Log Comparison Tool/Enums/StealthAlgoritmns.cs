@@ -10,6 +10,6 @@ namespace Bulk_Log_Comparison_Tool.Enums
     {
         MedianTiming,
         OutlierFiltering,
-        MimiTiming
+        Timing
     }
 }

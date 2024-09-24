@@ -325,8 +325,8 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     case StealthAlgoritmns.MedianTiming:
                         StealthResult.Add((FromPhase.Name, GetStealth(FromPhase, accountName, Invis.EndTime, algoritmn, showLate)));
                         break;
-                    case StealthAlgoritmns.MimiTiming:
-                        StealthResult.Add((FromPhase.Name, GetStealthMimi(FromPhase, accountName, Invis.EndTime)));
+                    case StealthAlgoritmns.Timing:
+                        StealthResult.Add((FromPhase.Name, GetStealthTiming(FromPhase, accountName, Invis.EndTime)));
                         break;
 
                 }
@@ -398,8 +398,8 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 case StealthAlgoritmns.MedianTiming:
                     destealthTime = RemovedStealthEvents[(int)Math.Floor(RemovedStealthEvents.Count / 2f)].Time;
                     break;
-                case StealthAlgoritmns.MimiTiming:
-                    return GetStealthMimi(phase, accountName, stealthTime);
+                case StealthAlgoritmns.Timing:
+                    return GetStealthTiming(phase, accountName, stealthTime);
             }
             var delta = destealthTime - RevealedTime;
             if (delta > 1000f || (showLate && Math.Abs(delta) > 1000f))
@@ -421,6 +421,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     var offset = (int)delta / 1000f;
                     bool early = offset > 0;
+                    offset *= -1f;
                     if (early)
                     {
                         return $"{offset}s early {skill.Skill.Name}";
@@ -433,29 +434,19 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
             return "✓";
         }
-        private string GetStealthMimi(PhaseData phase, string accountName, long stealthTime)
+        private string GetStealthTiming(PhaseData phase, string accountName, long stealthTime)
         {
-            var phaseStart = phase.Start;
-            var destealthTime = phaseStart + 3000L;
-            List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedRevealedEvents = _log.CombatData.GetBuffRemoveAllData(890).Where(x => x.Time < phaseStart + 9000).ToList();
-            var revealTiming = _log.CombatData.GetBuffRemoveAllData(890).Where(x => x.To.Name.Contains(accountName)).Select(x => x.Time + x.RemovedDuration - 3000f);
-            var reveals = revealTiming.Where(x => x > stealthTime && x < destealthTime);
-            var player = _log.PlayerAgents.Where(x => x.Name.Contains(accountName)).FirstOrDefault();
-            if (player != null)
+            var RemovedStealthEvents = _log.CombatData.GetBuffRemoveAllData(10269)
+                .Where(x => 
+                x.Time >= stealthTime && 
+                x.Time <= stealthTime + 3000 && 
+                x.To.Name.Contains(accountName)
+                ).ToList();
+            
+            if (RemovedStealthEvents.Count() > 0)
             {
-                var deaths = _log.CombatData.GetDeadEvents(player);
-                foreach (var death in deaths)
-                {
-                    if (death.Time >= stealthTime && death.Time <= stealthTime + 10000)
-                    {
-                        return $"Died";
-                    }
-                }
-            }
-
-            if (reveals.Count() > 0)
-            {
-                var dmgData = _log.CombatData.GetDamageData(RemovedRevealedEvents.First().To).Where(x => x.Time >= stealthTime).OrderBy(x => x.Time);
+                var RevealEvent = RemovedStealthEvents.First();
+                var dmgData = _log.CombatData.GetDamageData(RevealEvent.To).Where(x => x.Time >= stealthTime).OrderBy(x => x.Time);
                 var skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment") && x is DirectHealthDamageEvent);
                 if (skill == null)
                 {
@@ -467,7 +458,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 }
                 else
                 {
-                    return $"{-(int)(destealthTime - reveals.First()) / 1000f}s {skill.Skill.Name}";
+                    return $"{-(int)((stealthTime + 3000) - RevealEvent.Time) / 1000f}s {skill.Skill.Name}";
                 }
             }
             return "✓";

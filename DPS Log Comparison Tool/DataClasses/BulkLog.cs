@@ -79,7 +79,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
 
         public string[] GetStealthPhases()
         {
-            ParseStealthData(Enums.StealthAlgoritmns.MimiTiming);
+            ParseStealthData(Enums.StealthAlgoritmns.Timing);
             return _stealthData.Values.SelectMany(x => x.Keys).Distinct().ToArray();
         }
 
@@ -115,7 +115,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             return _stealthData[logName][phase];
         }
 
-        private Enums.StealthAlgoritmns _algorithmnUsed = Enums.StealthAlgoritmns.MimiTiming;
+        private Enums.StealthAlgoritmns _algorithmnUsed = Enums.StealthAlgoritmns.Timing;
 
         private void ParseStealthData(Enums.StealthAlgoritmns algoritmn)
         {
