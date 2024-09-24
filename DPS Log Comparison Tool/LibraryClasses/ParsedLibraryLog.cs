@@ -7,6 +7,8 @@ using Bulk_Log_Comparison_Tool.Util;
 using GW2EIEvtcParser.ParsedData;
 using System;
 using System.Numerics;
+using Bulk_Log_Comparison_Tool.Enums;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
@@ -287,7 +289,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
         }
 
-        public List<(string, string)> GetStealthResult(string accountName)
+        public List<(string, string)> GetStealthResult(string accountName, StealthAlgoritmns algoritmn, bool showLate = false)
         {
             var StealthResult = new List<(string, string)>();
             var MassInvis = _log.CombatData.GetAnimatedCastData(10245);
@@ -316,67 +318,159 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     continue;
                 }
-                List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedStealthEvents = _log.CombatData.GetBuffRemoveAllData(10269).Where(x => x.Time >= Invis.Time && x.Time <= Invis.Time + 20000).ToList();
-                List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedRevealedEvents = _log.CombatData.GetBuffRemoveAllData(890).Where(x => x.Time >= Invis.Time && x.Time <= Invis.Time + 20000).ToList();
-                if (RemovedStealthEvents.Count == 0)
+
+                switch (algoritmn)
                 {
-                    continue;
-                }
-                if(RemovedRevealedEvents.Where(x => x.To.Name.Contains(accountName)).Count() == 0)
-                {
-                    StealthResult.Add((FromPhase.Name, "✓"));
-                    continue;
-                }
-                var median = RemovedStealthEvents[(int)Math.Floor(RemovedStealthEvents.Count / 2f)];
-                foreach (var RemovedEvent in RemovedRevealedEvents.Where(x => x.To.Name.Contains(accountName)))
-                {
-                    //Check for revealed debuff instead
-                    var error = "";
-                    var player = _log.PlayerAgents.Where(x => x.Name.Contains(accountName)).FirstOrDefault();
-                    if (player != null)
-                    {
-                        var deaths = _log.CombatData.GetDeadEvents(player);
-                        foreach (var death in deaths)
-                        {
-                            if (death.Time >= Invis.EndTime && death.Time <= Invis.EndTime + 10000)
-                            {
-                                error = $"Died";
-                                break;
-                            }
-                        }
-                    }
-                    var RevealedTime = (RemovedEvent.Time + RemovedEvent.RemovedDuration - 3000f);
-                    if (median.Time - RevealedTime > 1000f)
-                    {
-                        var dmgData = _log.CombatData.GetDamageData(RemovedEvent.To).Where(x => x.Time >= Invis.EndTime && x.Time <= RemovedEvent.Time+10000).OrderBy(x => x.Time);
-                        var skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment") && x is DirectHealthDamageEvent);
-                        if(skill == null)
-                        {
-                            skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
-                        }
-                        if (skill == null)
-                        {
-                            if (error == "")
-                            {
-                                error = "Unknown";
-                            }
-                        }
-                        else
-                        {
-                            error = $"{-(int)(median.Time - RevealedTime) / 1000f}s { skill.Skill.Name}";
-                        }
-                    }
-                    if (error != "")
-                    {
-                        StealthResult.Add((FromPhase.Name, error));
-                    }
-                    else
-                    {
-                        StealthResult.Add((FromPhase.Name, "✓"));
-                    }
+                    case StealthAlgoritmns.OutlierFiltering:
+                    case StealthAlgoritmns.MedianTiming:
+                        StealthResult.Add((FromPhase.Name, GetStealth(FromPhase, accountName, Invis.EndTime, algoritmn, showLate)));
+                        break;
+                    case StealthAlgoritmns.MimiTiming:
+                        StealthResult.Add((FromPhase.Name, GetStealthMimi(FromPhase, accountName, Invis.EndTime)));
+                        break;
+
                 }
             }
             return StealthResult;
+        }
+
+        private long GetStealthOutlierFilterTime(long stealthTime)
+        {
+            List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedStealthEvents = _log.CombatData.GetBuffRemoveAllData(10269).Where(x => x.Time >= stealthTime && x.Time <= stealthTime + 7000).ToList();
+            var trimmedEvents = RemovedStealthEvents.Select(x => x.Time);
+            while (true)
+            {
+                long avg = (long)trimmedEvents.Average();
+                var first = trimmedEvents.First();
+                var last = trimmedEvents.Last();
+                var absFirst = Math.Abs(avg - first);
+                var absLast = Math.Abs(avg - last);
+
+                if(absFirst > absLast && absFirst > 1000)
+                {
+                    trimmedEvents = trimmedEvents.Skip(1);
+                }
+                else if(absLast > absFirst && absLast > 1000)
+                {
+                    trimmedEvents = trimmedEvents.SkipLast(1);
+                }
+                else
+                {
+                    return avg;
+                }
+            }
+        }
+
+        private string GetStealth(PhaseData phase, string accountName, long stealthTime, Enums.StealthAlgoritmns stealthAlgoritmn, bool showLate = false)
+        {
+            List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedStealthEvents = _log.CombatData.GetBuffRemoveAllData(10269).Where(x => x.Time >= stealthTime && x.Time <= stealthTime + 20000).ToList();
+            List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedRevealedEvents = _log.CombatData.GetBuffRemoveAllData(890).Where(x => x.Time >= stealthTime && x.Time <= stealthTime + 20000).ToList();
+            if (RemovedStealthEvents.Count == 0)
+            {
+                return "";
+            }
+            if (RemovedRevealedEvents.Where(x => x.To.Name.Contains(accountName)).Count() == 0)
+            {
+                return("✓");
+            }
+            var RemovedEvent = RemovedRevealedEvents.Where(x => x.To.Name.Contains(accountName)).FirstOrDefault();
+                //Check for revealed debuff instead
+            var error = "";
+            //var player = _log.PlayerAgents.Where(x => x.Name.Contains(accountName)).FirstOrDefault();
+            //if (player != null)
+            //{
+            //    var deaths = _log.CombatData.GetDeadEvents(player);
+            //    foreach (var death in deaths)
+            //    {
+            //        if (death.Time >= stealthTime && death.Time <= stealthTime + 10000)
+            //        {
+            //            return $"Died";
+            //        }
+            //    }
+            //}
+            var RevealedTime = (RemovedEvent.Time + RemovedEvent.RemovedDuration - 3000f);
+            var destealthTime = 0L;
+            switch (stealthAlgoritmn)
+            {
+                case StealthAlgoritmns.OutlierFiltering:
+                    destealthTime = GetStealthOutlierFilterTime(stealthTime);
+                    break;
+                case StealthAlgoritmns.MedianTiming:
+                    destealthTime = RemovedStealthEvents[(int)Math.Floor(RemovedStealthEvents.Count / 2f)].Time;
+                    break;
+                case StealthAlgoritmns.MimiTiming:
+                    return GetStealthMimi(phase, accountName, stealthTime);
+            }
+            var delta = destealthTime - RevealedTime;
+            if (delta > 1000f || (showLate && Math.Abs(delta) > 1000f))
+            {
+                var dmgData = _log.CombatData.GetDamageData(RemovedEvent.To).Where(x => x.Time >= stealthTime && x.Time <= RemovedEvent.Time + 10000).OrderBy(x => x.Time);
+                var skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment") && x is DirectHealthDamageEvent);
+                if (skill == null)
+                {
+                    skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
+                }
+                if (skill == null)
+                {
+                    if (error == "")
+                    {
+                        return "Unknown";
+                    }
+                }
+                else
+                {
+                    var offset = (int)delta / 1000f;
+                    bool early = offset > 0;
+                    if (early)
+                    {
+                        return $"{offset}s early {skill.Skill.Name}";
+                    }
+                    else
+                    {
+                        return $"{offset}s late {skill.Skill.Name}";
+                    }
+                }
+            }
+            return "✓";
+        }
+        private string GetStealthMimi(PhaseData phase, string accountName, long stealthTime)
+        {
+            var phaseStart = phase.Start;
+            var destealthTime = phaseStart + 3000L;
+            List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedRevealedEvents = _log.CombatData.GetBuffRemoveAllData(890).Where(x => x.Time < phaseStart + 9000).ToList();
+            var revealTiming = _log.CombatData.GetBuffRemoveAllData(890).Where(x => x.To.Name.Contains(accountName)).Select(x => x.Time + x.RemovedDuration - 3000f);
+            var reveals = revealTiming.Where(x => x > stealthTime && x < destealthTime);
+            var player = _log.PlayerAgents.Where(x => x.Name.Contains(accountName)).FirstOrDefault();
+            if (player != null)
+            {
+                var deaths = _log.CombatData.GetDeadEvents(player);
+                foreach (var death in deaths)
+                {
+                    if (death.Time >= stealthTime && death.Time <= stealthTime + 10000)
+                    {
+                        return $"Died";
+                    }
+                }
+            }
+
+            if (reveals.Count() > 0)
+            {
+                var dmgData = _log.CombatData.GetDamageData(RemovedRevealedEvents.First().To).Where(x => x.Time >= stealthTime).OrderBy(x => x.Time);
+                var skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment") && x is DirectHealthDamageEvent);
+                if (skill == null)
+                {
+                    skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
+                }
+                if (skill == null)
+                {
+                    return "Unknown";
+                }
+                else
+                {
+                    return $"{-(int)(destealthTime - reveals.First()) / 1000f}s {skill.Skill.Name}";
+                }
+            }
+            return "✓";
         }
 
         private long GetBoonDurationInPhase(string target, string boonName, string phase, long time = 0)

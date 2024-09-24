@@ -20,7 +20,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public bool HasBoonDuringTime(string target, string boonName, long start, long end);
         public bool IsAlive(string player, long time);
         public BuffStackTyping GetBoonStackType(string boonName);
-        public List<(string, string)> GetStealthResult(string accountName);
+        public List<(string, string)> GetStealthResult(string accountName, StealthAlgoritmns algoritmn, bool showLate = false);
         public List<string> GetDownReasons(string accountName);
 
         public string[] GetPlayers();

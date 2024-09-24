@@ -67,6 +67,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             comboDpsPhase = new ComboBox();
             tableDps = new DataGridView();
             tabStealth = new TabPage();
+            btnShowAlgoritmns = new Button();
+            cbAlgoritmn = new ComboBox();
+            cbShowLate = new CheckBox();
             lblSelectedPhaseStealth = new Label();
             label1 = new Label();
             comboStealthPhase = new ComboBox();
@@ -440,6 +443,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // 
             // tabStealth
             // 
+            tabStealth.Controls.Add(btnShowAlgoritmns);
+            tabStealth.Controls.Add(cbAlgoritmn);
+            tabStealth.Controls.Add(cbShowLate);
             tabStealth.Controls.Add(lblSelectedPhaseStealth);
             tabStealth.Controls.Add(label1);
             tabStealth.Controls.Add(comboStealthPhase);
@@ -451,6 +457,34 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabStealth.TabIndex = 0;
             tabStealth.Text = "Stealth Analytics";
             tabStealth.UseVisualStyleBackColor = true;
+            // 
+            // btnShowAlgoritmns
+            // 
+            btnShowAlgoritmns.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            btnShowAlgoritmns.Location = new Point(0, 593);
+            btnShowAlgoritmns.Name = "btnShowAlgoritmns";
+            btnShowAlgoritmns.Size = new Size(10, 10);
+            btnShowAlgoritmns.TabIndex = 15;
+            btnShowAlgoritmns.UseVisualStyleBackColor = true;
+            // 
+            // cbAlgoritmn
+            // 
+            cbAlgoritmn.FormattingEnabled = true;
+            cbAlgoritmn.Location = new Point(942, 6);
+            cbAlgoritmn.Name = "cbAlgoritmn";
+            cbAlgoritmn.Size = new Size(133, 23);
+            cbAlgoritmn.TabIndex = 14;
+            cbAlgoritmn.Visible = false;
+            // 
+            // cbShowLate
+            // 
+            cbShowLate.AutoSize = true;
+            cbShowLate.Location = new Point(441, 8);
+            cbShowLate.Name = "cbShowLate";
+            cbShowLate.Size = new Size(77, 19);
+            cbShowLate.TabIndex = 13;
+            cbShowLate.Text = "Show late";
+            cbShowLate.UseVisualStyleBackColor = true;
             // 
             // lblSelectedPhaseStealth
             // 
@@ -684,7 +718,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private TabPage tabShockwaves;
         private Label label2;
         private Label label6;
-        private ComboBox comboBox1;
+        private ComboBox cbAlgoritmn;
         private DataGridView tableShockwave;
         private Label label9;
         private Button btnOpenFolder;
@@ -701,5 +735,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private DataGridView tableShockwaveSummary;
         private DataGridView tableDeaths;
         private DataGridView tableMechanicsSummary;
+        private CheckBox cbShowLate;
+        private Button btnShowAlgoritmns;
     }
 }

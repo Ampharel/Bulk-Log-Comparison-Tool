@@ -1,11 +1,14 @@
 ﻿using Bulk_Log_Comparison_Tool;
+using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
 using Bulk_Log_Comparison_Tool_Frontend.Utils;
+using System;
 
 namespace Bulk_Log_Comparison_Tool_Frontend.UI
 {
     internal class StealthAnalysisUI : PlayerUI
     {
+        public static StealthAlgoritmns stealthAlgoritmn = StealthAlgoritmns.OutlierFiltering;
         private string _selectedPhase = "";
         
         private readonly DataGridView tableStealth;
@@ -13,15 +16,41 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         private readonly ComboBox cbStealthPhase;
         private readonly TabPage tabStealth;
         private readonly UILogParser _logParser;
+        private readonly CheckBox _showLate;
+        private readonly ComboBox _cbStealthAlgoritmn;
+        private readonly Button _btnEnableStealthAlgoritmn;
 
-        public StealthAnalysisUI(DataGridView tableStealth, Label lblSelectedPhaseStealth, ComboBox cbStealthPhase, TabPage tabStealth, UILogParser logParser, List<string> activePlayers):base(activePlayers)
+        public StealthAnalysisUI(DataGridView tableStealth, Label lblSelectedPhaseStealth, ComboBox cbStealthPhase, TabPage tabStealth, UILogParser logParser, List<string> activePlayers, CheckBox showLate, ComboBox cbStealthAlgoritmn, Button btnEnableStealthAlgoritmn) : base(activePlayers)
         {
             this.tableStealth = tableStealth;
             this.lblSelectedPhaseStealth = lblSelectedPhaseStealth;
             this.cbStealthPhase = cbStealthPhase;
             this.tabStealth = tabStealth;
             _logParser = logParser;
+            _showLate = showLate;
+            _cbStealthAlgoritmn = cbStealthAlgoritmn;
+            _btnEnableStealthAlgoritmn = btnEnableStealthAlgoritmn;
             cbStealthPhase.SelectedIndexChanged += OnCbStealthPhaseSelectedIndexChanged;
+            _showLate.CheckedChanged += OnShowLateCheckedChanged;
+            _cbStealthAlgoritmn.SelectedIndexChanged += OnCbStealthAlgoritmnSelectedIndexChanged;
+            _btnEnableStealthAlgoritmn.Click += OnBtnEnableStealthAlgoritmnClick;
+            _cbStealthAlgoritmn.Items.AddRange(Enum.GetNames(typeof(StealthAlgoritmns)));
+        }
+
+        private void OnBtnEnableStealthAlgoritmnClick(object? sender, EventArgs e)
+        {
+            _cbStealthAlgoritmn.Visible = !_cbStealthAlgoritmn.Visible;
+        }
+
+        private void OnCbStealthAlgoritmnSelectedIndexChanged(object? sender, EventArgs e)
+        {
+            stealthAlgoritmn = (StealthAlgoritmns)_cbStealthAlgoritmn.SelectedIndex;
+            UpdatePanel();
+        }
+
+        private void OnShowLateCheckedChanged(object? sender, EventArgs e)
+        {
+            UpdatePanel();
         }
 
         public void OnCbStealthPhaseSelectedIndexChanged(object? sender, EventArgs e)
@@ -37,6 +66,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
         public override void UpdatePanel()
         {
+            if (ActivePlayers.Count == 0) return;
             tabStealth.Controls.Remove(tableStealth);
             tableStealth.ClearTable();
             tableStealth.RowCount = ActivePlayers.Count;
@@ -75,10 +105,10 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                         tableStealth.Rows[y].Cells[x].Value = "";
                         continue;
                     }
-                    var StealthForPlayer = Logs[x].GetStealthResult(ActivePlayers[y]);
+                    var StealthForPlayer = Logs[x].GetStealthResult(ActivePlayers[y], stealthAlgoritmn, _showLate.Checked);
                     var StealthForPhase = StealthForPlayer.Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
 
-                    var text = Logs[x].GetStealthResult(ActivePlayers[y]).Where(x => x.Item1 == _selectedPhase).Select(x => x.Item2).FirstOrDefault();
+                    var text = StealthForPhase;
                     if (text == null && _logParser.BulkLog.GetPlayers().Contains(ActivePlayers[y]))
                     {
                         text = " ";

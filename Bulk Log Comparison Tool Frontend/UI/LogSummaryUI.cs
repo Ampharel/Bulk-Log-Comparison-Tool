@@ -1,4 +1,5 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
+using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
 using Bulk_Log_Comparison_Tool_Frontend.Compare;
 using Bulk_Log_Comparison_Tool_Frontend.Utils;
@@ -222,7 +223,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 tableStealth.Rows[y].HeaderCell.Value = players[y];
                 int stealthCount = 0;
                 int successCount = 0;
-                var StealthForPlayer = _selectedLog.GetStealthResult(players[y]);
+                var StealthForPlayer = _selectedLog.GetStealthResult(players[y], StealthAnalysisUI.stealthAlgoritmn);
                 for (int x = 0; x < stealthPhases.Count(); x++)
                 {
                     var currentPhase = stealthPhases[x];

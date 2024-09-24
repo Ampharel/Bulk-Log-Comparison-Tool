@@ -79,7 +79,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
 
         public string[] GetStealthPhases()
         {
-            ParseStealthData();
+            ParseStealthData(Enums.StealthAlgoritmns.MimiTiming);
             return _stealthData.Values.SelectMany(x => x.Keys).Distinct().ToArray();
         }
 
@@ -105,9 +105,9 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             return Logs.SelectMany(x => x.GetBoonNames()).Distinct().ToArray();
         }
 
-        public string GetStealthResult(string logName, string phase)
+        public string GetStealthResult(string logName, string phase, Enums.StealthAlgoritmns algoritmn)
         {
-            ParseStealthData();
+            ParseStealthData(algoritmn);
             if (!_stealthData.ContainsKey(logName) || !_stealthData[logName].ContainsKey(phase))
                 {
                     return "";
@@ -115,12 +115,15 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             return _stealthData[logName][phase];
         }
 
-        private void ParseStealthData()
+        private Enums.StealthAlgoritmns _algorithmnUsed = Enums.StealthAlgoritmns.MimiTiming;
+
+        private void ParseStealthData(Enums.StealthAlgoritmns algoritmn)
         {
-            if(_stealthParsed)
+            if(_stealthParsed && _algorithmnUsed == algoritmn)
             {
                 return;
             }
+            _algorithmnUsed = algoritmn;
             _stealthParsed = true;
             var Players = GetPlayers();
             foreach (var log in Logs)
@@ -128,7 +131,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
                 _stealthData[log.GetFileName()] = new Dictionary<string, string>();
                 foreach (var player in Players)
                 {
-                    var stealthData = log.GetStealthResult(player);
+                    var stealthData = log.GetStealthResult(player, algoritmn);
                     foreach (var data in stealthData)
                     {
                         if (!_stealthData[log.GetFileName()].ContainsKey(data.Item1))
