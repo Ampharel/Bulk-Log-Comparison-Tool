@@ -22,7 +22,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private PlayerUI? _dpsPanel;
         private PlayerUI? _stealthPanel;
         private PlayerUI? _shockwavePanel;
-        private IPanel? _summaryPanel;
+        private PlayerUI? _summaryPanel;
 
         private ConcurrentQueue<string> _loadedFiles = new();
 
@@ -55,7 +55,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             _dpsPanel = new DpsUI(tableDps, lblSelectedPhaseDps, comboDpsPhase, tabDps, _logParser, ActivePlayers, cbCumulative, cbDefiance, cbAllTargets);
             _mechanicPanel = new MechanicsUI(tableMechanics, lblSelectedPhaseMechanics, lblSelectedMechanic, comboMechanicPhase, comboMechanicMechanics, tabMechanics, _logParser, ActivePlayers);
             _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, comboBoonPhase, comboBoonBoons, tabBoons, cbBoonTime, nudBoonTime, _logParser, ActivePlayers);
-            _summaryPanel = new LogSummaryUI(tabSummary, tableStealthSummary, tableShockwaveSummary, tableMechanicsSummary, tableDeaths, _logParser, comboSummaryLog);
+            _summaryPanel = new LogSummaryUI(tabSummary, tableStealthSummary, tableShockwaveSummary, tableMechanicsSummary, tableDeaths, _logParser, comboSummaryLog, ActivePlayers);
         }
 
         private void StartTimer()
@@ -164,7 +164,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             if (tabsControl.SelectedTab == tabDps) _dpsPanel?.UpdateActivePlayers(ActivePlayers);
             if (tabsControl.SelectedTab == tabMechanics) _mechanicPanel?.UpdateActivePlayers(ActivePlayers);
             if (tabsControl.SelectedTab == tabBoons) _boonPanel?.UpdateActivePlayers(ActivePlayers);
-            if (tabsControl.SelectedTab == tabSummary) _summaryPanel?.UpdatePanel();    
+            if (tabsControl.SelectedTab == tabSummary) _summaryPanel?.UpdateActivePlayers(ActivePlayers);    
         }
 
         private void btnOpenLogs_Click(object? sender, EventArgs e)

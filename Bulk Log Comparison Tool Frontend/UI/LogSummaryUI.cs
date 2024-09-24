@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Bulk_Log_Comparison_Tool_Frontend.UI
 {
-    internal class LogSummaryUI : IPanel
+    internal class LogSummaryUI : PlayerUI
     {
         private readonly TabPage _tabSummary;
         private readonly DataGridView tableStealth;
@@ -27,7 +27,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
         private ImageGenerator imageGenerator = new ImageGenerator();
 
-        public LogSummaryUI(TabPage tabSummary, DataGridView tableStealth, DataGridView tableShockwave, DataGridView tableMechanics, DataGridView tableDeaths, UILogParser logParser, ComboBox logComboBox)
+        public LogSummaryUI(TabPage tabSummary, DataGridView tableStealth, DataGridView tableShockwave, DataGridView tableMechanics, DataGridView tableDeaths, UILogParser logParser, ComboBox logComboBox, List<string> activePlayers) : base(activePlayers)
         {
             _tabSummary = tabSummary;
             this.tableStealth = tableStealth;
@@ -51,26 +51,31 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
         private IParsedEvtcLog? _selectedLog;
 
-        public void UpdatePanel()
+        public override void UpdatePanel()
         {
             _selectedLog = logParser.BulkLog.GetLog(logComboBox.SelectedItem?.ToString() ?? "");
             if (_selectedLog == null)
             {
                 return;
             }
-            UpdateStealthTable();
-            UpdateShockwaveTable();
-            UpdateMechanicsTable();
-            UpdateDeathTable();
+            var players = GetPlayers();
+            UpdateStealthTable(players);
+            UpdateShockwaveTable(players);
+            UpdateMechanicsTable(players);
+            UpdateDeathTable(players);
         }
 
-        private void UpdateDeathTable()
+        private string[] GetPlayers()
+        {
+            var logPlayers = _selectedLog.GetPlayers();
+            return ActivePlayers.Where(x => logPlayers.Contains(x)).ToArray();
+        }
+        private void UpdateDeathTable(string[] players)
         {
             if (_selectedLog == null)
             {
                 return;
             }
-            var players = _selectedLog.GetPlayers();
             var maxDowns = 1;
             foreach (var player in players)
             {
@@ -109,13 +114,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             _tabSummary.Controls.Add(tableDeaths);
         }
 
-        private void UpdateMechanicsTable()
+        private void UpdateMechanicsTable(string[] players)
         {
             if (_selectedLog == null)
             {
                 return;
             }
-            var players = _selectedLog.GetPlayers();
             _tabSummary.Controls.Remove(tableMechanics);
             tableMechanics.ClearTable();
             tableMechanics.ColumnCount = 6;
@@ -141,13 +145,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             _tabSummary.Controls.Add(tableMechanics);
         }
 
-        private void UpdateShockwaveTable()
+        private void UpdateShockwaveTable(string[] players)
         {
             if (_selectedLog == null)
             {
                 return;
             }
-            var players = _selectedLog.GetPlayers();
             _tabSummary.Controls.Remove(tableShockwave);
             tableShockwave.ClearTable();
             tableShockwave.ColumnCount = 1;
@@ -189,13 +192,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             _tabSummary.Controls.Add(tableShockwave);
         }
 
-        private void UpdateStealthTable()
+        private void UpdateStealthTable(string[] players)
         {
             if(_selectedLog == null)
             {
                 return;
             }
-            var players = _selectedLog.GetPlayers();
             _tabSummary.Controls.Remove(tableStealth);
 
             tableStealth.ClearTable();

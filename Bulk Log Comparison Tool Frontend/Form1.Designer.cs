@@ -31,14 +31,17 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private void InitializeComponent()
         {
             backgroundWorker1 = new System.ComponentModel.BackgroundWorker();
-            panelPlayers = new Panel();
             panelStealth = new Panel();
+            tabControl1 = new TabControl();
+            tabLogs = new TabPage();
+            lbLoadedFiles = new ListBox();
+            tabPlayers = new TabPage();
+            panelPlayers = new Panel();
             lblFontSize = new Label();
             nudFontSize = new NumericUpDown();
             btnOpenFolder = new Button();
             btnDeleteSelected = new Button();
             btnOpenLogs = new Button();
-            lbLoadedFiles = new ListBox();
             backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             tabBoons = new TabPage();
             nudBoonTime = new NumericUpDown();
@@ -85,6 +88,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             label2 = new Label();
             tableShockwave = new DataGridView();
             panelStealth.SuspendLayout();
+            tabControl1.SuspendLayout();
+            tabLogs.SuspendLayout();
+            tabPlayers.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudFontSize).BeginInit();
             tabBoons.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)nudBoonTime).BeginInit();
@@ -105,29 +111,76 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             ((System.ComponentModel.ISupportInitialize)tableShockwave).BeginInit();
             SuspendLayout();
             // 
-            // panelPlayers
-            // 
-            panelPlayers.AutoScroll = true;
-            panelPlayers.BackColor = SystemColors.Control;
-            panelPlayers.Dock = DockStyle.Top;
-            panelPlayers.Location = new Point(0, 0);
-            panelPlayers.Name = "panelPlayers";
-            panelPlayers.Size = new Size(1089, 50);
-            panelPlayers.TabIndex = 4;
-            // 
             // panelStealth
             // 
+            panelStealth.Controls.Add(tabControl1);
             panelStealth.Controls.Add(lblFontSize);
             panelStealth.Controls.Add(nudFontSize);
             panelStealth.Controls.Add(btnOpenFolder);
             panelStealth.Controls.Add(btnDeleteSelected);
             panelStealth.Controls.Add(btnOpenLogs);
-            panelStealth.Controls.Add(lbLoadedFiles);
             panelStealth.Dock = DockStyle.Right;
             panelStealth.Location = new Point(1089, 0);
             panelStealth.Name = "panelStealth";
             panelStealth.Size = new Size(172, 681);
             panelStealth.TabIndex = 2;
+            // 
+            // tabControl1
+            // 
+            tabControl1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            tabControl1.Controls.Add(tabLogs);
+            tabControl1.Controls.Add(tabPlayers);
+            tabControl1.Location = new Point(2, 121);
+            tabControl1.Name = "tabControl1";
+            tabControl1.SelectedIndex = 0;
+            tabControl1.Size = new Size(167, 556);
+            tabControl1.TabIndex = 6;
+            // 
+            // tabLogs
+            // 
+            tabLogs.Controls.Add(lbLoadedFiles);
+            tabLogs.Location = new Point(4, 24);
+            tabLogs.Name = "tabLogs";
+            tabLogs.Padding = new Padding(3);
+            tabLogs.Size = new Size(159, 528);
+            tabLogs.TabIndex = 0;
+            tabLogs.Text = "Logs";
+            tabLogs.UseVisualStyleBackColor = true;
+            // 
+            // lbLoadedFiles
+            // 
+            lbLoadedFiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            lbLoadedFiles.BackColor = SystemColors.Control;
+            lbLoadedFiles.ForeColor = SystemColors.Menu;
+            lbLoadedFiles.FormattingEnabled = true;
+            lbLoadedFiles.ItemHeight = 15;
+            lbLoadedFiles.Location = new Point(0, 0);
+            lbLoadedFiles.Name = "lbLoadedFiles";
+            lbLoadedFiles.SelectionMode = SelectionMode.MultiExtended;
+            lbLoadedFiles.Size = new Size(160, 529);
+            lbLoadedFiles.Sorted = true;
+            lbLoadedFiles.TabIndex = 0;
+            // 
+            // tabPlayers
+            // 
+            tabPlayers.Controls.Add(panelPlayers);
+            tabPlayers.Location = new Point(4, 24);
+            tabPlayers.Name = "tabPlayers";
+            tabPlayers.Padding = new Padding(3);
+            tabPlayers.Size = new Size(159, 528);
+            tabPlayers.TabIndex = 1;
+            tabPlayers.Text = "Players";
+            tabPlayers.UseVisualStyleBackColor = true;
+            // 
+            // panelPlayers
+            // 
+            panelPlayers.AutoScroll = true;
+            panelPlayers.BackColor = SystemColors.Control;
+            panelPlayers.Dock = DockStyle.Top;
+            panelPlayers.Location = new Point(3, 3);
+            panelPlayers.Name = "panelPlayers";
+            panelPlayers.Size = new Size(153, 525);
+            panelPlayers.TabIndex = 5;
             // 
             // lblFontSize
             // 
@@ -178,19 +231,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             btnOpenLogs.UseVisualStyleBackColor = true;
             btnOpenLogs.Click += btnOpenLogs_Click;
             // 
-            // lbLoadedFiles
-            // 
-            lbLoadedFiles.BackColor = SystemColors.Control;
-            lbLoadedFiles.ForeColor = SystemColors.Menu;
-            lbLoadedFiles.FormattingEnabled = true;
-            lbLoadedFiles.ItemHeight = 15;
-            lbLoadedFiles.Location = new Point(9, 128);
-            lbLoadedFiles.Name = "lbLoadedFiles";
-            lbLoadedFiles.SelectionMode = SelectionMode.MultiExtended;
-            lbLoadedFiles.Size = new Size(160, 529);
-            lbLoadedFiles.Sorted = true;
-            lbLoadedFiles.TabIndex = 0;
-            // 
             // tabBoons
             // 
             tabBoons.Controls.Add(nudBoonTime);
@@ -203,7 +243,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabBoons.Controls.Add(tableBoons);
             tabBoons.Location = new Point(4, 24);
             tabBoons.Name = "tabBoons";
-            tabBoons.Size = new Size(1081, 603);
+            tabBoons.Size = new Size(1081, 653);
             tabBoons.TabIndex = 2;
             tabBoons.Text = "Boons";
             tabBoons.UseVisualStyleBackColor = true;
@@ -304,7 +344,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabMechanics.Controls.Add(tableMechanics);
             tabMechanics.Location = new Point(4, 24);
             tabMechanics.Name = "tabMechanics";
-            tabMechanics.Size = new Size(1081, 603);
+            tabMechanics.Size = new Size(1081, 653);
             tabMechanics.TabIndex = 2;
             tabMechanics.Text = "Mechanics";
             tabMechanics.UseVisualStyleBackColor = true;
@@ -371,7 +411,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabDps.Location = new Point(4, 24);
             tabDps.Name = "tabDps";
             tabDps.Padding = new Padding(3);
-            tabDps.Size = new Size(1081, 603);
+            tabDps.Size = new Size(1081, 653);
             tabDps.TabIndex = 1;
             tabDps.Text = "Dps and CC";
             tabDps.UseVisualStyleBackColor = true;
@@ -453,7 +493,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabStealth.Location = new Point(4, 24);
             tabStealth.Name = "tabStealth";
             tabStealth.Padding = new Padding(3);
-            tabStealth.Size = new Size(1081, 603);
+            tabStealth.Size = new Size(1081, 653);
             tabStealth.TabIndex = 0;
             tabStealth.Text = "Stealth Analytics";
             tabStealth.UseVisualStyleBackColor = true;
@@ -530,10 +570,10 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabsControl.Controls.Add(tabMechanics);
             tabsControl.Controls.Add(tabShockwaves);
             tabsControl.Dock = DockStyle.Fill;
-            tabsControl.Location = new Point(0, 50);
+            tabsControl.Location = new Point(0, 0);
             tabsControl.Name = "tabsControl";
             tabsControl.SelectedIndex = 0;
-            tabsControl.Size = new Size(1089, 631);
+            tabsControl.Size = new Size(1089, 681);
             tabsControl.TabIndex = 8;
             // 
             // tabSummary
@@ -545,7 +585,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabSummary.Controls.Add(comboSummaryLog);
             tabSummary.Location = new Point(4, 24);
             tabSummary.Name = "tabSummary";
-            tabSummary.Size = new Size(1081, 603);
+            tabSummary.Size = new Size(1081, 653);
             tabSummary.TabIndex = 4;
             tabSummary.Text = "QuickSummary";
             tabSummary.UseVisualStyleBackColor = true;
@@ -556,7 +596,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableDeaths.AllowUserToDeleteRows = false;
             tableDeaths.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             tableDeaths.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            tableDeaths.Location = new Point(536, 317);
+            tableDeaths.Location = new Point(536, 367);
             tableDeaths.Name = "tableDeaths";
             tableDeaths.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
             tableDeaths.Size = new Size(529, 278);
@@ -571,7 +611,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableMechanicsSummary.Location = new Point(536, 32);
             tableMechanicsSummary.Name = "tableMechanicsSummary";
             tableMechanicsSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableMechanicsSummary.Size = new Size(529, 279);
+            tableMechanicsSummary.Size = new Size(529, 329);
             tableMechanicsSummary.TabIndex = 5;
             // 
             // tableShockwaveSummary
@@ -580,7 +620,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableShockwaveSummary.AllowUserToDeleteRows = false;
             tableShockwaveSummary.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
             tableShockwaveSummary.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            tableShockwaveSummary.Location = new Point(3, 317);
+            tableShockwaveSummary.Location = new Point(3, 367);
             tableShockwaveSummary.Name = "tableShockwaveSummary";
             tableShockwaveSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
             tableShockwaveSummary.Size = new Size(527, 278);
@@ -595,7 +635,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableStealthSummary.Location = new Point(3, 32);
             tableStealthSummary.Name = "tableStealthSummary";
             tableStealthSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableStealthSummary.Size = new Size(527, 279);
+            tableStealthSummary.Size = new Size(527, 329);
             tableStealthSummary.TabIndex = 3;
             // 
             // comboSummaryLog
@@ -613,7 +653,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabShockwaves.Location = new Point(4, 24);
             tabShockwaves.Name = "tabShockwaves";
             tabShockwaves.Padding = new Padding(3);
-            tabShockwaves.Size = new Size(1081, 603);
+            tabShockwaves.Size = new Size(1081, 653);
             tabShockwaves.TabIndex = 3;
             tabShockwaves.Text = "Shockwaves";
             tabShockwaves.UseVisualStyleBackColor = true;
@@ -645,7 +685,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             BackColor = SystemColors.Control;
             ClientSize = new Size(1261, 681);
             Controls.Add(tabsControl);
-            Controls.Add(panelPlayers);
             Controls.Add(panelStealth);
             MinimumSize = new Size(128, 72);
             Name = "Form1";
@@ -654,6 +693,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             Text = "BLCT";
             panelStealth.ResumeLayout(false);
             panelStealth.PerformLayout();
+            tabControl1.ResumeLayout(false);
+            tabLogs.ResumeLayout(false);
+            tabPlayers.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)nudFontSize).EndInit();
             tabBoons.ResumeLayout(false);
             tabBoons.PerformLayout();
@@ -687,7 +729,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private Panel panelStealth;
         private ListBox lbLoadedFiles;
         private Button btnDeleteSelected;
-        private Panel panelPlayers;
         private System.ComponentModel.BackgroundWorker backgroundWorker2;
         private TabPage tabBoons;
         private Label lblSelectedBoonBoons;
@@ -737,5 +778,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private DataGridView tableMechanicsSummary;
         private CheckBox cbShowLate;
         private Button btnShowAlgoritmns;
+        private TabControl tabControl1;
+        private TabPage tabLogs;
+        private TabPage tabPlayers;
+        private Panel panelPlayers;
     }
 }
