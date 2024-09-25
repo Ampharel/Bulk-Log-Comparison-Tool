@@ -55,7 +55,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                     _cachedPlayers.Add(player);
                 }
             }
-            foreach (var player in _cachedPlayers)
+            var cached = _cachedPlayers.ToArray();
+            foreach (var player in cached)
             {
                 if (!players.Contains(player))
                 {
