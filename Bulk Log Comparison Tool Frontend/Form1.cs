@@ -54,7 +54,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             _stealthPanel = new StealthAnalysisUI(tableStealth, lblSelectedPhaseStealth, comboStealthPhase, tabStealth, _logParser, ActivePlayers, cbShowLate,cbAlgoritmn,btnShowAlgoritmns);
             _dpsPanel = new DpsUI(tableDps, lblSelectedPhaseDps, comboDpsPhase, tabDps, _logParser, ActivePlayers, cbCumulative, cbDefiance, cbAllTargets);
             _mechanicPanel = new MechanicsUI(tableMechanics, lblSelectedPhaseMechanics, lblSelectedMechanic, comboMechanicPhase, comboMechanicMechanics, tabMechanics, _logParser, ActivePlayers);
-            _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, comboBoonPhase, comboBoonBoons, tabBoons, cbBoonTime, nudBoonTime, _logParser, ActivePlayers);
+            _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, comboBoonPhase, comboBoonBoons, tabBoons, cbBoonTime, cbGraph, nudBoonTime,  _logParser, ActivePlayers);
             _summaryPanel = new LogSummaryUI(tabSummary, tableStealthSummary, tableShockwaveSummary, tableMechanicsSummary, tableDeaths, _logParser, comboSummaryLog, ActivePlayers);
         }
 

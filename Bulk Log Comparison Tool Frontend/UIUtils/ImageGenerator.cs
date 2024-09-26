@@ -142,5 +142,19 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
                     return Brushes.Black;
             }
         }
+        
+        public Image GetGraph(int[] values)
+        {
+            int width = values.Count(); // adjust to your desired width
+            int height = 31; // adjust to your desired height
+            Image image = new Bitmap(width, height);
+            Graphics graphics = Graphics.FromImage(image);
+            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+            for(int i = 0; i < values.Count(); i++)
+            {
+                graphics.DrawLine(new Pen(Brushes.Red), i, 31, i, 31-values[i]);
+            }
+            return image;
+        }
     }
 }

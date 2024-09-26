@@ -1,6 +1,7 @@
 ﻿using Bulk_Log_Comparison_Tool;
 using Bulk_Log_Comparison_Tool.Util;
 using Bulk_Log_Comparison_Tool_Frontend.Bulk_Log_Comparison_Tool;
+using Bulk_Log_Comparison_Tool_Frontend.Compare;
 using Bulk_Log_Comparison_Tool_Frontend.Utils;
 using Microsoft.VisualBasic.Logging;
 using System;
@@ -24,10 +25,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         private readonly ComboBox cbBoon;
         private readonly TabPage tabBoons;
         private readonly CheckBox boonDuration;
+        private readonly CheckBox graph;
         private readonly NumericUpDown time;
         private readonly UILogParser _logParser;
 
-        public BoonUI(DataGridView tableBoons, Label lblSelectedBoon, Label lblSelectedPhase, ComboBox cbPhase, ComboBox cbBoon, TabPage tabBoons, CheckBox boonDuration, NumericUpDown time, UILogParser logParser, List<string> activePlayers):base(activePlayers)
+        public BoonUI(DataGridView tableBoons, Label lblSelectedBoon, Label lblSelectedPhase, ComboBox cbPhase, ComboBox cbBoon, TabPage tabBoons, CheckBox boonDuration, CheckBox graph, NumericUpDown time, UILogParser logParser, List<string> activePlayers):base(activePlayers)
         {
             this.tableBoons = tableBoons;
             this.lblSelectedBoon = lblSelectedBoon;
@@ -37,19 +39,16 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             this.tabBoons = tabBoons;
             _logParser = logParser;
             this.boonDuration = boonDuration;
+            this.graph = graph;
             this.time = time;
             cbBoon.SelectedIndexChanged += OnCbBoonSelectedIndexChanged;
             cbPhase.SelectedIndexChanged += OnCbPhaseSelectedIndexChanged;
-            boonDuration.CheckedChanged += OnBoonDurationCheckedChanged;
-            time.ValueChanged += OnTimeValueChanged;
+            boonDuration.CheckedChanged += UpdateEvent;
+            graph.CheckedChanged += UpdateEvent;
+            time.ValueChanged += UpdateEvent;
         }
 
-        private void OnTimeValueChanged(object? sender, EventArgs e)
-        {
-            UpdatePanel();
-        }
-
-        private void OnBoonDurationCheckedChanged(object? sender, EventArgs e)
+        private void UpdateEvent(object? sender, EventArgs e)
         {
             UpdatePanel();
         }
@@ -124,9 +123,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 tableBoons.Columns[x].MinimumWidth = 10;
             }
             tableBoons.Columns[Logs.Count()].HeaderCell.Value = "Average";
+            ImageGenerator imageGenerator = new ImageGenerator();
             for (int y = 0; y < ActivePlayers.Count; y++)
             {
                 tableBoons.Rows[y].HeaderCell.Value = ActivePlayers[y];
+                tableBoons.Rows.Insert(y, ActivePlayers[y]);
                 List<double> boonNumbers = new();
                 for (int x = 0; x < Logs.Count(); x++)
                 {
@@ -135,9 +136,29 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                         tableBoons.Rows[y].Cells[x].Value = "";
                         continue;
                     }
-                    double boonUptime = Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase, (long)time.Value, boonDuration.Checked);
-                    boonNumbers.Add(boonUptime);
-                    tableBoons.Rows[y].Cells[x].Value = boonUptime;
+                    if(graph.Checked)
+                    {
+                        List<int> boons = new();
+                        for(long i = (long)time.Value; i < Logs[x].GetPhaseEnd(_selectedPhase); i += 1000)
+                        {
+                            boons.Add((int)Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase, i/1000, boonDuration.Checked));
+                        }
+                        DataGridViewImageCell img = new DataGridViewImageCell();
+                        var image = imageGenerator.GetGraph(boons.ToArray());
+                        img.Value = image;
+                        tableBoons.Rows[y].Cells[x] = img;
+                    }
+                    else
+                    {
+                        double boonUptime = Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase, (long)time.Value, boonDuration.Checked);
+                        boonNumbers.Add(boonUptime);
+                        tableBoons.Rows[y].Cells[x].Value = boonUptime;
+                    }
+                }
+                if(boonNumbers.Count == 0)
+                {
+                    tableBoons.Rows[y].Cells[Logs.Count()].Value = "";
+                    continue;
                 }
                 float RoundedAverage = (float)Math.Round(boonNumbers.Average(), 1);
                 tableBoons.Columns[Logs.Count()].DefaultCellStyle.Format = cellFormat;

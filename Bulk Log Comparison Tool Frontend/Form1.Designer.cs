@@ -87,6 +87,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabShockwaves = new TabPage();
             label2 = new Label();
             tableShockwave = new DataGridView();
+            cbGraph = new CheckBox();
             panelStealth.SuspendLayout();
             tabControl1.SuspendLayout();
             tabLogs.SuspendLayout();
@@ -233,6 +234,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // 
             // tabBoons
             // 
+            tabBoons.Controls.Add(cbGraph);
             tabBoons.Controls.Add(nudBoonTime);
             tabBoons.Controls.Add(cbBoonTime);
             tabBoons.Controls.Add(label9);
@@ -250,7 +252,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // 
             // nudBoonTime
             // 
-            nudBoonTime.Location = new Point(809, 6);
+            nudBoonTime.Location = new Point(777, 4);
             nudBoonTime.Maximum = new decimal(new int[] { 10000, 0, 0, 0 });
             nudBoonTime.Name = "nudBoonTime";
             nudBoonTime.Size = new Size(120, 23);
@@ -259,7 +261,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // cbBoonTime
             // 
             cbBoonTime.AutoSize = true;
-            cbBoonTime.Location = new Point(935, 10);
+            cbBoonTime.Location = new Point(903, 8);
             cbBoonTime.Name = "cbBoonTime";
             cbBoonTime.Size = new Size(99, 19);
             cbBoonTime.TabIndex = 18;
@@ -678,6 +680,16 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableShockwave.Size = new Size(1067, 571);
             tableShockwave.TabIndex = 0;
             // 
+            // cbGraph
+            // 
+            cbGraph.AutoSize = true;
+            cbGraph.Location = new Point(1017, 8);
+            cbGraph.Name = "cbGraph";
+            cbGraph.Size = new Size(58, 19);
+            cbGraph.TabIndex = 20;
+            cbGraph.Text = "Graph";
+            cbGraph.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -782,5 +794,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private TabPage tabLogs;
         private TabPage tabPlayers;
         private Panel panelPlayers;
+        private CheckBox cbGraph;
     }
 }
