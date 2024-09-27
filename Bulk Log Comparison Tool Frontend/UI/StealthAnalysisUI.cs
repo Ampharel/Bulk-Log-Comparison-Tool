@@ -126,6 +126,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
                 tableStealth.Rows[y].Cells[Logs.Count()].Value = $"{successCount}/{stealthCount}";
             }
+            tableStealth.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
             tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabStealth.Controls.Add(tableStealth);
         }

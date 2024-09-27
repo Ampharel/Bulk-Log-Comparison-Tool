@@ -116,6 +116,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     tableMechanics.Rows[y].Cells[x].Value = sb.ToString();
                 }
             }
+            tableMechanics.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
             tableMechanics.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabMechanics.Controls.Add(tableMechanics);
         }

@@ -630,5 +630,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
             return downedReasons;
         }
+
+        public string GetSpec(string accountName)
+        {
+            var Spec = _log.PlayerList.FirstOrDefault(x => x.Account == accountName)?.Spec;
+            return Spec?.ToString() ?? "";
+        }
     }
 }

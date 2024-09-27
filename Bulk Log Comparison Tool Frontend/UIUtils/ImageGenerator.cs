@@ -1,6 +1,7 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
 using Bulk_Log_Comparison_Tool_Frontend.UI;
 using Bulk_Log_Comparison_Tool_Frontend.Utils;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,60 +73,79 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
 
         private const string fontName = "Segoe UI Symbol";
 
+        private readonly Image _checkMarkImage = new Bitmap(32, 32);
+        private bool _checkMarkImageSet = false;
         private Image GetCheckmarkImage(int shockwaveType)
         {
-            int width = 32; // adjust to your desired width
-            int height = 32; // adjust to your desired height
-            Image image = new Bitmap(width, height);
-            Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("✓", font, GetBrushColour(shockwaveType), 0, 0);
-            return image;
+            if(!_checkMarkImageSet)
+            {
+                Graphics graphics = Graphics.FromImage(_checkMarkImage);
+                Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+                StringFormat format = StringFormat.GenericDefault;
+                graphics.DrawString("✓", font, GetBrushColour(shockwaveType), 0, 0);
+                _checkMarkImageSet = true;
+            }
+            return _checkMarkImage;
         }
+
+        private readonly Image _warningImage = new Bitmap(32, 32);
+        private bool _warningImageSet = false;
         private Image GetWarningImage(int shockwaveType)
         {
-            int width = 32; // adjust to your desired width
-            int height = 32; // adjust to your desired height
-            Image image = new Bitmap(width, height);
-            Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, IPanel.columnFont.Size+4);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("⚠", font, GetBrushColour(shockwaveType), 0, 0);
-            return image;
+            if(!_warningImageSet)
+            {
+                Graphics graphics = Graphics.FromImage(_warningImage);
+                Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+                StringFormat format = StringFormat.GenericDefault;
+                graphics.DrawString("⚠", font, GetBrushColour(shockwaveType), 0, 0);
+                _warningImageSet = true;
+            }
+            return _warningImage;
         }
+
+        private readonly Image _skullImage = new Bitmap(32, 32);
+        private bool _skullImageSet = false;
         private Image GetSkullImage(int shockwaveType)
         {
-            int width = 32; // adjust to your desired width
-            int height = 32; // adjust to your desired height
-            Image image = new Bitmap(width, height);
-            Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("☠", font, GetBrushColour(shockwaveType), 0, 0);
-            return image;
+            if(!_skullImageSet)
+            {
+                Graphics graphics = Graphics.FromImage(_skullImage);
+                Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+                StringFormat format = StringFormat.GenericDefault;
+                graphics.DrawString("☠", font, GetBrushColour(shockwaveType), 0, 0);
+                _skullImageSet = true;
+            }
+            return _skullImage;
         }
+
+        private readonly Image _shieldImage = new Bitmap(32, 32);
+        private bool _shieldImageSet = false;
         private Image GetShieldImage(int shockwaveType)
         {
-            int width = 32; // adjust to your desired width
-            int height = 32; // adjust to your desired height
-            Image image = new Bitmap(width, height);
-            Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("🛡", font, GetBrushColour(shockwaveType), 0, 0);
-            return image;
+            if(!_shieldImageSet)
+            {
+                Graphics graphics = Graphics.FromImage(_shieldImage);
+                Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+                StringFormat format = StringFormat.GenericDefault;
+                graphics.DrawString("🛡", font, GetBrushColour(shockwaveType), 0, 0);
+                _shieldImageSet = true;
+            }
+            return _shieldImage;
         }
+
+        private readonly Image _downedImage = new Bitmap(32, 32);
+        private bool _downedImageSet = false;
         private Image GetDownedImage(int shockwaveType)
         {
-            int width = 32; // adjust to your desired width
-            int height = 32; // adjust to your desired height
-            Image image = new Bitmap(width, height);
-            Graphics graphics = Graphics.FromImage(image);
-            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("🔻", font, GetBrushColour(shockwaveType), 0, 0);
-            return image;
+            if(!_downedImageSet)
+            {
+                Graphics graphics = Graphics.FromImage(_downedImage);
+                Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+                StringFormat format = StringFormat.GenericDefault;
+                graphics.DrawString("🔻", font, GetBrushColour(shockwaveType), 0, 0);
+                _downedImageSet = true;
+            }
+            return _downedImage;
         }
 
         private Brush GetBrushColour(int shockwaveType)
@@ -156,5 +176,19 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             }
             return image;
         }
+
+        public static Image BlankImage = new Bitmap(1, 1);
+        private readonly Dictionary<string, Image> _specIcons = new();
+
+        public Image? GetSpecIcon(string currentSpec)
+        {
+            string path = $"icons/{currentSpec.ToLower()}.png";
+            if (File.Exists(path))
+            {
+                return Image.FromFile(path);
+            }
+            return BlankImage;
+        }
+
     }
 }

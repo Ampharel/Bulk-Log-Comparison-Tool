@@ -24,6 +24,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public List<string> GetDownReasons(string accountName);
 
         public string[] GetPlayers();
+        public string GetSpec(string accountName);
         public int[] GetGroups();
         IEnumerable<string> GetBoonNames();
         public string[] GetMechanicNames(string phaseName = "", long start = 0, long end = 0);

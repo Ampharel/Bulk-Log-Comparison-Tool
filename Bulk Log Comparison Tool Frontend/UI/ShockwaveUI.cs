@@ -59,6 +59,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
                 }
             }
+            tableShockwave.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
             tableShockwave.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabShockwaves.Controls.Add(tableShockwave);
         }

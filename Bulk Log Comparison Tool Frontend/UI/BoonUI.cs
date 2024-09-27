@@ -127,7 +127,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             for (int y = 0; y < ActivePlayers.Count; y++)
             {
                 tableBoons.Rows[y].HeaderCell.Value = ActivePlayers[y];
-                tableBoons.Rows.Insert(y, ActivePlayers[y]);
+                //tableBoons.Rows.Insert(y, ActivePlayers[y]);
                 List<double> boonNumbers = new();
                 for (int x = 0; x < Logs.Count(); x++)
                 {
@@ -177,7 +177,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 }
                 row++;
             }
-            tableBoons.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
+            tableBoons.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
+            //tableBoons.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabBoons.Controls.Add(tableBoons);
         }
 

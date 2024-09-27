@@ -109,6 +109,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 }
             }
 
+            tableDeaths.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
             tableDeaths.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
 
             _tabSummary.Controls.Add(tableDeaths);
@@ -140,6 +141,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     tableMechanics.Rows[y].Cells[x].Value = mechs.Where(x => x.Item1 == Player).Count();
                 }
             }
+            tableMechanics.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
             tableMechanics.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
 
             _tabSummary.Controls.Add(tableMechanics);
@@ -188,6 +190,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     tableShockwave.Rows[y].Cells[0] = img;
                 }
             }
+            tableShockwave.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
             tableShockwave.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             _tabSummary.Controls.Add(tableShockwave);
         }
@@ -246,6 +249,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     tableStealth.Rows[y].Cells[x].Value = StealthForPhase;
                 }
             }
+            tableStealth.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
             tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             _tabSummary.Controls.Add(tableStealth);
         }

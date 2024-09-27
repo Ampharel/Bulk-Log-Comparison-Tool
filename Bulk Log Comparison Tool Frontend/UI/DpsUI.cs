@@ -150,6 +150,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 tableDps.Rows[ActivePlayers.Count].Cells[x].Value = DpsToText(TotalDps[Logs[x].GetFileName()].Sum());
             }
+            tableDps.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
             tableDps.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tabDps.Controls.Add(tableDps);
         }

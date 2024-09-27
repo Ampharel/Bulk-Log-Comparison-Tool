@@ -1,4 +1,7 @@
-﻿using Bulk_Log_Comparison_Tool_Frontend.UI;
+﻿using Bulk_Log_Comparison_Tool.DataClasses;
+using Bulk_Log_Comparison_Tool_Frontend.Compare;
+using Bulk_Log_Comparison_Tool_Frontend.UI;
+using System.IO;
 
 namespace Bulk_Log_Comparison_Tool_Frontend.Utils
 {
@@ -43,6 +46,52 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Utils
                 }
             }
             table.Columns.Clear();
+        }
+
+
+        public static void UpdatePlayersWithClassicons(this DataGridView table, List<IParsedEvtcLog> parsedEvtcLogs, string[] players)
+        {
+            List<int> classColumns = new();
+            var imgGen = new ImageGenerator();
+            for (int j = 0; j < players.Length; j++)
+            {
+                string? player = players[j];
+                string prevSpec = "";
+                var insertedClasses = 0;
+                for(int i = 0; i < parsedEvtcLogs.Count; i++)
+                {
+                    var log = parsedEvtcLogs[i];
+                    if (log.HasPlayer(player))
+                    {
+                        var currentSpec = log.GetSpec(player);
+                        if(currentSpec != prevSpec)
+                        {
+                            prevSpec = currentSpec;
+                            var newColumn = i + insertedClasses;
+                            if (!classColumns.Contains(newColumn))
+                            {
+                                classColumns.Add(newColumn);
+                                var column = new DataGridViewImageColumn();
+                                column.Width = 22;
+                                table.Columns.Insert(newColumn, column);
+                                foreach(DataGridViewRow row in table.Rows)
+                                {
+                                    row.Cells[newColumn].Value = Image.FromFile(Path.Combine("icons", "blank.png"));
+                                }
+                            }
+                            var image = imgGen.GetSpecIcon(currentSpec);
+                            var imgCell = new DataGridViewImageCell();
+
+                            if (image != null)
+                            {
+                                imgCell.Value = image;
+                            }
+                            table.Rows[j].Cells[newColumn] = imgCell;
+                            insertedClasses++;
+                        }
+                    }
+                }
+            }
         }
     }
 
