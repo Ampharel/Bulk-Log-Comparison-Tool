@@ -61,7 +61,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             if (phase.Item1 == null)
                 return 0;
 
-            IReadOnlyList<AbstractSingleActor> target = null;
+            IReadOnlyList<AbstractSingleActor>? target = null;
             if (phaseName == "Full Fight" && allTarget)
             {
                 target = _log.FightData.GetPhases(_log).SelectMany(x => x.Targets).DistinctBy(x => x.Character).ToArray();
@@ -374,6 +374,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 return("✓");
             }
             var RemovedEvent = RemovedRevealedEvents.Where(x => x.To.Name.Contains(accountName)).FirstOrDefault();
+            if (RemovedEvent == null)
+            {
+                return ("✓");
+            }
                 //Check for revealed debuff instead
             var error = "";
             //var player = _log.PlayerAgents.Where(x => x.Name.Contains(accountName)).FirstOrDefault();

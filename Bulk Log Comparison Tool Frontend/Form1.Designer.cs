@@ -44,6 +44,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             btnOpenLogs = new Button();
             backgroundWorker2 = new System.ComponentModel.BackgroundWorker();
             tabBoons = new TabPage();
+            cbGraph = new CheckBox();
             nudBoonTime = new NumericUpDown();
             cbBoonTime = new CheckBox();
             label9 = new Label();
@@ -87,7 +88,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabShockwaves = new TabPage();
             label2 = new Label();
             tableShockwave = new DataGridView();
-            cbGraph = new CheckBox();
+            cbCount = new CheckBox();
             panelStealth.SuspendLayout();
             tabControl1.SuspendLayout();
             tabLogs.SuspendLayout();
@@ -250,6 +251,16 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabBoons.Text = "Boons";
             tabBoons.UseVisualStyleBackColor = true;
             // 
+            // cbGraph
+            // 
+            cbGraph.AutoSize = true;
+            cbGraph.Location = new Point(1017, 8);
+            cbGraph.Name = "cbGraph";
+            cbGraph.Size = new Size(58, 19);
+            cbGraph.TabIndex = 20;
+            cbGraph.Text = "Graph";
+            cbGraph.UseVisualStyleBackColor = true;
+            // 
             // nudBoonTime
             // 
             nudBoonTime.Location = new Point(777, 4);
@@ -338,6 +349,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // 
             // tabMechanics
             // 
+            tabMechanics.Controls.Add(cbCount);
             tabMechanics.Controls.Add(lblSelectedPhaseMechanics);
             tabMechanics.Controls.Add(lblSelectedMechanic);
             tabMechanics.Controls.Add(comboMechanicMechanics);
@@ -680,15 +692,15 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableShockwave.Size = new Size(1067, 571);
             tableShockwave.TabIndex = 0;
             // 
-            // cbGraph
+            // cbCount
             // 
-            cbGraph.AutoSize = true;
-            cbGraph.Location = new Point(1017, 8);
-            cbGraph.Name = "cbGraph";
-            cbGraph.Size = new Size(58, 19);
-            cbGraph.TabIndex = 20;
-            cbGraph.Text = "Graph";
-            cbGraph.UseVisualStyleBackColor = true;
+            cbCount.AutoSize = true;
+            cbCount.Location = new Point(1017, 8);
+            cbCount.Name = "cbCount";
+            cbCount.Size = new Size(59, 19);
+            cbCount.TabIndex = 21;
+            cbCount.Text = "Count";
+            cbCount.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -770,7 +782,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private TabControl tabsControl;
         private TabPage tabShockwaves;
         private Label label2;
-        private Label label6;
         private ComboBox cbAlgoritmn;
         private DataGridView tableShockwave;
         private Label label9;
@@ -795,5 +806,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private TabPage tabPlayers;
         private Panel panelPlayers;
         private CheckBox cbGraph;
+        private CheckBox cbCount;
     }
 }

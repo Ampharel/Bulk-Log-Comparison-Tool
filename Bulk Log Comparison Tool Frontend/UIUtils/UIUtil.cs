@@ -7,7 +7,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Utils
 {
     internal static class UIUtil
     {
-        public static Image StitchImages(this Image image1, Image image2)
+        public static Image StitchImages(this Image? image1, Image image2)
         {
             if (image1 == null)
             {

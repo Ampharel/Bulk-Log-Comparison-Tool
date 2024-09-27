@@ -67,6 +67,10 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
         private string[] GetPlayers()
         {
+            if (_selectedLog == null)
+            {
+                return [];
+            }
             var logPlayers = _selectedLog.GetPlayers();
             return ActivePlayers.Where(x => logPlayers.Contains(x)).ToArray();
         }
@@ -164,7 +168,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 var Player = players[y];
                 tableShockwave.Rows[y].HeaderCell.Value = players[y];
 
-                Image image = null;
+                Image? image = null;
                 List<(long, int)> shockwaves = new();
                 foreach (var shockwave in _selectedLog.GetShockwaves(0))
                 {

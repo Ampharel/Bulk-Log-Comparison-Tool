@@ -39,7 +39,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 tableShockwave.Rows[y].HeaderCell.Value = ActivePlayers[y];
                 for (int x = 0; x < Logs.Count(); x++)
                 {
-                    Image image = null;
+                    Image? image = null;
                     var Log = Logs[x];
                     List<(long, int)> shockwaves = new();
                     shockwaves = GetShockwaves(Logs, x, shockwaves,0);

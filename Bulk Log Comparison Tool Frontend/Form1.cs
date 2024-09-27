@@ -16,7 +16,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private List<string> ActivePlayers => _activePlayers;
         private UILogParser _logParser = new();
         private PlayerPanel? _playerPanel;
-        private PlayerUI? _activePanel;
         private PlayerUI? _boonPanel;
         private PlayerUI? _mechanicPanel;
         private PlayerUI? _dpsPanel;
@@ -32,6 +31,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         {
             InitializeComponent();
             _ = new DarkModeCS(this);
+            tableFont = new Font("Verdana", (float)nudFontSize.Value);
             Setup();
         }
 
@@ -41,7 +41,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             _playerPanel.PlayerSelectionChangedEvent += OnPlayerSelectionChanged;
             tabsControl.SelectedIndexChanged += (sender, e) => UpdatePanels();
 
-            tableFont = new Font("Verdana", (float)nudFontSize.Value);
             SetupPanels();
             UpdateFonts();
             ParseCustomPhases();
@@ -53,7 +52,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             _shockwavePanel = new ShockwaveUI(tableShockwave, tabShockwaves, _logParser, ActivePlayers);
             _stealthPanel = new StealthAnalysisUI(tableStealth, lblSelectedPhaseStealth, comboStealthPhase, tabStealth, _logParser, ActivePlayers, cbShowLate,cbAlgoritmn,btnShowAlgoritmns);
             _dpsPanel = new DpsUI(tableDps, lblSelectedPhaseDps, comboDpsPhase, tabDps, _logParser, ActivePlayers, cbCumulative, cbDefiance, cbAllTargets);
-            _mechanicPanel = new MechanicsUI(tableMechanics, lblSelectedPhaseMechanics, lblSelectedMechanic, comboMechanicPhase, comboMechanicMechanics, tabMechanics, _logParser, ActivePlayers);
+            _mechanicPanel = new MechanicsUI(tableMechanics, lblSelectedPhaseMechanics, lblSelectedMechanic, comboMechanicPhase, comboMechanicMechanics, tabMechanics, _logParser, cbCount, ActivePlayers);
             _boonPanel = new BoonUI(tableBoons, lblSelectedBoonBoons, lblSelectedPhaseBoons, comboBoonPhase, comboBoonBoons, tabBoons, cbBoonTime, cbGraph, nudBoonTime,  _logParser, ActivePlayers);
             _summaryPanel = new LogSummaryUI(tabSummary, tableStealthSummary, tableShockwaveSummary, tableMechanicsSummary, tableDeaths, _logParser, comboSummaryLog, ActivePlayers);
         }

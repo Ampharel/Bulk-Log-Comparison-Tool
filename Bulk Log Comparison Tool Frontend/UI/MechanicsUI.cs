@@ -22,9 +22,10 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         private readonly ComboBox cbMechanicPhase;
         private readonly ComboBox cbMechanicMechanics;
         private readonly TabPage tabMechanics;
-        private readonly UILogParser _logParser;
+        private readonly UILogParser logParser;
+        private readonly CheckBox count;
 
-        public MechanicsUI(DataGridView tableMechanics, Label lblSelectedPhaseMechanics, Label lblSelectedMechanic, ComboBox cbMechanicPhase, ComboBox cbMechanicMechanics, TabPage tabMechanics, UILogParser logParser, List<string> activePlayers) : base(activePlayers)
+        public MechanicsUI(DataGridView tableMechanics, Label lblSelectedPhaseMechanics, Label lblSelectedMechanic, ComboBox cbMechanicPhase, ComboBox cbMechanicMechanics, TabPage tabMechanics, UILogParser logParser, CheckBox count, List<string> activePlayers) : base(activePlayers)
         {
             this.tableMechanics = tableMechanics;
             this.lblSelectedPhaseMechanics = lblSelectedPhaseMechanics;
@@ -32,10 +33,17 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             this.cbMechanicPhase = cbMechanicPhase;
             this.cbMechanicMechanics = cbMechanicMechanics;
             this.tabMechanics = tabMechanics;
-            _logParser = logParser;
+            this.logParser = logParser;
+            this.count = count;
             cbMechanicPhase.SelectedIndexChanged += OnCbMechanicPhaseSelectedIndexChanged;
             cbMechanicMechanics.SelectedIndexChanged += OnCbMechanicMechanicsSelectedIndexChanged;
             tableMechanics.ColumnHeaderMouseDoubleClick += tableMechanics_ColumnHeaderMouseDoubleClick;
+            this.count.CheckedChanged += OnCheckboxCountCheckedChanged;
+        }
+
+        private void OnCheckboxCountCheckedChanged(object? sender, EventArgs e)
+        {
+            UpdatePanel();
         }
 
         public void OnCbMechanicPhaseSelectedIndexChanged(object? sender, EventArgs e)
@@ -58,14 +66,18 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
         public override void UpdatePanel()
         {
+            if(ActivePlayers.Count == 0)
+            {
+                return;
+            }
             tabMechanics.Controls.Remove(tableMechanics);
             tableMechanics.ClearTable();
 
-            var Logs = _logParser.BulkLog.Logs;
+            var Logs = logParser.BulkLog.Logs;
             tableMechanics.RowCount = ActivePlayers.Count;
             tableMechanics.ColumnCount = Logs.Count() + 1;
 
-            var Phases = _logParser.BulkLog.GetPhases();
+            var Phases = logParser.BulkLog.GetPhases();
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
             {
                 var Phase = Phases.FirstOrDefault();
@@ -79,7 +91,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             cbMechanicPhase.Items.AddRange(Phases);
             lblSelectedPhaseMechanics.Text = _selectedPhase;
 
-            var MechanicNames = _logParser.BulkLog.GetMechanicNames(_selectedPhase);
+            var MechanicNames = logParser.BulkLog.GetMechanicNames(_selectedPhase);
             if (_selectedMechanic == "" || !MechanicNames.Contains(_selectedMechanic))
             {
                 var Mechanic = MechanicNames.FirstOrDefault();
@@ -109,9 +121,16 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 {
                     var mechanicLogs = Logs[x].GetMechanicLogs(_selectedMechanic, _selectedPhase).Where(x => x.Item1.Equals(activePlayer));
                     StringBuilder sb = new();
-                    foreach (var log in mechanicLogs)
+                    if(count.Checked)
                     {
-                        sb.Append($"{log.Item2 / 1000}s ");
+                        sb.Append($"{mechanicLogs.Count()} ");
+                    }
+                    else
+                    {
+                        foreach (var log in mechanicLogs)
+                        {
+                            sb.Append($"{log.Item2 / 1000}s ");
+                        }
                     }
                     tableMechanics.Rows[y].Cells[x].Value = sb.ToString();
                 }

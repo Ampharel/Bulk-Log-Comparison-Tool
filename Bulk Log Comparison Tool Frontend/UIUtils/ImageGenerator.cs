@@ -13,7 +13,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
     internal class ImageGenerator
     {
 
-        public Image GetImage(IParsedEvtcLog Log, string Player, Image image, List<(long, int)> shockwaves)
+        public Image? GetImage(IParsedEvtcLog Log, string Player, Image? image, List<(long, int)> shockwaves)
         {
             var mechanic = "";
             var sortedShockwaves = shockwaves.OrderBy(x => x.Item1);
