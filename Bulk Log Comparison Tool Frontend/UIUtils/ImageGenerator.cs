@@ -115,7 +115,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
         private Image GetDownedImage(int shockwaveType)
         {
             Image _downedImage = new Bitmap(32, 32);
-            Graphics graphics = Graphics.FromImage(new Bitmap(32, 32));
+            Graphics graphics = Graphics.FromImage(_downedImage);
             Font font = new Font(fontName, IPanel.columnFont.Size + 4);
             StringFormat format = StringFormat.GenericDefault;
             graphics.DrawString("🔻", font, GetBrushColour(shockwaveType), 0, 0);
