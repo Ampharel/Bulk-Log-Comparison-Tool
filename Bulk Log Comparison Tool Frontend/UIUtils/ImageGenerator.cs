@@ -73,78 +73,52 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
 
         private const string fontName = "Segoe UI Symbol";
 
-        private readonly Image _checkMarkImage = new Bitmap(32, 32);
-        private bool _checkMarkImageSet = false;
         private Image GetCheckmarkImage(int shockwaveType)
         {
-            if(!_checkMarkImageSet)
-            {
-                Graphics graphics = Graphics.FromImage(_checkMarkImage);
-                Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-                StringFormat format = StringFormat.GenericDefault;
-                graphics.DrawString("✓", font, GetBrushColour(shockwaveType), 0, 0);
-                _checkMarkImageSet = true;
-            }
+            Image _checkMarkImage = new Bitmap(32, 32);
+            Graphics graphics = Graphics.FromImage(_checkMarkImage);
+            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+            StringFormat format = StringFormat.GenericDefault;
+            graphics.DrawString("✓", font, GetBrushColour(shockwaveType), 0, 0);
             return _checkMarkImage;
         }
 
-        private readonly Image _warningImage = new Bitmap(32, 32);
-        private bool _warningImageSet = false;
         private Image GetWarningImage(int shockwaveType)
         {
-            if(!_warningImageSet)
-            {
-                Graphics graphics = Graphics.FromImage(_warningImage);
-                Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-                StringFormat format = StringFormat.GenericDefault;
-                graphics.DrawString("⚠", font, GetBrushColour(shockwaveType), 0, 0);
-                _warningImageSet = true;
-            }
+            Image _warningImage = new Bitmap(32, 32);
+            Graphics graphics = Graphics.FromImage(_warningImage);
+            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+            StringFormat format = StringFormat.GenericDefault;
+            graphics.DrawString("⚠", font, GetBrushColour(shockwaveType), 0, 0);
             return _warningImage;
         }
 
-        private readonly Image _skullImage = new Bitmap(32, 32);
-        private bool _skullImageSet = false;
         private Image GetSkullImage(int shockwaveType)
         {
-            if(!_skullImageSet)
-            {
-                Graphics graphics = Graphics.FromImage(_skullImage);
-                Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-                StringFormat format = StringFormat.GenericDefault;
-                graphics.DrawString("☠", font, GetBrushColour(shockwaveType), 0, 0);
-                _skullImageSet = true;
-            }
+            Image _skullImage = new Bitmap(32, 32);
+            Graphics graphics = Graphics.FromImage(_skullImage);
+            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+            StringFormat format = StringFormat.GenericDefault;
+            graphics.DrawString("☠", font, GetBrushColour(shockwaveType), 0, 0);
             return _skullImage;
         }
 
-        private readonly Image _shieldImage = new Bitmap(32, 32);
-        private bool _shieldImageSet = false;
         private Image GetShieldImage(int shockwaveType)
         {
-            if(!_shieldImageSet)
-            {
-                Graphics graphics = Graphics.FromImage(_shieldImage);
-                Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-                StringFormat format = StringFormat.GenericDefault;
-                graphics.DrawString("🛡", font, GetBrushColour(shockwaveType), 0, 0);
-                _shieldImageSet = true;
-            }
+            Image _shieldImage = new Bitmap(32, 32);
+            Graphics graphics = Graphics.FromImage(_shieldImage);
+            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+            StringFormat format = StringFormat.GenericDefault;
+            graphics.DrawString("🛡", font, GetBrushColour(shockwaveType), 0, 0);
             return _shieldImage;
         }
-
-        private readonly Image _downedImage = new Bitmap(32, 32);
-        private bool _downedImageSet = false;
         private Image GetDownedImage(int shockwaveType)
         {
-            if(!_downedImageSet)
-            {
-                Graphics graphics = Graphics.FromImage(_downedImage);
-                Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-                StringFormat format = StringFormat.GenericDefault;
-                graphics.DrawString("🔻", font, GetBrushColour(shockwaveType), 0, 0);
-                _downedImageSet = true;
-            }
+            Image _downedImage = new Bitmap(32, 32);
+            Graphics graphics = Graphics.FromImage(new Bitmap(32, 32));
+            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
+            StringFormat format = StringFormat.GenericDefault;
+            graphics.DrawString("🔻", font, GetBrushColour(shockwaveType), 0, 0);
             return _downedImage;
         }
 
