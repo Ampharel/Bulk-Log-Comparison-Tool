@@ -123,7 +123,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     StringBuilder sb = new();
                     if(count.Checked)
                     {
-                        sb.Append($"{mechanicLogs.Count()} ");
+                        var counted = mechanicLogs.Count() != 0 ? mechanicLogs.Count().ToString() : "";
+                        sb.Append($"{counted}");
                     }
                     else
                     {

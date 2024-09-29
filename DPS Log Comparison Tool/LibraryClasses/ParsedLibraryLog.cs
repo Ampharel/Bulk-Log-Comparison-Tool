@@ -340,6 +340,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var trimmedEvents = RemovedStealthEvents.Select(x => x.Time);
             while (true)
             {
+                if(trimmedEvents.Count() == 0)
+                {
+                    return 0;
+                }
                 long avg = (long)trimmedEvents.Average();
                 var first = trimmedEvents.First();
                 var last = trimmedEvents.Last();
@@ -404,6 +408,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     break;
                 case StealthAlgoritmns.Timing:
                     return GetStealthTiming(phase, accountName, stealthTime);
+            }
+            if(destealthTime == 0)
+            {
+                return "";
             }
             var delta = destealthTime - RevealedTime;
             if (delta > 1000f || (showLate && Math.Abs(delta) > 1000f))
