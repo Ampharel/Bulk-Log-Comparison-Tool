@@ -84,7 +84,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
         public override void UpdatePanel()
         {
-            tabDps.Controls.Remove(tableDps);
+            var parents = tableDps.RemoveFromParent();
             tableDps.ClearTable();
             tableDps.RowCount = ActivePlayers.Count + 1;
             var Logs = _logParser.BulkLog.Logs;
@@ -152,7 +152,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             tableDps.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
             tableDps.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tabDps.Controls.Add(tableDps);
+            tableDps.AddToParent(parents);
         }
 
         private string GetTotalHeaderType()

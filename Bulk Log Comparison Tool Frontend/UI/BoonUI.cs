@@ -78,7 +78,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 return;
             }
-            tabBoons.Controls.Remove(tableBoons);
+            var parent = tableBoons.RemoveFromParent();
             tableBoons.ClearTable();
 
             var Logs = _logParser.BulkLog.Logs;
@@ -187,7 +187,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             tableBoons.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
             //tableBoons.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tabBoons.Controls.Add(tableBoons);
+            tableBoons.AddToParent(parent);
         }
 
         private string GetCellFormat(BuffStackTyping bt)

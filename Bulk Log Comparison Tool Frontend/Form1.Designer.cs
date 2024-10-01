@@ -81,10 +81,13 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableStealth = new DataGridView();
             tabsControl = new TabControl();
             tabSummary = new TabPage();
-            tableDeaths = new DataGridView();
-            tableMechanicsSummary = new DataGridView();
-            tableShockwaveSummary = new DataGridView();
+            splitContainer1 = new SplitContainer();
+            splitContainer2 = new SplitContainer();
             tableStealthSummary = new DataGridView();
+            tableMechanicsSummary = new DataGridView();
+            splitContainer3 = new SplitContainer();
+            tableShockwaveSummary = new DataGridView();
+            tableDeaths = new DataGridView();
             comboSummaryLog = new ComboBox();
             tabShockwaves = new TabPage();
             label2 = new Label();
@@ -105,10 +108,22 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             ((System.ComponentModel.ISupportInitialize)tableStealth).BeginInit();
             tabsControl.SuspendLayout();
             tabSummary.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)tableDeaths).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)tableMechanicsSummary).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)tableShockwaveSummary).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).BeginInit();
+            splitContainer1.Panel1.SuspendLayout();
+            splitContainer1.Panel2.SuspendLayout();
+            splitContainer1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)splitContainer2).BeginInit();
+            splitContainer2.Panel1.SuspendLayout();
+            splitContainer2.Panel2.SuspendLayout();
+            splitContainer2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tableStealthSummary).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tableMechanicsSummary).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)splitContainer3).BeginInit();
+            splitContainer3.Panel1.SuspendLayout();
+            splitContainer3.Panel2.SuspendLayout();
+            splitContainer3.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)tableShockwaveSummary).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)tableDeaths).BeginInit();
             tabShockwaves.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)tableShockwave).BeginInit();
             SuspendLayout();
@@ -603,10 +618,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // 
             // tabSummary
             // 
-            tabSummary.Controls.Add(tableDeaths);
-            tabSummary.Controls.Add(tableMechanicsSummary);
-            tabSummary.Controls.Add(tableShockwaveSummary);
-            tabSummary.Controls.Add(tableStealthSummary);
+            tabSummary.Controls.Add(splitContainer1);
             tabSummary.Controls.Add(comboSummaryLog);
             tabSummary.Location = new Point(4, 24);
             tabSummary.Name = "tabSummary";
@@ -615,53 +627,105 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabSummary.Text = "QuickSummary";
             tabSummary.UseVisualStyleBackColor = true;
             // 
-            // tableDeaths
+            // splitContainer1
             // 
-            tableDeaths.AllowUserToAddRows = false;
-            tableDeaths.AllowUserToDeleteRows = false;
-            tableDeaths.Anchor = AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tableDeaths.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            tableDeaths.Location = new Point(536, 367);
-            tableDeaths.Name = "tableDeaths";
-            tableDeaths.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableDeaths.Size = new Size(529, 278);
-            tableDeaths.TabIndex = 6;
+            splitContainer1.Dock = DockStyle.Bottom;
+            splitContainer1.Location = new Point(0, 36);
+            splitContainer1.Name = "splitContainer1";
+            splitContainer1.Orientation = Orientation.Horizontal;
             // 
-            // tableMechanicsSummary
+            // splitContainer1.Panel1
             // 
-            tableMechanicsSummary.AllowUserToAddRows = false;
-            tableMechanicsSummary.AllowUserToDeleteRows = false;
-            tableMechanicsSummary.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            tableMechanicsSummary.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            tableMechanicsSummary.Location = new Point(536, 32);
-            tableMechanicsSummary.Name = "tableMechanicsSummary";
-            tableMechanicsSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableMechanicsSummary.Size = new Size(529, 329);
-            tableMechanicsSummary.TabIndex = 5;
+            splitContainer1.Panel1.Controls.Add(splitContainer2);
             // 
-            // tableShockwaveSummary
+            // splitContainer1.Panel2
             // 
-            tableShockwaveSummary.AllowUserToAddRows = false;
-            tableShockwaveSummary.AllowUserToDeleteRows = false;
-            tableShockwaveSummary.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
-            tableShockwaveSummary.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            tableShockwaveSummary.Location = new Point(3, 367);
-            tableShockwaveSummary.Name = "tableShockwaveSummary";
-            tableShockwaveSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableShockwaveSummary.Size = new Size(527, 278);
-            tableShockwaveSummary.TabIndex = 4;
+            splitContainer1.Panel2.Controls.Add(splitContainer3);
+            splitContainer1.Size = new Size(1081, 617);
+            splitContainer1.SplitterDistance = 308;
+            splitContainer1.TabIndex = 8;
+            // 
+            // splitContainer2
+            // 
+            splitContainer2.Dock = DockStyle.Fill;
+            splitContainer2.Location = new Point(0, 0);
+            splitContainer2.Name = "splitContainer2";
+            // 
+            // splitContainer2.Panel1
+            // 
+            splitContainer2.Panel1.Controls.Add(tableStealthSummary);
+            // 
+            // splitContainer2.Panel2
+            // 
+            splitContainer2.Panel2.Controls.Add(tableMechanicsSummary);
+            splitContainer2.Size = new Size(1081, 308);
+            splitContainer2.SplitterDistance = 360;
+            splitContainer2.TabIndex = 0;
             // 
             // tableStealthSummary
             // 
             tableStealthSummary.AllowUserToAddRows = false;
             tableStealthSummary.AllowUserToDeleteRows = false;
-            tableStealthSummary.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
             tableStealthSummary.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            tableStealthSummary.Location = new Point(3, 32);
+            tableStealthSummary.Dock = DockStyle.Fill;
+            tableStealthSummary.Location = new Point(0, 0);
             tableStealthSummary.Name = "tableStealthSummary";
             tableStealthSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableStealthSummary.Size = new Size(527, 329);
+            tableStealthSummary.Size = new Size(360, 308);
             tableStealthSummary.TabIndex = 3;
+            // 
+            // tableMechanicsSummary
+            // 
+            tableMechanicsSummary.AllowUserToAddRows = false;
+            tableMechanicsSummary.AllowUserToDeleteRows = false;
+            tableMechanicsSummary.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            tableMechanicsSummary.Dock = DockStyle.Fill;
+            tableMechanicsSummary.Location = new Point(0, 0);
+            tableMechanicsSummary.Name = "tableMechanicsSummary";
+            tableMechanicsSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            tableMechanicsSummary.Size = new Size(717, 308);
+            tableMechanicsSummary.TabIndex = 5;
+            // 
+            // splitContainer3
+            // 
+            splitContainer3.Dock = DockStyle.Fill;
+            splitContainer3.Location = new Point(0, 0);
+            splitContainer3.Name = "splitContainer3";
+            // 
+            // splitContainer3.Panel1
+            // 
+            splitContainer3.Panel1.Controls.Add(tableShockwaveSummary);
+            // 
+            // splitContainer3.Panel2
+            // 
+            splitContainer3.Panel2.Controls.Add(tableDeaths);
+            splitContainer3.Size = new Size(1081, 305);
+            splitContainer3.SplitterDistance = 360;
+            splitContainer3.TabIndex = 0;
+            // 
+            // tableShockwaveSummary
+            // 
+            tableShockwaveSummary.AllowUserToAddRows = false;
+            tableShockwaveSummary.AllowUserToDeleteRows = false;
+            tableShockwaveSummary.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            tableShockwaveSummary.Dock = DockStyle.Fill;
+            tableShockwaveSummary.Location = new Point(0, 0);
+            tableShockwaveSummary.Name = "tableShockwaveSummary";
+            tableShockwaveSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            tableShockwaveSummary.Size = new Size(360, 305);
+            tableShockwaveSummary.TabIndex = 4;
+            // 
+            // tableDeaths
+            // 
+            tableDeaths.AllowUserToAddRows = false;
+            tableDeaths.AllowUserToDeleteRows = false;
+            tableDeaths.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            tableDeaths.Dock = DockStyle.Fill;
+            tableDeaths.Location = new Point(0, 0);
+            tableDeaths.Name = "tableDeaths";
+            tableDeaths.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
+            tableDeaths.Size = new Size(717, 305);
+            tableDeaths.TabIndex = 6;
             // 
             // comboSummaryLog
             // 
@@ -737,10 +801,22 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             ((System.ComponentModel.ISupportInitialize)tableStealth).EndInit();
             tabsControl.ResumeLayout(false);
             tabSummary.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)tableDeaths).EndInit();
-            ((System.ComponentModel.ISupportInitialize)tableMechanicsSummary).EndInit();
-            ((System.ComponentModel.ISupportInitialize)tableShockwaveSummary).EndInit();
+            splitContainer1.Panel1.ResumeLayout(false);
+            splitContainer1.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer1).EndInit();
+            splitContainer1.ResumeLayout(false);
+            splitContainer2.Panel1.ResumeLayout(false);
+            splitContainer2.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer2).EndInit();
+            splitContainer2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)tableStealthSummary).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tableMechanicsSummary).EndInit();
+            splitContainer3.Panel1.ResumeLayout(false);
+            splitContainer3.Panel2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)splitContainer3).EndInit();
+            splitContainer3.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)tableShockwaveSummary).EndInit();
+            ((System.ComponentModel.ISupportInitialize)tableDeaths).EndInit();
             tabShockwaves.ResumeLayout(false);
             tabShockwaves.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)tableShockwave).EndInit();
@@ -808,5 +884,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private Panel panelPlayers;
         private CheckBox cbGraph;
         private CheckBox cbCount;
+        private SplitContainer splitContainer1;
+        private SplitContainer splitContainer2;
+        private SplitContainer splitContainer3;
     }
 }

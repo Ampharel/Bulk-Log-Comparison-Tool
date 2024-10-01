@@ -67,7 +67,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
         public override void UpdatePanel()
         {
             if (ActivePlayers.Count == 0) return;
-            tabStealth.Controls.Remove(tableStealth);
+            var parent = tableStealth.RemoveFromParent();
             tableStealth.ClearTable();
             tableStealth.RowCount = ActivePlayers.Count;
             var Logs = _logParser.BulkLog.Logs;
@@ -128,7 +128,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             tableStealth.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
             tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tabStealth.Controls.Add(tableStealth);
+            tableStealth.AddToParent(parent);
         }
     }
 }
