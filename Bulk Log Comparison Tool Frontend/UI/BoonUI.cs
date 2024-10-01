@@ -160,7 +160,15 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     tableBoons.Rows[y].Cells[Logs.Count()].Value = "";
                     continue;
                 }
-                float RoundedAverage = (float)Math.Round(boonNumbers.Average(), 1);
+                float RoundedAverage = 0;
+                if(boonType == BuffStackTyping.Stacking)
+                {
+                    RoundedAverage = (float)Math.Round(boonNumbers.Select(x => x).Average(), 1);
+                }
+                else
+                {
+                    RoundedAverage = (float)Math.Round(boonNumbers.Select(x => x).Average(), 3);
+                }
                 tableBoons.Columns[Logs.Count()].DefaultCellStyle.Format = cellFormat;
                 tableBoons.Rows[y].Cells[Logs.Count()].Value = RoundedAverage;
 

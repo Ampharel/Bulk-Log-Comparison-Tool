@@ -53,43 +53,58 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Utils
         {
             List<int> classColumns = new();
             var imgGen = new ImageGenerator();
-            for (int j = 0; j < players.Length; j++)
+            var offset = 0;
+            Dictionary<string, string> playerSpecs = new();
+            for (int i = 0; i < parsedEvtcLogs.Count; i++)
             {
-                string? player = players[j];
-                string prevSpec = "";
-                var insertedClasses = 0;
-                for(int i = 0; i < parsedEvtcLogs.Count; i++)
+                var log = parsedEvtcLogs[i];
+                bool columnAdded = false;
+                for (int j = 0; j < players.Length; j++)
                 {
-                    var log = parsedEvtcLogs[i];
+                    var player = players[j];
                     if (log.HasPlayer(player))
                     {
-                        var currentSpec = log.GetSpec(player);
-                        if(currentSpec != prevSpec)
+                        var oldSpec = playerSpecs.GetValueOrDefault(player, "");
+                        var newSpec = log.GetSpec(player);
+                        playerSpecs[player] = newSpec;
+                        if (!oldSpec.Equals(newSpec))
                         {
-                            prevSpec = currentSpec;
-                            var newColumn = i + insertedClasses;
-                            if (!classColumns.Contains(newColumn))
+                            if (!columnAdded)
                             {
-                                classColumns.Add(newColumn);
                                 var column = new DataGridViewImageColumn();
                                 column.Width = 22;
-                                table.Columns.Insert(newColumn, column);
-                                foreach(DataGridViewRow row in table.Rows)
+                                table.Columns.Insert(i + offset, column);
+                                foreach (DataGridViewRow row in table.Rows)
                                 {
-                                    row.Cells[newColumn].Value = Image.FromFile(Path.Combine("icons", "blank.png"));
+                                    row.Cells[i + offset].Value = Image.FromFile(Path.Combine("icons", "blank.png"));
                                 }
+                                columnAdded = true;
                             }
-                            var image = imgGen.GetSpecIcon(currentSpec);
-                            var imgCell = new DataGridViewImageCell();
+                        }
+                    }
+                }
+                if (columnAdded) 
+                { 
+                    for (int j = 0; j < players.Length; j++)
+                    {
+                        var player = players[j];
+                        if (log.HasPlayer(player))
+                        {
+                            var newSpec = log.GetSpec(player);
+                            var image = imgGen.GetSpecIcon(newSpec);
 
                             if (image != null)
                             {
+                                var imgCell = new DataGridViewImageCell();
                                 imgCell.Value = image;
+                                table.Rows[j].Cells[i + offset] = imgCell;
                             }
-                            table.Rows[j].Cells[newColumn] = imgCell;
-                            insertedClasses++;
                         }
                     }
+                }
+                if(columnAdded)
+                {
+                    offset++;
                 }
             }
         }

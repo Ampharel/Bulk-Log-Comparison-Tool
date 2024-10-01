@@ -56,6 +56,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             lblSelectedMechanic = new Label();
             label4 = new Label();
             tabMechanics = new TabPage();
+            cbCount = new CheckBox();
             lblSelectedPhaseMechanics = new Label();
             comboMechanicMechanics = new ComboBox();
             comboMechanicPhase = new ComboBox();
@@ -88,7 +89,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabShockwaves = new TabPage();
             label2 = new Label();
             tableShockwave = new DataGridView();
-            cbCount = new CheckBox();
             panelStealth.SuspendLayout();
             tabControl1.SuspendLayout();
             tabLogs.SuspendLayout();
@@ -155,6 +155,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             lbLoadedFiles.BackColor = SystemColors.Control;
             lbLoadedFiles.ForeColor = SystemColors.Menu;
             lbLoadedFiles.FormattingEnabled = true;
+            lbLoadedFiles.HorizontalScrollbar = true;
             lbLoadedFiles.ItemHeight = 15;
             lbLoadedFiles.Location = new Point(0, 0);
             lbLoadedFiles.Name = "lbLoadedFiles";
@@ -362,6 +363,16 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tabMechanics.TabIndex = 2;
             tabMechanics.Text = "Mechanics";
             tabMechanics.UseVisualStyleBackColor = true;
+            // 
+            // cbCount
+            // 
+            cbCount.AutoSize = true;
+            cbCount.Location = new Point(1017, 8);
+            cbCount.Name = "cbCount";
+            cbCount.Size = new Size(59, 19);
+            cbCount.TabIndex = 21;
+            cbCount.Text = "Count";
+            cbCount.UseVisualStyleBackColor = true;
             // 
             // lblSelectedPhaseMechanics
             // 
@@ -691,16 +702,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableShockwave.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
             tableShockwave.Size = new Size(1067, 571);
             tableShockwave.TabIndex = 0;
-            // 
-            // cbCount
-            // 
-            cbCount.AutoSize = true;
-            cbCount.Location = new Point(1017, 8);
-            cbCount.Name = "cbCount";
-            cbCount.Size = new Size(59, 19);
-            cbCount.TabIndex = 21;
-            cbCount.Text = "Count";
-            cbCount.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
