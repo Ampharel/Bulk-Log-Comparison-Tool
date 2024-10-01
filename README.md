@@ -1,6 +1,8 @@
 This project allows users to analyze multiple arcdps logs for gw2 in bulk. This quickly shows patterns and makes it easier to spot mistakes / consistent issues.
 It also allows you to quickly compare your logs and see if you're improving.
 
+If you'd like to join the discussion about the program, report bugs or request features, join the discord for the program: https://discord.gg/jFSydfHUDM
+
 Current features:
 * DPS data per phase, per player and per group
 * Boon uptimes per phase, and boon duration on time stamps, per player and per subgroup
