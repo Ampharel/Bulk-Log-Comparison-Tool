@@ -141,9 +141,14 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                         List<(int,int)> boons = new();
                         var phases = Logs[x].GetPhases();
                         phases = phases.Skip(1).ToArray();
+                        var phaseStart = Logs[x].GetPhaseStart(_selectedPhase);
+                        while (phases.Count() > 0 && Logs[x].GetPhaseStart(phases.First()) < phaseStart)
+                        {
+                            phases = phases.Take(phases.Count() - 1).ToArray();
+                        }
 
                         var phaseIndex = 0;
-                        for(long i = (long)time.Value; i < Logs[x].GetPhaseEnd(_selectedPhase); i += 1000)
+                        for(long i = phaseStart+(long)Math.Round(time.Value); i < Logs[x].GetPhaseEnd(_selectedPhase); i += 1000)
                         {
                             if(phases.Count() > phaseIndex && i > Logs[x].GetPhaseEnd(phases[phaseIndex]))
                             {
