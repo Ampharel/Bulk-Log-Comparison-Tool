@@ -137,18 +137,36 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             }
         }
         
-        public Image GetGraph(int[] values)
+        public Image GetGraph((int,int)[] values)
         {
             int width = values.Count(); // adjust to your desired width
             int height = 31; // adjust to your desired height
+            if(width == 0)
+            {
+                width = 1;
+            }
             Image image = new Bitmap(width, height);
             Graphics graphics = Graphics.FromImage(image);
             Font font = new Font(fontName, IPanel.columnFont.Size + 4);
             for(int i = 0; i < values.Count(); i++)
             {
-                graphics.DrawLine(new Pen(Brushes.Red), i, 31, i, 31-values[i]);
+                graphics.DrawLine(new Pen(GetBrush(values[i].Item2)), i, 31, i, 31-values[i].Item1);
             }
             return image;
+        }
+
+        public Brush GetBrush(int i)
+        {
+            i = i % 5;
+            return i switch
+            {
+                0 => Brushes.Green,
+                1 => Brushes.Blue,
+                2 => Brushes.Purple,
+                3 => Brushes.Red,
+                4 => Brushes.Yellow,
+                _ => Brushes.Black
+            };
         }
 
         public static Image BlankImage = new Bitmap(1, 1);

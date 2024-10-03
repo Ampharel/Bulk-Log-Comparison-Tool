@@ -216,8 +216,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             string[] stealthPhases = bulkLog.GetStealthPhases();
             if (stealthPhases.Count() == 0)
             {
+                tableStealth.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
                 tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-                _tabSummary.Controls.Add(tableStealth);
+                tableStealth.AddToParent(parent);
                 return;
             }
             tableStealth.ColumnCount = stealthPhases.Count();

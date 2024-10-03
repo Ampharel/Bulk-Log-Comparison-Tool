@@ -289,6 +289,13 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
         }
 
+        public long GetStealthTiming(string phase)
+        {
+            var stealthPhase = _log.FightData.GetPhases(_log).Where(x => x.Name.Equals(phase)).FirstOrDefault();
+            var MassInvis = _log.CombatData.GetAnimatedCastData(10245).Where(x => x.EndTime > stealthPhase?.Start && x.EndTime < stealthPhase?.End).FirstOrDefault();
+            return MassInvis?.EndTime ?? 0L;
+        }
+
         public List<(string, string)> GetStealthResult(string accountName, StealthAlgoritmns algoritmn, bool showLate = false)
         {
             var StealthResult = new List<(string, string)>();

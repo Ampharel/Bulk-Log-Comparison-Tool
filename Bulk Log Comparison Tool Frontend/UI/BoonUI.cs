@@ -138,10 +138,18 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     }
                     if(graph.Checked)
                     {
-                        List<int> boons = new();
+                        List<(int,int)> boons = new();
+                        var phases = Logs[x].GetPhases();
+                        phases = phases.Skip(1).ToArray();
+
+                        var phaseIndex = 0;
                         for(long i = (long)time.Value; i < Logs[x].GetPhaseEnd(_selectedPhase); i += 1000)
                         {
-                            boons.Add((int)Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase, i/1000, boonDuration.Checked));
+                            if(phases.Count() > phaseIndex && i > Logs[x].GetPhaseEnd(phases[phaseIndex]))
+                            {
+                                phaseIndex++;
+                            }
+                            boons.Add(((int)Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase, i/1000, boonDuration.Checked), phaseIndex));
                         }
                         DataGridViewImageCell img = new DataGridViewImageCell();
                         var image = imageGenerator.GetGraph(boons.ToArray());
@@ -186,7 +194,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 row++;
             }
             tableBoons.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
-            //tableBoons.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
+            tableBoons.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tableBoons.AddToParent(parent);
         }
 
