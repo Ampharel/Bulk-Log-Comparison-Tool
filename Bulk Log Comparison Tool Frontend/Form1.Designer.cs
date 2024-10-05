@@ -629,8 +629,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // 
             // splitContainer1
             // 
-            splitContainer1.Dock = DockStyle.Bottom;
-            splitContainer1.Location = new Point(0, 36);
+            splitContainer1.Dock = DockStyle.Fill;
+            splitContainer1.Location = new Point(0, 23);
             splitContainer1.Name = "splitContainer1";
             splitContainer1.Orientation = Orientation.Horizontal;
             // 
@@ -641,8 +641,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // splitContainer1.Panel2
             // 
             splitContainer1.Panel2.Controls.Add(splitContainer3);
-            splitContainer1.Size = new Size(1081, 617);
-            splitContainer1.SplitterDistance = 308;
+            splitContainer1.Size = new Size(1081, 630);
+            splitContainer1.SplitterDistance = 314;
             splitContainer1.TabIndex = 8;
             // 
             // splitContainer2
@@ -658,7 +658,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // splitContainer2.Panel2
             // 
             splitContainer2.Panel2.Controls.Add(tableMechanicsSummary);
-            splitContainer2.Size = new Size(1081, 308);
+            splitContainer2.Size = new Size(1081, 314);
             splitContainer2.SplitterDistance = 360;
             splitContainer2.TabIndex = 0;
             // 
@@ -671,7 +671,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableStealthSummary.Location = new Point(0, 0);
             tableStealthSummary.Name = "tableStealthSummary";
             tableStealthSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableStealthSummary.Size = new Size(360, 308);
+            tableStealthSummary.Size = new Size(360, 314);
             tableStealthSummary.TabIndex = 3;
             // 
             // tableMechanicsSummary
@@ -683,7 +683,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableMechanicsSummary.Location = new Point(0, 0);
             tableMechanicsSummary.Name = "tableMechanicsSummary";
             tableMechanicsSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableMechanicsSummary.Size = new Size(717, 308);
+            tableMechanicsSummary.Size = new Size(717, 314);
             tableMechanicsSummary.TabIndex = 5;
             // 
             // splitContainer3
@@ -699,7 +699,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             // splitContainer3.Panel2
             // 
             splitContainer3.Panel2.Controls.Add(tableDeaths);
-            splitContainer3.Size = new Size(1081, 305);
+            splitContainer3.Size = new Size(1081, 312);
             splitContainer3.SplitterDistance = 360;
             splitContainer3.TabIndex = 0;
             // 
@@ -712,7 +712,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableShockwaveSummary.Location = new Point(0, 0);
             tableShockwaveSummary.Name = "tableShockwaveSummary";
             tableShockwaveSummary.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableShockwaveSummary.Size = new Size(360, 305);
+            tableShockwaveSummary.Size = new Size(360, 312);
             tableShockwaveSummary.TabIndex = 4;
             // 
             // tableDeaths
@@ -724,15 +724,16 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableDeaths.Location = new Point(0, 0);
             tableDeaths.Name = "tableDeaths";
             tableDeaths.RowHeadersWidthSizeMode = DataGridViewRowHeadersWidthSizeMode.AutoSizeToAllHeaders;
-            tableDeaths.Size = new Size(717, 305);
+            tableDeaths.Size = new Size(717, 312);
             tableDeaths.TabIndex = 6;
             // 
             // comboSummaryLog
             // 
+            comboSummaryLog.Dock = DockStyle.Top;
             comboSummaryLog.FormattingEnabled = true;
-            comboSummaryLog.Location = new Point(3, 3);
+            comboSummaryLog.Location = new Point(0, 0);
             comboSummaryLog.Name = "comboSummaryLog";
-            comboSummaryLog.Size = new Size(150, 23);
+            comboSummaryLog.Size = new Size(1081, 23);
             comboSummaryLog.TabIndex = 2;
             // 
             // tabShockwaves

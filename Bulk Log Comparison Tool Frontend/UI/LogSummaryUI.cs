@@ -214,6 +214,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
             var bulkLog = new BulkLog(new List<IParsedEvtcLog> { _selectedLog });
             string[] stealthPhases = bulkLog.GetStealthPhases();
+
+            for (int y = 0; y < players.Length; y++)
+            {
+                tableStealth.Rows[y].HeaderCell.Value = players[y];
+            }
             if (stealthPhases.Count() == 0)
             {
                 tableStealth.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
@@ -230,7 +235,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
             for (int y = 0; y < players.Length; y++)
             {
-                tableStealth.Rows[y].HeaderCell.Value = players[y];
                 int stealthCount = 0;
                 int successCount = 0;
                 var StealthForPlayer = _selectedLog.GetStealthResult(players[y], StealthAnalysisUI.stealthAlgoritmn);
