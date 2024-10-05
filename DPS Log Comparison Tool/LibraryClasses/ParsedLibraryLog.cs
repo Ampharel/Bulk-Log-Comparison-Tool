@@ -600,6 +600,78 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return end;
         }
 
+        private const double _mordemWaveSpeed = 1209.552445 / (302100 - 301134); //These numbers are analyzed timestamps and positions from the log https://dps.report/gx23-20241004-155640_void
+        private const double _sooWonSpeed = 2021.650996 / (466332 - 461905);
+        private const double _obliteratorSpeed = 345.905953 / (582063 - 580045);
+        private const double _mordemWaveDuration = 1.6;
+        private const double _sooWonWaveDuration = 4.5;
+        private const double _obliteratorWaveDuration = 2.5;
+
+        private double GetShockwaveDuration(ShockwaveType type)
+        {
+            switch (type)
+            {
+                case ShockwaveType.Mordemoth:
+                    return _mordemWaveDuration;
+                case ShockwaveType.SooWon:
+                    return _sooWonWaveDuration;
+                case ShockwaveType.VoidObliterator:
+                    return _obliteratorWaveDuration;
+                default:
+                    return 0.0;
+            }
+        }
+        private double GetShockwaveSpeed(ShockwaveType type)
+        {
+            switch(type)
+            {
+                case ShockwaveType.Mordemoth:
+                    return _mordemWaveSpeed;
+                case ShockwaveType.SooWon:
+                    return _sooWonSpeed;
+                case ShockwaveType.VoidObliterator:
+                    return _obliteratorSpeed;
+                default:
+                    return 0.0;
+            }
+        }
+
+        public long GetShockwaveIntersectionTime(string player, ShockwaveType type, Point3D shockwavePoint, long shockwaveTime)
+        {
+            var currentTime = shockwaveTime;
+            var waveEnd = shockwaveTime + GetShockwaveDuration(type)*1000;
+            while (currentTime < waveEnd)
+            {
+                var Player = _log.PlayerList.FirstOrDefault(x => x.Account == player);
+                var playerPosition = Player?.GetCurrentPosition(_log, currentTime) ?? new Point3D(0, 0);
+                var playerDistanceToShockwaveOrigin = Vector3.Distance(playerPosition.ToVector3(), shockwavePoint.ToVector3());
+                var shockwaveDistance = Convert.ToInt64((currentTime - shockwaveTime) * GetShockwaveSpeed(type));
+                if (shockwaveDistance > playerDistanceToShockwaveOrigin)
+                {
+                    return currentTime;
+                }
+                currentTime += 1;
+            }
+            return 0;//Player never intersected the shockwave
+        }
+
+        public bool HasStabDuringShockwave(string player, ShockwaveType type, long shockwaveTime, out long intersectionTime)
+        {
+            var guid = GetShockwaveGUID((int)type);
+            if (_log.CombatData.TryGetEffectEventsByGUID(guid, out IReadOnlyList<EffectEvent> shockwaves))
+            {
+                var shockwave = shockwaves.FirstOrDefault(x => x.Time == shockwaveTime);
+                intersectionTime = GetShockwaveIntersectionTime(player, type, shockwave.Position, shockwaveTime);
+                if(intersectionTime == 0)
+                {
+                    return true;//Player never intersected the shockwave, so they were safe either way
+                }
+                return HasBoonDuringTime(player, "Stability", intersectionTime - 100, intersectionTime + 100);
+            }
+            intersectionTime = 0;
+            return true;//Error retrieving shockwave
+        }
+
         public bool HasBoonDuringTime(string target, string boonName, long start, long end)
         {
             AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);

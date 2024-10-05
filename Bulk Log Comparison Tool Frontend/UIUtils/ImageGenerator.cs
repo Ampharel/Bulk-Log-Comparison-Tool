@@ -1,4 +1,5 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
+using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool_Frontend.UI;
 using Bulk_Log_Comparison_Tool_Frontend.Utils;
 using Newtonsoft.Json.Linq;
@@ -35,8 +36,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
                 {
                     continue;
                 }
-                var hadStab = Log.HasBoonDuringTime(Player, "Stability", shockwave.Item1, shockwave.Item1 + 2000);
-                var wasHit = Log.GetMechanicLogs(mechanic, start: shockwave.Item1, end: shockwave.Item1 + 2000).Where(x => x.Item1.Equals(Player)).Count() > 0;
+                
+                var hadStab = Log.HasStabDuringShockwave(Player, (ShockwaveType)shockwave.Item2, shockwave.Item1, out var intersectionTime);
+                var wasHit = Log.GetMechanicLogs(mechanic, start: intersectionTime-100, end: intersectionTime+100).Where(x => x.Item1.Equals(Player)).Count() > 0;
 
                 var wasAlive = Log.IsAlive(Player, shockwave.Item1);
                 if (!wasAlive)

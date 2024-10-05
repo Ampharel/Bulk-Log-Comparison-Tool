@@ -1,6 +1,8 @@
-﻿using System;
+﻿using GW2EIEvtcParser.EIData;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,6 +11,7 @@ namespace Bulk_Log_Comparison_Tool.Util
     public static class Util
     {
         public static int TryParse(this string? Source) => int.TryParse(Source, out int result) ? result : 0;
+        public static Vector3 ToVector3(this Point3D p3d) => new Vector3(p3d.X, p3d.Y, p3d.Z);
 
         public static List<int> TrimmedAverage(List<int> ints)
         {
@@ -30,6 +33,7 @@ namespace Bulk_Log_Comparison_Tool.Util
             var Max = sortedDoubles.Max();
             return sortedDoubles.Where(x => x >= Max * 0.6).ToList();
         }
+
     }
 
     public enum DamageTyping
