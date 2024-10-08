@@ -18,11 +18,21 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         private ParsedEvtcLog _log;
         private string _path;
         private Dictionary<string, (long, long)> _customPhases = new();
+        private Dictionary<string,string> _expectedStealthPhases = new();
 
         public ParsedLibraryLog(ParsedEvtcLog log, string path)
         {
             _log = log;
             _path = path;
+
+
+            CreateFile();
+
+            var stealthPhases = File.ReadAllLines("StealthPhases.txt").Where(x => !x.StartsWith("#") && x.Contains('|')).ToList();
+            foreach(var phase in stealthPhases)
+            {
+                _expectedStealthPhases.Add(phase.Split('|').First(), phase.Split('|').Last());
+            }
         }
 
         public string GetFileName()
@@ -297,46 +307,50 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return MassInvis?.EndTime ?? 0L;
         }
 
+        private void CreateFile()
+        {
+            if (!File.Exists("StealthPhases.txt"))
+            {
+                File.WriteAllLines("StealthPhases.txt", new string[]
+                {
+                    "#This file should contain all expected stealth phases in the PhaseName|DescriptiveName format",
+                    "Primordus|Primordus",
+                    "Kralkatorrik|Kralkatorrik",
+                    "Giants|Giants",
+                    "Soo-Won 2|Champions"
+                });
+            }
+        }
         public List<(string, string)> GetStealthResult(string accountName, StealthAlgoritmns algoritmn, bool showLate = false)
         {
+
             var StealthResult = new List<(string, string)>();
             var MassInvis = _log.CombatData.GetAnimatedCastData(10245);
             var buffRemoved = _log.CombatData.GetBuffRemoveAllData(10269);
             var buffInfoEvent = _log.CombatData.GetBuffInfoEvent(10269);
             var revealedRemovedEvent = _log.CombatData.GetBuffRemoveAllData(890);
 
-            foreach (var Invis in MassInvis)
+
+            foreach(var phase in _expectedStealthPhases)
             {
-                var phases = _log.FightData.GetPhases(_log);
-                var PlayersStealthed = new List<string>();
-                PhaseData? FromPhase = null;
-                foreach (var ph in phases)
+                var phaseData = _log.FightData.GetPhases(_log).Where(x => x.Name.Equals(phase.Key)).FirstOrDefault();
+
+                if(phaseData == null) continue;
+                var Invis = MassInvis.Where(x => x.EndTime + 10000 > phaseData.Start && phaseData.End - 10000 > x.Time).FirstOrDefault();
+                if (Invis == null)
                 {
-                    if (ph.Name.Contains("Breakbar"))
-                    {
-                        continue;
-                    }
-                    FromPhase = ph;
-                    if (ph.Start != 0 && ph.End > Invis.EndTime)
-                    {
-                        break;
-                    }
-                }
-                if (FromPhase == null)
-                {
+                    StealthResult.Add((phase.Value, "No MI"));
                     continue;
                 }
-
                 switch (algoritmn)
                 {
                     case StealthAlgoritmns.OutlierFiltering:
                     case StealthAlgoritmns.MedianTiming:
-                        StealthResult.Add((FromPhase.Name, GetStealth(FromPhase, accountName, Invis.EndTime, algoritmn, showLate)));
+                        StealthResult.Add((phase.Value, GetStealth(phaseData, accountName, Invis.EndTime, algoritmn, showLate)));
                         break;
                     case StealthAlgoritmns.Timing:
-                        StealthResult.Add((FromPhase.Name, GetStealthTiming(FromPhase, accountName, Invis.EndTime)));
+                        StealthResult.Add((phase.Value, GetStealthTiming(phaseData, accountName, Invis.EndTime)));
                         break;
-
                 }
             }
             return StealthResult;
@@ -375,6 +389,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         private string GetStealth(PhaseData phase, string accountName, long stealthTime, Enums.StealthAlgoritmns stealthAlgoritmn, bool showLate = false)
         {
+            if(!_log.PlayerList.Any(x => x.Account == accountName))
+            {
+                return "";
+            }
             List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedStealthEvents = _log.CombatData.GetBuffRemoveAllData(10269).Where(x => x.Time >= stealthTime && x.Time <= stealthTime + 20000).ToList();
             List<GW2EIEvtcParser.ParsedData.BuffRemoveAllEvent> RemovedRevealedEvents = _log.CombatData.GetBuffRemoveAllData(890).Where(x => x.Time >= stealthTime && x.Time <= stealthTime + 20000).ToList();
             if (RemovedStealthEvents.Count == 0)
