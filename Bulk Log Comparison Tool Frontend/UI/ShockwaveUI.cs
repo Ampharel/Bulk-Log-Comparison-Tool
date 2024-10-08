@@ -22,7 +22,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
         public override void UpdatePanel()
         {
-            var parent = tableShockwave.Parent;
+            tableShockwave.SuspendLayout();
             tableShockwave.ClearTable();
             tableShockwave.RowCount = ActivePlayers.Count;
             var Logs = _logParser.BulkLog.Logs;
@@ -61,7 +61,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             tableShockwave.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
             tableShockwave.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tableShockwave.AddToParent(parent);
+            tableShockwave.ResumeLayout();
         }
 
         private List<(long, int)> GetShockwaves(List<IParsedEvtcLog> Logs, int x, List<(long, int)> shockwaves, int shockwaveType)

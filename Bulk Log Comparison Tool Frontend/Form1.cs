@@ -5,6 +5,8 @@ using System.Collections.Concurrent;
 using Bulk_Log_Comparison_Tool_Frontend.Utils;
 using Bulk_Log_Comparison_Tool_Frontend.Properties;
 using System.Drawing.Printing;
+using System.Windows.Forms;
+using Microsoft.VisualBasic.Devices;
 
 namespace Bulk_Log_Comparison_Tool_Frontend
 {
@@ -131,6 +133,8 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private void CheckQueue(object? sender, EventArgs e)
         {
             bool loadedFile = false;
+
+            lbLoadedFiles.BeginUpdate();
             while (_loadedFiles.TryDequeue(out string? file))
             {
                 lbLoadedFiles.Items.Add(file);
@@ -138,6 +142,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                 comboSummaryLog.SelectedIndex = comboSummaryLog.Items.Count - 1;
                 loadedFile = true;
             }
+            lbLoadedFiles.EndUpdate();
             if (loadedFile)
             {
                 _playerPanel?.Refresh();
@@ -185,7 +190,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
         private void btnDeleteSelected_Click(object? sender, EventArgs e)
         {
-            lbLoadedFiles.SelectedItems.Cast<string>().ToList().ForEach(file => { lbLoadedFiles.Items.Remove(file); _logParser.RemoveLog(file); });
+            lbLoadedFiles.SelectedItems.Cast<string>().ToList().ForEach(file => { lbLoadedFiles.Items.Remove(file); _logParser.RemoveLog(file); comboSummaryLog.Items.Remove(file); });
             _playerPanel?.Refresh();
         }
 
@@ -269,5 +274,23 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             tableStealthSummary.UpdateTableFont();
         }
 
+        private void SelectAllLogs()
+        {
+            //lbLoadedFiles.BeginUpdate();
+            for (int i = 0; i < lbLoadedFiles.Items.Count; i++)
+            {
+                lbLoadedFiles.SetSelected(i, true);
+            }
+            //lbLoadedFiles.EndUpdate();
+        }
+
+        private Keyboard keyboard = new();
+        private void lbLoadedFiles_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (keyboard.CtrlKeyDown && e.KeyCode == Keys.A)
+            {
+                SelectAllLogs();
+            }
+        }
     }
 }

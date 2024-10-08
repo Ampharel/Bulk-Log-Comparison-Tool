@@ -78,7 +78,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 return;
             }
-            var parent = tableBoons.RemoveFromParent();
+            tableBoons.SuspendLayout();
             tableBoons.ClearTable();
 
             var Logs = _logParser.BulkLog.Logs;
@@ -150,7 +150,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                         var phaseIndex = 0;
                         for(long i = phaseStart+(long)Math.Round(time.Value); i < Logs[x].GetPhaseEnd(_selectedPhase); i += 1000)
                         {
-                            if(phases.Count() > phaseIndex && i > Logs[x].GetPhaseEnd(phases[phaseIndex]))
+                            if(phases.Count() > phaseIndex && i > Logs[x].GetPhaseEnd(phases[phaseIndex]) && (_selectedPhase == "Full Fight" || _selectedPhase == ""))
                             {
                                 phaseIndex++;
                             }
@@ -200,7 +200,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             tableBoons.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
             tableBoons.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tableBoons.AddToParent(parent);
+            tableBoons.ResumeLayout();
         }
 
         private string GetCellFormat(BuffStackTyping bt)

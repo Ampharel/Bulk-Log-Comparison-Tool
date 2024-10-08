@@ -22,18 +22,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Utils
             return newImage;
         }
 
-        public static Control? RemoveFromParent(this Control table)
-        {
-            var Parent = table.Parent;
-            Parent?.Controls.Remove(table);
-            return Parent;
-        }
-
-        public static void AddToParent(this Control table, Control? Parent)
-        {
-            Parent?.Controls.Add(table);
-        }
-
         public static void UpdateTableFont(this DataGridView table)
         {
             table.DefaultCellStyle.Font = IPanel.columnFont;

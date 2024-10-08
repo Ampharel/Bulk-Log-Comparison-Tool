@@ -70,7 +70,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 return;
             }
-            var parent = tableMechanics.RemoveFromParent();
+            tableMechanics.SuspendLayout();
             tableMechanics.ClearTable();
 
             var Logs = logParser.BulkLog.Logs;
@@ -138,7 +138,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             tableMechanics.UpdatePlayersWithClassicons(Logs, ActivePlayers.ToArray());
             tableMechanics.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tableMechanics.AddToParent(parent);
+            tableMechanics.ResumeLayout();
         }
 
 

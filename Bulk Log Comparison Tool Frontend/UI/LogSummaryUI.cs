@@ -89,7 +89,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     maxDowns = downed.Count();
                 }
             }
-            var parent = tableDeaths.RemoveFromParent();
+            tableDeaths.SuspendLayout();
             tableDeaths.ClearTable();
             tableDeaths.TopLeftHeaderCell.Value = "Downs";
             tableDeaths.ColumnCount = maxDowns;
@@ -116,7 +116,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             tableDeaths.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
             tableDeaths.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
 
-            tableDeaths.AddToParent(parent);
+            tableDeaths.ResumeLayout();
         }
 
 
@@ -126,7 +126,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 return;
             }
-            var parent = tableMechanics.RemoveFromParent();
+            tableMechanics.SuspendLayout();
             tableMechanics.ClearTable();
             tableMechanics.ColumnCount = 6;
             tableMechanics.TopLeftHeaderCell.Value = "Mechanics";
@@ -148,7 +148,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             tableMechanics.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
             tableMechanics.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCells);
-            tableMechanics.AddToParent(parent);
+            tableMechanics.ResumeLayout();
         }
 
         private void UpdateShockwaveTable(string[] players)
@@ -157,7 +157,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 return;
             }
-            var parent = tableShockwave.RemoveFromParent();
+            tableShockwave.SuspendLayout();
             tableShockwave.ClearTable();
             tableShockwave.ColumnCount = 1;
             tableShockwave.TopLeftHeaderCell.Value = "Shockwaves";
@@ -196,7 +196,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             tableShockwave.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
             tableShockwave.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tableShockwave.AddToParent(parent);
+            tableShockwave.ResumeLayout();
         }
 
         private void UpdateStealthTable(string[] players)
@@ -205,7 +205,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 return;
             }
-            var parent = tableStealth.RemoveFromParent();
+            tableStealth.SuspendLayout();
 
             tableStealth.ClearTable();
             tableStealth.RowCount = players.Length;
@@ -223,7 +223,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             {
                 tableStealth.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
                 tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-                tableStealth.AddToParent(parent);
+                tableStealth.ResumeLayout();
                 return;
             }
             tableStealth.ColumnCount = stealthPhases.Count();
@@ -260,7 +260,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             }
             tableStealth.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
             tableStealth.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
-            tableStealth.AddToParent(parent);
+            tableStealth.ResumeLayout();
         }
     }
 }

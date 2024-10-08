@@ -9,6 +9,7 @@ using System;
 using System.Numerics;
 using Bulk_Log_Comparison_Tool.Enums;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Reflection;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
@@ -661,6 +662,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             if (_log.CombatData.TryGetEffectEventsByGUID(guid, out IReadOnlyList<EffectEvent> shockwaves))
             {
                 var shockwave = shockwaves.FirstOrDefault(x => x.Time == shockwaveTime);
+                if(shockwave == null)
+                {
+                    intersectionTime = 0;
+                    return true;
+                }
                 intersectionTime = GetShockwaveIntersectionTime(player, type, shockwave.Position, shockwaveTime);
                 if(intersectionTime == 0)
                 {
@@ -717,7 +723,20 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             List<string> downedReasons = new();
             foreach(var downed in downEvents)
             {
-                downedReasons.Add(dmgTakenEvents.Where(x => Math.Abs(x.Time - downed.Time) < 10).ToList().Select(x => x.Skill.Name).First());
+                var events = dmgTakenEvents.Where(x => Math.Abs(x.Time - downed.Time) < 10).ToList();
+                var skillNames = events.Select(x => x.Skill.ID);
+
+                var skill = _log.SkillData.Get(events.First().Skill.ID);
+                var name = skill.Name;
+                if(int.TryParse(name, out var i))
+                {
+                    var newName = ForceGetMechanicName(i);
+                    if (newName != null)
+                    {
+                        name = newName;
+                    }
+                }
+                downedReasons.Add(name);
             }
             return downedReasons;
         }
@@ -726,6 +745,18 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         {
             var Spec = _log.PlayerList.FirstOrDefault(x => x.Account == accountName)?.Spec;
             return Spec?.ToString() ?? "";
+        }
+
+        private string? ForceGetMechanicName(long ID)
+        {
+            switch (ID)
+            {
+                case 65017:
+                    return "Branding Beam";
+                default:
+                    return null;
+            }
+
         }
     }
 }
