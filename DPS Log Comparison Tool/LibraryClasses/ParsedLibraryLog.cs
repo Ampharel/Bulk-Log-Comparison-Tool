@@ -18,7 +18,8 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         private ParsedEvtcLog _log;
         private string _path;
         private Dictionary<string, (long, long)> _customPhases = new();
-        private Dictionary<string,string> _expectedStealthPhases = new();
+        private static Dictionary<string,string>? _expectedStealthPhases;
+
 
         public ParsedLibraryLog(ParsedEvtcLog log, string path)
         {
@@ -26,10 +27,20 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             _path = path;
 
 
-            CreateFile();
+            LoadFile();
 
+        }
+
+        private void LoadFile()
+        {
+            if(_expectedStealthPhases != null)
+            {
+                return;
+            }
+            _expectedStealthPhases = new();
+            CreateFile();
             var stealthPhases = File.ReadAllLines("StealthPhases.txt").Where(x => !x.StartsWith("#") && x.Contains('|')).ToList();
-            foreach(var phase in stealthPhases)
+            foreach (var phase in stealthPhases)
             {
                 _expectedStealthPhases.Add(phase.Split('|').First(), phase.Split('|').Last());
             }
