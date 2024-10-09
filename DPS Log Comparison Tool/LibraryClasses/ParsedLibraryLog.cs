@@ -513,14 +513,14 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return "✓";
         }
 
-        private long GetBoonDurationInPhase(string target, string boonName, string phase, long time = 0)
+        private double GetBoonDurationInPhase(string target, string boonName, string phase, long time = 0)
         {
             var phaseData = GetPhaseFromName(phase);
             if (phaseData.Item1 == null)
                 return 0;
             return GetBoonDuration(target, boonName, phaseData.Item2 + time * 1000);
         }
-        private long GetBoonDuration(string target, string boonName, long time)
+        private double GetBoonDuration(string target, string boonName, long time)
         {
             AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
             if (Target == null)
@@ -530,6 +530,16 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     return 0;
                 }
+            }
+
+            var boonStackingType = GetBoonStackType(boonName);
+            if (boonStackingType == BuffStackTyping.Unknown)
+            {
+                return 0;
+            }
+            if(boonStackingType != BuffStackTyping.Queue && boonStackingType != BuffStackTyping.Regeneration)
+            {
+                return GetBoon(target, boonName, time, time + 1);
             }
 
             var maxDuration = 30000L;

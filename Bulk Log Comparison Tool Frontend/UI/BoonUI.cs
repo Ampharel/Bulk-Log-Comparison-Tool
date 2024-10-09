@@ -157,7 +157,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                             boons.Add(((int)Logs[x].GetBoon(ActivePlayers[y], _selectedBoon, _selectedPhase, i/1000, boonDuration.Checked), phaseIndex));
                         }
                         DataGridViewImageCell img = new DataGridViewImageCell();
-                        var image = imageGenerator.GetGraph(boons.ToArray());
+                        var image = imageGenerator.GetGraph(boons.ToArray(), boonType == BuffStackTyping.Queue ? 30:25);
                         img.Value = image;
                         tableBoons.Rows[y].Cells[x] = img;
                     }

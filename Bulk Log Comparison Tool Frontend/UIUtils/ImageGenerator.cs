@@ -139,10 +139,11 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             }
         }
         
-        public Image GetGraph((int,int)[] values)
+        public Image GetGraph((int,int)[] values, int maxValue)
         {
+            maxValue += 1;
             int width = values.Count(); // adjust to your desired width
-            int height = 31; // adjust to your desired height
+            int height = maxValue; // adjust to your desired height
             if(width == 0)
             {
                 width = 1;
@@ -152,7 +153,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             Font font = new Font(fontName, IPanel.columnFont.Size + 4);
             for(int i = 0; i < values.Count(); i++)
             {
-                graphics.DrawLine(new Pen(GetBrush(values[i].Item2)), i, 31, i, 31-values[i].Item1);
+                graphics.DrawLine(new Pen(GetBrush(values[i].Item2)), i, maxValue, i, maxValue - values[i].Item1);
             }
             return image;
         }
