@@ -7,6 +7,7 @@ using Bulk_Log_Comparison_Tool_Frontend.Properties;
 using System.Drawing.Printing;
 using System.Windows.Forms;
 using Microsoft.VisualBasic.Devices;
+using Bulk_Log_Comparison_Tool.Util;
 
 namespace Bulk_Log_Comparison_Tool_Frontend
 {
@@ -29,6 +30,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
         private Font tableFont;
 
+        private SettingsFile FontSettings;
+        private SettingsFile CustomPhaseSettings;
+
         public Form1()
         {
             InitializeComponent();
@@ -43,10 +47,42 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             _playerPanel.PlayerSelectionChangedEvent += OnPlayerSelectionChanged;
             tabsControl.SelectedIndexChanged += (sender, e) => UpdatePanels();
 
+            LoadSettings();
             SetupPanels();
             UpdateFonts();
-            ParseCustomPhases();
             StartTimer();
+        }
+
+        private void LoadSettings()
+        {
+            LoadFontSettings();
+            LoadCustomPhases();
+        }
+
+        private void LoadCustomPhases()
+        {
+            CustomPhaseSettings = new SettingsFile("CustomPhase.txt", [],
+                            ["# Adding custom phases can be done using the following syntax:",
+                                "# 1={PhaseName}:{Description}|StartTimeInPhase|Duration",
+                                "# Example:",
+                                "# 1=Primordus:before first chomp|0|14",
+                                "# Lines starting with a # will be ignored"]);
+            foreach (var setting in CustomPhaseSettings.GetSettings())
+            {
+                var settingValue = setting.Item2;
+                var splitPhase = settingValue.Split('|');
+                if (splitPhase.Length != 3)
+                {
+                    continue;
+                }
+                _logParser.AddCustomPhase(splitPhase[0], long.Parse(splitPhase[1]), long.Parse(splitPhase[2]));
+            }
+        }
+
+        private void LoadFontSettings()
+        {
+            FontSettings = new SettingsFile("FontSettings.txt", [("font", "8")]);
+            nudFontSize.Value = int.Parse(FontSettings.GetSetting("font"));
         }
 
         private void SetupPanels()
@@ -65,69 +101,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             timer.Interval = 1000;
             timer.Tick += new EventHandler(CheckQueue);
             timer.Start();
-        }
-
-        private void ParseCustomPhases()
-        {
-            if (!File.Exists("Settings.txt"))
-            {
-                File.WriteAllLines("Settings.txt", ["font=8"]);
-            }
-            var settings = File.ReadAllLines("Settings.txt");
-            foreach (var setting in settings)
-            {
-                if (setting.StartsWith("font="))
-                {
-                    var size = setting.Split('=')[1];
-                    if (int.TryParse(size, out int sizeInt))
-                    {
-                        nudFontSize.Value = sizeInt;
-                    }
-                }
-            }
-            if (File.Exists("CustomPhase.txt"))
-            {
-                var customPhases = File.ReadAllLines("CustomPhase.txt").ToList();
-                foreach (var phase in customPhases)
-                {
-                    if (phase.StartsWith("#"))
-                    {
-                        continue;
-                    }
-                    var splitPhase = phase.Split('|');
-                    if (splitPhase.Length != 3)
-                    {
-                        continue;
-                    }
-                    _logParser.AddCustomPhase(splitPhase[0], long.Parse(splitPhase[1]), long.Parse(splitPhase[2]));
-                }
-            }
-            else
-            {
-                File.WriteAllLines("CustomPhase.txt",
-                    [
-                        "# Adding custom phases can be done using the following syntax:",
-                        "# {PhaseName}:{Description}|StartTimeInPhase|Duration",
-                        "# Example:",
-                        "# Primordus:before first chomp|0|14",
-                        "# Lines starting with a # will be ignored"
-                    ]);
-            }
-        }
-
-        private void SaveSettings(string key, string value)
-        {
-            var settings = File.ReadAllLines("Settings.txt").ToList();
-            var index = settings.FindIndex(x => x.StartsWith(key));
-            if (index != -1)
-            {
-                settings[index] = $"{key}={value}";
-            }
-            else
-            {
-                settings.Add($"{key}={value}");
-            }
-            File.WriteAllLines("Settings.txt", settings);
         }
 
         private void CheckQueue(object? sender, EventArgs e)
@@ -254,7 +227,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
 
         private void nudFontSize_ValueChanged(object sender, EventArgs e)
         {
-            SaveSettings("font", nudFontSize.Value.ToString());
+            FontSettings.AddSetting("font", nudFontSize.Value.ToString());
             UpdateFonts();
             UpdatePanels();
         }

@@ -18,7 +18,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         private ParsedEvtcLog _log;
         private string _path;
         private Dictionary<string, (long, long)> _customPhases = new();
-        private static Dictionary<string,string>? _expectedStealthPhases;
+        private static Dictionary<string, string>? _expectedStealthPhases;
 
 
         public ParsedLibraryLog(ParsedEvtcLog log, string path)
@@ -33,7 +33,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         private void LoadFile()
         {
-            if(_expectedStealthPhases != null)
+            if (_expectedStealthPhases != null)
             {
                 return;
             }
@@ -53,7 +53,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         public void AddPhase(string name, long start, long duration)
         {
-            if(!_customPhases.ContainsKey(name))
+            if (!_customPhases.ContainsKey(name))
             {
                 _customPhases.Add(name, (start, duration));
             }
@@ -101,7 +101,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         {
             var player = _log.PlayerList.FirstOrDefault(x => x.Account == accountName);
             if (player == null) return 0;
-            if(targets == null)
+            if (targets == null)
             {
                 return 0;
             }
@@ -184,12 +184,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         }
 
         private double GetBoon(string target, string boonName, long start, long end, long time = 0, bool duration = false)
-        { 
+        {
             AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
             if (Target == null)
             {
                 Target = _log.FightData.GetMainTargets(_log).FirstOrDefault(x => x.Equals("target"));
-                if(Target == null)
+                if (Target == null)
                 {
                     return 0;
                 }
@@ -203,7 +203,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 if (value != null)
                 {
                     var uptime = value.Uptime;
-                    if(Boon.StackType == BuffStackType.Queue || Boon.StackType == BuffStackType.Regeneration)
+                    if (Boon.StackType == BuffStackType.Queue || Boon.StackType == BuffStackType.Regeneration)
                     {
                         uptime /= 100f;
                     }
@@ -226,7 +226,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             {
                 boonUptimes.Add(GetBoon(player.Account, boonName, phaseName, time, duration));
             }
-            if(boonUptimes.Count == 0)
+            if (boonUptimes.Count == 0)
             {
                 return 0;
             }
@@ -235,12 +235,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         public string[] GetMechanicNames(string phaseName = "", long start = 0, long end = 0)
         {
-            if(phaseName != "")
+            if (phaseName != "")
             {
                 start = GetPhaseStart(phaseName);
                 end = GetPhaseEnd(phaseName);
             }
-            var result = _log.MechanicData.GetPresentMechanics(_log,start,end);
+            var result = _log.MechanicData.GetPresentMechanics(_log, start, end);
             return result.Select(x => x.FullName).ToArray();
         }
 
@@ -269,12 +269,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
         }
 
-        public Mechanic? GetMechanic(string mechanicName,long start, long end)
-        {  
+        public Mechanic? GetMechanic(string mechanicName, long start, long end)
+        {
             return _log.MechanicData.GetPresentMechanics(_log, start, end).FirstOrDefault(x => x.FullName.Equals(mechanicName));
         }
 
-        public (string,long)[] GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0)
+        public (string, long)[] GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0)
         {
             if (phaseName != "")
             {
@@ -282,7 +282,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 end = GetPhaseEnd(phaseName);
             }
             var mech = GetMechanic(mechanicName, start, end);
-            if(mech == null)
+            if (mech == null)
             {
                 return [];
             }
@@ -342,11 +342,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var revealedRemovedEvent = _log.CombatData.GetBuffRemoveAllData(890);
 
 
-            foreach(var phase in _expectedStealthPhases)
+            foreach (var phase in _expectedStealthPhases)
             {
                 var phaseData = _log.FightData.GetPhases(_log).Where(x => x.Name.Equals(phase.Key)).FirstOrDefault();
 
-                if(phaseData == null) continue;
+                if (phaseData == null) continue;
                 var Invis = MassInvis.Where(x => x.EndTime + 10000 > phaseData.Start && phaseData.End - 10000 > x.Time).FirstOrDefault();
                 if (Invis == null)
                 {
@@ -373,7 +373,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var trimmedEvents = RemovedStealthEvents.Select(x => x.Time);
             while (true)
             {
-                if(trimmedEvents.Count() == 0)
+                if (trimmedEvents.Count() == 0)
                 {
                     return 0;
                 }
@@ -383,11 +383,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 var absFirst = Math.Abs(avg - first);
                 var absLast = Math.Abs(avg - last);
 
-                if(absFirst > absLast && absFirst > 1000)
+                if (absFirst > absLast && absFirst > 1000)
                 {
                     trimmedEvents = trimmedEvents.Skip(1);
                 }
-                else if(absLast > absFirst && absLast > 1000)
+                else if (absLast > absFirst && absLast > 1000)
                 {
                     trimmedEvents = trimmedEvents.SkipLast(1);
                 }
@@ -400,7 +400,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         private string GetStealth(PhaseData phase, string accountName, long stealthTime, Enums.StealthAlgoritmns stealthAlgoritmn, bool showLate = false)
         {
-            if(!_log.PlayerList.Any(x => x.Account == accountName))
+            if (!_log.PlayerList.Any(x => x.Account == accountName))
             {
                 return "";
             }
@@ -412,14 +412,14 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
             if (RemovedRevealedEvents.Where(x => x.To.Name.Contains(accountName)).Count() == 0)
             {
-                return("✓");
+                return ("✓");
             }
             var RemovedEvent = RemovedRevealedEvents.Where(x => x.To.Name.Contains(accountName)).FirstOrDefault();
             if (RemovedEvent == null)
             {
                 return ("✓");
             }
-                //Check for revealed debuff instead
+            //Check for revealed debuff instead
             var error = "";
             //var player = _log.PlayerAgents.Where(x => x.Name.Contains(accountName)).FirstOrDefault();
             //if (player != null)
@@ -446,7 +446,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 case StealthAlgoritmns.Timing:
                     return GetStealthTiming(phase, accountName, stealthTime);
             }
-            if(destealthTime == 0)
+            if (destealthTime == 0)
             {
                 return "";
             }
@@ -486,12 +486,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         private string GetStealthTiming(PhaseData phase, string accountName, long stealthTime)
         {
             var RemovedStealthEvents = _log.CombatData.GetBuffRemoveAllData(10269)
-                .Where(x => 
-                x.Time >= stealthTime && 
-                x.Time <= stealthTime + 3000 && 
+                .Where(x =>
+                x.Time >= stealthTime &&
+                x.Time <= stealthTime + 3000 &&
                 x.To.Name.Contains(accountName)
                 ).ToList();
-            
+
             if (RemovedStealthEvents.Count() > 0)
             {
                 var RevealEvent = RemovedStealthEvents.First();
@@ -537,13 +537,13 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             {
                 return 0;
             }
-            if(boonStackingType != BuffStackTyping.Queue && boonStackingType != BuffStackTyping.Regeneration)
+            if (boonStackingType != BuffStackTyping.Queue && boonStackingType != BuffStackTyping.Regeneration)
             {
                 return GetBoon(target, boonName, time, time + 1);
             }
 
             var maxDuration = 30000L;
-            if(boonName == "Swiftness")
+            if (boonName == "Swiftness")
             {
                 maxDuration = 60000L;
             }
@@ -557,7 +557,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 foreach (var buff in _buffEvents)
                 {
                     var buffApplyEvent = buff as BuffApplyEvent;
-                    if(buffApplyEvent == null)
+                    if (buffApplyEvent == null)
                     {
                         continue;
                     }
@@ -575,7 +575,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return Math.Max(0, currentDuration - (time - currentTime)) / 1000L;
         }
 
-        private (PhaseData?,long,long) GetPhaseFromName(string phaseName)
+        private (PhaseData?, long, long) GetPhaseFromName(string phaseName)
         {
             PhaseData? phase = null;
             long start = 0;
@@ -587,12 +587,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             else
             {
                 var splitPhaseName = phaseName.Split('|');
-                if(splitPhaseName.Length == 3)
+                if (splitPhaseName.Length == 3)
                 {
                     phaseName = splitPhaseName[0].Split(':').First();
                 }
                 phase = _log.FightData.GetPhases(_log).Where(x => x.Name == phaseName).FirstOrDefault();
-                if(phase == null)
+                if (phase == null)
                 {
                     return (null, 0, 0);
                 }
@@ -600,18 +600,18 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 duration = phase.End - phase.Start;
                 if (splitPhaseName.Length == 3)
                 {
-                    start = start+long.Parse(splitPhaseName[1]) * 1000;
+                    start = start + long.Parse(splitPhaseName[1]) * 1000;
                     duration = long.Parse(splitPhaseName[2]) * 1000;
                 }
             }
-            return (phase,start, duration);
+            return (phase, start, duration);
         }
 
         public string[] GetPlayers()
         {
             return _log.PlayerList.Select(x => x.Account).Distinct().ToArray();
         }
-        
+
         public int[] GetGroups()
         {
             return _log.PlayerList.Select(x => x.Group).Distinct().ToArray();
@@ -633,22 +633,50 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var Phase = GetPhaseFromName(phase);
             var start = Phase.Item2 == 0 ? Phase.Item1?.Start ?? 0 : Phase.Item2;
             var end = start + Phase.Item3;
-            if(end == start)
+            if (end == start)
             {
                 end = Phase.Item1?.End ?? 0;
             }
             return end;
         }
 
-        private const double _mordemWaveSpeed = 1209.552445 / (302100 - 301134); //These numbers are analyzed timestamps and positions from the log https://dps.report/gx23-20241004-155640_void
-        private const double _sooWonSpeed = 2021.650996 / (466332 - 461905);
-        private const double _obliteratorSpeed = 345.905953 / (582063 - 580045);
-        private const double _mordemWaveDuration = 1.6;
-        private const double _sooWonWaveDuration = 4.5;
-        private const double _obliteratorWaveDuration = 2.5;
+        private SettingsFile _shockwaveFile = new SettingsFile("ShockwaveSettings.txt",
+            [
+                ("MordemothSpeed", $"{1.0131723589421585819568253968254}"),
+                ("Soo-WonSpeed", $"{2021.650996/(466332-461905)}"),
+                ("VoidObliteratorSpeed", $"{345.905953/(582063-580045)}"),
+                ("MordemothDuration", $"{1.6}"),
+                ("Soo-WonDuration", $"{4.5}"),
+                ("VoidObliteratorDuration", $"{2.5}")
+            ]);
+        private bool _fileLoaded = false;
+
+        private double _mordemWaveSpeed = 1.0131723589421585819568253968254; //This number is taken from a distance/time calculation based on the on-hit event of the wave
+        private double _sooWonSpeed = 2021.650996 / (466332 - 461905);
+        private double _obliteratorSpeed = 345.905953 / (582063 - 580045);
+        private double _mordemWaveDuration = 1.6;
+        private double _sooWonWaveDuration = 4.5;
+        private double _obliteratorWaveDuration = 2.5;
+
+        private void LoadShockwaveSettings()
+        {
+            if(_fileLoaded)
+            {
+                return;
+            }
+            _fileLoaded = true;
+
+            double.TryParse(_shockwaveFile.GetSetting("MordemothSpeed"), out _mordemWaveSpeed);
+            double.TryParse(_shockwaveFile.GetSetting("Soo-WonSpeed"), out _sooWonSpeed);
+            double.TryParse(_shockwaveFile.GetSetting("VoidObliteratorSpeed"), out _obliteratorSpeed);
+            double.TryParse(_shockwaveFile.GetSetting("MordemothDuration"), out _mordemWaveDuration);
+            double.TryParse(_shockwaveFile.GetSetting("Soo-WonDuration"), out _sooWonWaveDuration);
+            double.TryParse(_shockwaveFile.GetSetting("VoidObliteratorDuration"), out _obliteratorWaveDuration);
+        }
 
         private double GetShockwaveDuration(ShockwaveType type)
         {
+            LoadShockwaveSettings();
             switch (type)
             {
                 case ShockwaveType.Mordemoth:
@@ -663,6 +691,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         }
         private double GetShockwaveSpeed(ShockwaveType type)
         {
+            LoadShockwaveSettings();
             switch(type)
             {
                 case ShockwaveType.Mordemoth:
@@ -678,6 +707,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         public long GetShockwaveIntersectionTime(string player, ShockwaveType type, Point3D shockwavePoint, long shockwaveTime)
         {
+            if (player.Contains("Link"))
+            {
+                var mechHit = GetMechanicLogs("Mordremoth Shockwave", "Full Fight").Where(x => x.Item1.Contains(player)).FirstOrDefault();
+            }
             var currentTime = shockwaveTime;
             var waveEnd = shockwaveTime + GetShockwaveDuration(type)*1000;
             while (currentTime < waveEnd)
@@ -711,7 +744,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     return true;//Player never intersected the shockwave, so they were safe either way
                 }
-                return HasBoonDuringTime(player, "Stability", intersectionTime - 100, intersectionTime + 100);
+                return HasBoonDuringTime(player, "Stability", intersectionTime - 150, intersectionTime + 150);
             }
             intersectionTime = 0;
             return true;//Error retrieving shockwave

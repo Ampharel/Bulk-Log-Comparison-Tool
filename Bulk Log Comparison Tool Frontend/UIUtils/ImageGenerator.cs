@@ -38,7 +38,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
                 }
                 
                 var hadStab = Log.HasStabDuringShockwave(Player, (ShockwaveType)shockwave.Item2, shockwave.Item1, out var intersectionTime);
-                var wasHit = Log.GetMechanicLogs(mechanic, start: intersectionTime-100, end: intersectionTime+100).Where(x => x.Item1.Equals(Player)).Count() > 0;
+                var wasHit = Log.GetMechanicLogs(mechanic, start: intersectionTime-1000, end: intersectionTime+1000).Where(x => x.Item1.Equals(Player)).Count() > 0;
 
                 var wasAlive = Log.IsAlive(Player, shockwave.Item1);
                 if (!wasAlive)
