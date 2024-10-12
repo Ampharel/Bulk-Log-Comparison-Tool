@@ -347,7 +347,8 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 var phaseData = _log.FightData.GetPhases(_log).Where(x => x.Name.Equals(phase.Key)).FirstOrDefault();
 
                 if (phaseData == null) continue;
-                var Invis = MassInvis.Where(x => x.EndTime + 10000 > phaseData.Start && phaseData.End - 10000 > x.Time).FirstOrDefault();
+                
+                var Invis = MassInvis.Where(x => x.EndTime + 10000 > phaseData.Start).FirstOrDefault();
                 if (Invis == null)
                 {
                     StealthResult.Add((phase.Value, "No MI"));
@@ -640,7 +641,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return end;
         }
 
-        private SettingsFile _shockwaveFile = new SettingsFile("ShockwaveSettings.txt",
+        private static SettingsFile _shockwaveFile = new SettingsFile("ShockwaveSettings.txt",
             [
                 ("MordemothSpeed", $"{1.0131723589421585819568253968254}"),
                 ("Soo-WonSpeed", $"{2021.650996/(466332-461905)}"),

@@ -87,6 +87,7 @@ namespace Bulk_Log_Comparison_Tool.Util
         {
             var kvps = _settings.Select(x => x.Key + equalSign + x.Value);
             var description = string.Join(Environment.NewLine, descriptionLines.Select(x => prefix + x));
+
             System.IO.File.WriteAllText(SettingsPath, description + Environment.NewLine + Environment.NewLine);
             System.IO.File.AppendAllLines(SettingsPath, kvps);
         }
