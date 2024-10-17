@@ -166,6 +166,10 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
 
         private string DpsToText(double dps)
         {
+            if(dps == 0)
+            {
+                return "0";
+            }
             if(_defiance.Checked)
             {
                 return dps.ToString("N0");
