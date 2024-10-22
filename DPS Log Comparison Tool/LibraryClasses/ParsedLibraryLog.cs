@@ -358,10 +358,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     case StealthAlgoritmns.OutlierFiltering:
                     case StealthAlgoritmns.MedianTiming:
-                        StealthResult.Add((phase.Value, GetStealth(phaseData, accountName, Invis.EndTime, algoritmn, showLate)));
+                        StealthResult.Add((phase.Value, GetStealth(phaseData, accountName, Invis.Time, algoritmn, showLate)));
                         break;
                     case StealthAlgoritmns.Timing:
-                        StealthResult.Add((phase.Value, GetStealthTiming(phaseData, accountName, Invis.EndTime)));
+                        StealthResult.Add((phase.Value, GetStealthTiming(phaseData, accountName, Invis.Time)));
                         break;
                 }
             }
