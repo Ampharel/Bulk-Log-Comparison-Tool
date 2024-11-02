@@ -27,10 +27,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private PlayerUI? _summaryPanel;
 
         private ConcurrentQueue<string> _loadedFiles = new();
-
+        
+        private string _defaultPath = "";
         private Font tableFont;
 
         private SettingsFile FontSettings;
+        private SettingsFile PathSettings;
         private SettingsFile CustomPhaseSettings;
 
         public Form1()
@@ -39,6 +41,22 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             _ = new DarkModeCS(this);
             tableFont = new Font("Verdana", (float)nudFontSize.Value);
             Setup();
+            this.AllowDrop = true;
+            this.DragEnter += new DragEventHandler(Form1_DragEnter);
+            this.DragDrop += new DragEventHandler(Form1_DragDrop);
+        }
+
+        void Form1_DragEnter(object sender, DragEventArgs e)
+        {
+            if (e.Data.GetDataPresent(DataFormats.FileDrop)) e.Effect = DragDropEffects.Copy;
+        }
+
+        void Form1_DragDrop(object sender, DragEventArgs e)
+        {
+            string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
+            foreach (string file in files){
+                LoadNewFile(file);
+            }
         }
 
         private void Setup()
@@ -57,6 +75,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         {
             LoadFontSettings();
             LoadCustomPhases();
+            LoadPathSettings();
         }
 
         private void LoadCustomPhases()
@@ -83,6 +102,12 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         {
             FontSettings = new SettingsFile("FontSettings.txt", [("font", "8")]);
             nudFontSize.Value = int.Parse(FontSettings.GetSetting("font"));
+        }
+
+        private void LoadPathSettings()
+        {
+            PathSettings = new SettingsFile("DefaultPath.txt", [("path", "")]);
+            _defaultPath = PathSettings.GetSetting("path");
         }
 
         private void SetupPanels()
@@ -147,11 +172,14 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private void btnOpenLogs_Click(object? sender, EventArgs e)
         {
             var openFileDialog = new OpenFileDialog();
+            openFileDialog.InitialDirectory = _defaultPath;
             openFileDialog.Filter = "zevtc files (*.zevtc)|*.zevtc";
             openFileDialog.Multiselect = true;
             if (openFileDialog.ShowDialog() == DialogResult.OK)
             {
                 List<Task> _runningTasks = new();
+
+                PathSettings.AddSetting("path", new FileInfo(openFileDialog.FileNames.FirstOrDefault() ?? "").Directory?.FullName ?? _defaultPath);
                 foreach (string file in openFileDialog.FileNames)
                 {
                     _runningTasks.Add(Task.Run(() => LoadNewFile(file)));
@@ -175,10 +203,20 @@ namespace Bulk_Log_Comparison_Tool_Frontend
         private void btnOpenFolder_Click(object sender, EventArgs e)
         {
             var openFolderDialog = new FolderBrowserDialog();
+            if(_defaultPath != "")
+            {
+                openFolderDialog.InitialDirectory = _defaultPath;
+            }
+            else
+            {
+               openFolderDialog.InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs\\");
+            }
             openFolderDialog.InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs\\");
+
             if (openFolderDialog.ShowDialog() == DialogResult.OK)
             {
                 _directory = openFolderDialog.SelectedPath;
+                PathSettings.AddSetting("path", _directory);
             }
 
             if (!_running && _directory != "")
