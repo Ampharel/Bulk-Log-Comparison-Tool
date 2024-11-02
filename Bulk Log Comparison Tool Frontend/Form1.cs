@@ -211,7 +211,6 @@ namespace Bulk_Log_Comparison_Tool_Frontend
             {
                openFolderDialog.InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs\\");
             }
-            openFolderDialog.InitialDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Guild Wars 2\\addons\\arcdps\\arcdps.cbtlogs\\");
 
             if (openFolderDialog.ShowDialog() == DialogResult.OK)
             {
