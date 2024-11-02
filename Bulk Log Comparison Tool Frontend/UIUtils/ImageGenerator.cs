@@ -1,5 +1,6 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
 using Bulk_Log_Comparison_Tool.Enums;
+using Bulk_Log_Comparison_Tool.Util;
 using Bulk_Log_Comparison_Tool_Frontend.UI;
 using Bulk_Log_Comparison_Tool_Frontend.Utils;
 using Newtonsoft.Json.Linq;
@@ -43,23 +44,23 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
                 var wasAlive = Log.IsAlive(Player, shockwave.Item1);
                 if (!wasAlive)
                 {
-                    image = image.StitchImages(GetSkullImage(shockwave.Item2));
+                    image = image.StitchImages(GetImage(shockwave.Item2,"death"));
                 }
                 else if (hadStab && wasHit)
                 {
-                    image = image.StitchImages(GetShieldImage(shockwave.Item2));
+                    image = image.StitchImages(GetImage(shockwave.Item2,"shield"));
                 }
                 else if (hadStab)
                 {
-                    image = image.StitchImages(GetCheckmarkImage(shockwave.Item2));
+                    image = image.StitchImages(GetImage(shockwave.Item2, "jumped"));
                 }
                 else if (wasHit)
                 {
-                    image = image.StitchImages(GetDownedImage(shockwave.Item2));
+                    image = image.StitchImages(GetImage(shockwave.Item2,"down"));
                 }
                 else
                 {
-                    image = image.StitchImages(GetWarningImage(shockwave.Item2));
+                    image = image.StitchImages(GetImage(shockwave.Item2,"warning"));
                 }
             }
 
@@ -75,68 +76,59 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
 
         private const string fontName = "Segoe UI Symbol";
 
-        private Image GetCheckmarkImage(int shockwaveType)
+
+        private Image GetImage(int shockwaveType, string name)
         {
-            Image _checkMarkImage = new Bitmap(32, 32);
-            Graphics graphics = Graphics.FromImage(_checkMarkImage);
-            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("✓", font, GetBrushColour(shockwaveType), 0, 0);
-            return _checkMarkImage;
+            Bitmap bmp = (Bitmap)GetIcon(name);
+            var bmpData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), 
+                System.Drawing.Imaging.ImageLockMode.ReadWrite,
+                bmp.PixelFormat);
+
+            IntPtr ptr = bmpData.Scan0;
+
+            int bytes = Math.Abs(bmpData.Stride) * bmp.Height;
+            byte[] argbValues = new byte[bytes];
+
+            System.Runtime.InteropServices.Marshal.Copy(ptr, argbValues, 0, bytes);
+
+            var Colour = GetBrushColour(shockwaveType);
+            for (int counter = 0; counter < argbValues.Length; counter += 4)
+            {
+                argbValues[counter] = Colour.R;
+                argbValues[counter + 1] = Colour.G;
+                argbValues[counter + 2] = Colour.B;
+            }
+
+
+            System.Runtime.InteropServices.Marshal.Copy(argbValues, 0, ptr, bytes);
+
+            // Unlock the bits.
+            bmp.UnlockBits(bmpData);
+
+            return bmp;
         }
 
-        private Image GetWarningImage(int shockwaveType)
+        private SettingsFile _colorFile = new SettingsFile("ColorSettings", new (string, string)[] { ("Mordemoth", "#274e13"), ("Soo-Won", "#0b5394"), ("Obliterator", "#674ea7")});
+        private Color GetBrushColour(int shockwaveType)
         {
-            Image _warningImage = new Bitmap(32, 32);
-            Graphics graphics = Graphics.FromImage(_warningImage);
-            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("⚠", font, GetBrushColour(shockwaveType), 0, 0);
-            return _warningImage;
-        }
-
-        private Image GetSkullImage(int shockwaveType)
-        {
-            Image _skullImage = new Bitmap(32, 32);
-            Graphics graphics = Graphics.FromImage(_skullImage);
-            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("☠", font, GetBrushColour(shockwaveType), 0, 0);
-            return _skullImage;
-        }
-
-        private Image GetShieldImage(int shockwaveType)
-        {
-            Image _shieldImage = new Bitmap(32, 32);
-            Graphics graphics = Graphics.FromImage(_shieldImage);
-            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("🛡", font, GetBrushColour(shockwaveType), 0, 0);
-            return _shieldImage;
-        }
-        private Image GetDownedImage(int shockwaveType)
-        {
-            Image _downedImage = new Bitmap(32, 32);
-            Graphics graphics = Graphics.FromImage(_downedImage);
-            Font font = new Font(fontName, IPanel.columnFont.Size + 4);
-            StringFormat format = StringFormat.GenericDefault;
-            graphics.DrawString("🔻", font, GetBrushColour(shockwaveType), 0, 0);
-            return _downedImage;
-        }
-
-        private Brush GetBrushColour(int shockwaveType)
-        {
+            string hex = "";
             switch (shockwaveType)
             {
                 case 0:
-                    return Brushes.Green;
+                    hex = _colorFile.GetSetting("Mordemoth");
+                    break;
                 case 1:
-                    return Brushes.Blue;
+                    hex = _colorFile.GetSetting("Soo-Won");
+                    break;
                 case 2:
-                    return Brushes.Purple;
+                    hex = _colorFile.GetSetting("Obliterator");
+                    break;
                 default:
-                    return Brushes.Black;
+                    hex = "#000000";
+                    break;
             }
+            ColorConverter cc = new ColorConverter();
+            return (Color)(cc.ConvertFromString(hex) ?? Color.Black);
         }
         
         public Image GetGraph((int,int)[] values, int maxValue)
@@ -175,15 +167,14 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
         public static Image BlankImage = new Bitmap(1, 1);
         private readonly Dictionary<string, Image> _specIcons = new();
 
-        public Image? GetSpecIcon(string currentSpec)
+        public Image? GetIcon(string iconName)
         {
-            string path = $"icons/{currentSpec.ToLower()}.png";
+            string path = $"icons/{iconName.ToLower()}.png";
             if (File.Exists(path))
             {
                 return Image.FromFile(path);
             }
             return BlankImage;
         }
-
     }
 }

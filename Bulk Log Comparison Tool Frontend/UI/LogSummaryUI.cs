@@ -195,6 +195,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 }
             }
             tableShockwave.UpdatePlayersWithClassicons(new List<IParsedEvtcLog> { _selectedLog }, players);
+            tableShockwave.AutoResizeRows(DataGridViewAutoSizeRowsMode.AllCells);
             tableShockwave.AutoResizeColumns(DataGridViewAutoSizeColumnsMode.AllCellsExceptHeader);
             tableShockwave.ResumeLayout();
         }

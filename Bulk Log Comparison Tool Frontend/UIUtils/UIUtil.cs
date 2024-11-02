@@ -91,7 +91,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Utils
                         if (log.HasPlayer(player))
                         {
                             var newSpec = log.GetSpec(player);
-                            var image = imgGen.GetSpecIcon(newSpec);
+                            var image = imgGen.GetIcon(newSpec);
 
                             if (image != null)
                             {
