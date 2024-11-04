@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Bulk_Log_Comparison_Tool_Frontend.Compare
 {
@@ -94,9 +95,9 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             var Colour = GetBrushColour(shockwaveType);
             for (int counter = 0; counter < argbValues.Length; counter += 4)
             {
-                argbValues[counter] = Colour.R;
+                argbValues[counter] = Colour.B;
                 argbValues[counter + 1] = Colour.G;
-                argbValues[counter + 2] = Colour.B;
+                argbValues[counter + 2] = Colour.R;
             }
 
 
@@ -104,7 +105,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
 
             // Unlock the bits.
             bmp.UnlockBits(bmpData);
-
+            
             return bmp;
         }
 
