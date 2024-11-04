@@ -35,6 +35,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         {
             return new ParsedLibraryLog(_parser.ParseLog(operation, evtc, out parsingFailureReason, multiThreadAccelerationForBuffs), evtc.Name);
         }
+        public IParsedEvtcLog ParseLog(ParserController operation, string Name, Stream fileStream, out ParsingFailureReason parsingFailureReason, bool multiThreadAccelerationForBuffs = false)
+        {
+            return new ParsedLibraryLog(_parser.ParseLog(operation, fileStream, out parsingFailureReason, multiThreadAccelerationForBuffs), Name);
+        }
 
         public IParsedEvtcLog ParseLog(string filePath)
         {
@@ -43,6 +47,17 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             ParsingFailureReason parsingFailureReason;
             var Log = ParseLog(new TestOperationController(), fInfo, out parsingFailureReason, _multiThreadAccelerationForBuffs);
             if(parsingFailureReason != null)
+            {
+                throw new InvalidOperationException("Parsing failed: " + parsingFailureReason.Reason);
+            }
+            return Log;
+        }
+        public IParsedEvtcLog ParseLog(Stream fileStream, string fileName)
+        {
+            _parser = new EvtcParser(parserSettings, APIController);
+            ParsingFailureReason parsingFailureReason;
+            var Log = ParseLog(new TestOperationController(), fileName, fileStream, out parsingFailureReason, _multiThreadAccelerationForBuffs);
+            if (parsingFailureReason != null)
             {
                 throw new InvalidOperationException("Parsing failed: " + parsingFailureReason.Reason);
             }

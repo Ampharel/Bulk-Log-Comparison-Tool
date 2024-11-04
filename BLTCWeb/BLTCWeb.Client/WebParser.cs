@@ -25,8 +25,16 @@ namespace BLTCWeb.Client
 
         public void AddLog(string file)
         {
-
             var log = new LibraryParser(false).ParseLog(file);
+            foreach (var phase in _customPhases)
+            {
+                log.AddPhase(phase.Item1, phase.Item2, phase.Item3);
+            }
+            _bulklog.AddLog(log);
+        }
+        public void AddLog(Stream file, string name)
+        {
+            var log = new LibraryParser(false).ParseLog(file,name);
             foreach (var phase in _customPhases)
             {
                 log.AddPhase(phase.Item1, phase.Item2, phase.Item3);

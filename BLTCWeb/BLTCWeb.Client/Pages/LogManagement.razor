@@ -28,7 +28,7 @@
                 {
                     <MudChip T="string"
                              Color="Color.Dark"
-                             Text="@file"
+                             Text="@file.Name"
                              tabindex="-1" />
                 }
             </MudPaper>
@@ -56,11 +56,11 @@
     </MudToolBar>
 </MudStack>
 @code {
-#nullable enable
+    #nullable enable
     private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
     private string _dragClass = DefaultDragClass;
-    private readonly List<string> _fileNames = new();
-    private Queue<string> _newFiles = new();
+    private readonly List<IBrowserFile> _fileNames = new();
+    private Queue<IBrowserFile> _newFiles = new();
     private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
 
     private async Task ClearAsync()
@@ -79,17 +79,20 @@
         var files = e.GetMultipleFiles();
         foreach (var file in files)
         {
-            _fileNames.Add(file.Name);
-            _newFiles.Enqueue(file.Name);
+            _fileNames.Add(file);
+            _newFiles.Enqueue(file);
         }
     }
 
     private void Upload()
     {
-        while (_newFiles.TryDequeue(out var file))
+        new Thread(() =>
         {
-            LogParser.AddLog(file);
-        }
+            while (_newFiles.TryDequeue(out var file))
+            {
+                LogParser.AddLog(file.OpenReadStream(maxAllowedSize: long.MaxValue), file.Name);
+            }
+        }).Start();
     }
 
     private void SetDragClass()
