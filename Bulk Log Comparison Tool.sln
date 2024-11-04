@@ -7,10 +7,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bulk Log Comparison Tool", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bulk Log Comparison Tool Frontend", "Bulk Log Comparison Tool Frontend\Bulk Log Comparison Tool Frontend.csproj", "{37925C82-8218-4167-857E-CEF9D5080DF8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DLCT_Web", "DLCT Web\DLCT Web\DLCT_Web.csproj", "{ED9D40CE-482F-4724-AA07-817C93B459D3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DLCT_Web.Client", "DLCT Web\DLCT Web.Client\DLCT_Web.Client.csproj", "{8F6CC721-40D4-41E3-B304-1DFA3969DB58}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -25,14 +21,6 @@ Global
 		{37925C82-8218-4167-857E-CEF9D5080DF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{37925C82-8218-4167-857E-CEF9D5080DF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{37925C82-8218-4167-857E-CEF9D5080DF8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ED9D40CE-482F-4724-AA07-817C93B459D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ED9D40CE-482F-4724-AA07-817C93B459D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ED9D40CE-482F-4724-AA07-817C93B459D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ED9D40CE-482F-4724-AA07-817C93B459D3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8F6CC721-40D4-41E3-B304-1DFA3969DB58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8F6CC721-40D4-41E3-B304-1DFA3969DB58}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8F6CC721-40D4-41E3-B304-1DFA3969DB58}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8F6CC721-40D4-41E3-B304-1DFA3969DB58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
