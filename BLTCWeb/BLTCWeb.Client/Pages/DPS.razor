@@ -1,0 +1,36 @@
+﻿@page "/dps"
+@using System.Net.Http.Json
+@using MudBlazor
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender:false))
+
+@inject WebParser LogParser
+
+<MudTable Items="@LogParser.BulkLog.Logs" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" LoadingProgressColor="Color.Info">
+    <HeaderContent>
+        @foreach (var log in LogParser.BulkLog.Logs)
+        {
+            <MudTh>@log.GetFileName()</MudTh>
+        }
+    </HeaderContent>
+    <RowTemplate>
+        @foreach (var log in LogParser.BulkLog.Logs)
+        {
+            @foreach (var player in LogParser.BulkLog.GetPlayers())
+            {
+                <MudTd>@log.GetPlayerDps(player)</MudTd>
+            }
+        }
+    </RowTemplate>
+</MudTable>
+
+    <MudSwitch @bind-Value="_hidePosition" Color="Color.Primary">Hide <b>position</b> when Breakpoint=Xs</MudSwitch>
+    <MudSwitch @bind-Value="_loading" Color="Color.Primary">Show Loading</MudSwitch>
+    @code {
+    private bool _hidePosition;
+    private bool _loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+    }
+
+}

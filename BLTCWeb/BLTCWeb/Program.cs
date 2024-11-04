@@ -1,5 +1,6 @@
 using BLTCWeb.Client.Pages;
 using BLTCWeb.Components;
+using MudBlazor.Services;
 
 namespace BLTCWeb
 {
@@ -10,6 +11,7 @@ namespace BLTCWeb
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
+            builder.Services.AddMudServices();
             builder.Services.AddRazorComponents()
                 .AddInteractiveWebAssemblyComponents();
 

@@ -5,6 +5,10 @@ namespace BLTCWeb.Client
 {
     public class WebParser
     {
+        public WebParser()
+        {
+
+        }
         private BulkLog _bulklog = new();
 
         public BulkLog BulkLog => _bulklog;
