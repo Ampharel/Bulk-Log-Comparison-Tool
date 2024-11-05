@@ -49,3 +49,12 @@ h1:focus {
 .darker-border-checkbox.form-check-input {
     border-color: #929292;
 }
+.mud-drawer mud-drawer-mini.mud-drawer-pos-right.mud-drawer--open ~ div:not(.mud-main-content),
+.mud-drawer.mud-drawer-persistent.mud-drawer-pos-right.mud-drawer--open ~ div:not(.mud-main-content) {
+    margin-right: 0 !important;
+}
+
+.mud-drawer-open-persistent-right:not(.mud-drawer-open-persistent-left) .mud-main-content {
+    margin-right: 0 !important;
+}
+

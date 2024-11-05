@@ -4,26 +4,34 @@
 @rendermode InteractiveServer
 
 @inject ServerParser LogParser
+<LogDrawer OnUpload="StateHasChanged" />
+<div style="overflow-x: auto;">
+    <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+              Hover="true"
+              Breakpoint="Breakpoint.Sm"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Info"
+              Class="flex-table">
+        <HeaderContent>
+            <MudTh>Player</MudTh>
+            @foreach (var log in LogParser.BulkLog.Logs)
+            {
+                <MudTh>@log.GetFileName()</MudTh>
+            }
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context</MudTd>
+            @foreach (var log in LogParser.BulkLog.Logs)
+            {
+                <MudTd>@log.GetPlayerDps(@context)</MudTd>
+            }
+        </RowTemplate>
+    </MudTable>
+</div>
 
-<MudTable Items="@LogParser.BulkLog.GetPlayers()" Hover="true" Breakpoint="Breakpoint.Sm" Loading="@_loading" LoadingProgressColor="Color.Info">
-    <HeaderContent>
-        <MudTh>Player</MudTh>
-        @foreach (var log in LogParser.BulkLog.Logs)
-        {
-            <MudTh>@log.GetFileName()</MudTh>
-        }
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd>@context</MudTd>
-        @foreach (var log in LogParser.BulkLog.Logs)
-        {
-            <MudTd>@log.GetPlayerDps(@context)</MudTd>
-        }
-    </RowTemplate>
-</MudTable>
+<MudSwitch @bind-Value="_hidePosition" Color="Color.Primary">Hide <b>position</b> when Breakpoint=Xs</MudSwitch>
+<MudSwitch @bind-Value="_loading" Color="Color.Primary">Show Loading</MudSwitch>
 
-    <MudSwitch @bind-Value="_hidePosition" Color="Color.Primary">Hide <b>position</b> when Breakpoint=Xs</MudSwitch>
-    <MudSwitch @bind-Value="_loading" Color="Color.Primary">Show Loading</MudSwitch>
 @code {
     private bool _hidePosition;
     private bool _loading;
@@ -31,7 +39,6 @@
     protected override async Task OnInitializedAsync()
     {
         Console.WriteLine($"LogCount: {LogParser.BulkLog.Logs.Count}");
-
 
         foreach (var log in LogParser.BulkLog.Logs)
         {
@@ -41,5 +48,4 @@
             }
         }
     }
-
 }
