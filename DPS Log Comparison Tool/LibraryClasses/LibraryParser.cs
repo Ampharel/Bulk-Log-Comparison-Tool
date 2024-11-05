@@ -27,6 +27,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             _multiThreadAccelerationForBuffs = multiThreadAccelerationForBuffs;
 
             parserSettings = new EvtcParserSettings(false, false, true, true, true, 2200, true);
+            Console.WriteLine("SkillAPI: " + SkillAPICacheLocation);
             APIController = new GW2APIController(SkillAPICacheLocation, SpecAPICacheLocation, TraitAPICacheLocation);
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             _parser = new EvtcParser(parserSettings, APIController);
@@ -59,6 +60,8 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var Log = ParseLog(new TestOperationController(), fileName, fileStream, out parsingFailureReason, _multiThreadAccelerationForBuffs);
             if (parsingFailureReason != null)
             {
+                Console.WriteLine("Parsing failed: " + parsingFailureReason.Reason);
+                return null;
                 throw new InvalidOperationException("Parsing failed: " + parsingFailureReason.Reason);
             }
             return Log;

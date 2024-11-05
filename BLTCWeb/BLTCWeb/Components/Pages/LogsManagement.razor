@@ -1,5 +1,6 @@
 ﻿@page "/logsmanagement"
 @using MudBlazor
+@using System.IO.Compression
 @rendermode InteractiveServer
 <h3>LogManagement</h3>
 @inject ServerParser LogParser
@@ -56,12 +57,13 @@
     </MudToolBar>
 </MudStack>
 @code {
-#nullable enable
+    #nullable enable
     private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
     private string _dragClass = DefaultDragClass;
     private readonly List<IBrowserFile> _fileNames = new();
     private Queue<IBrowserFile> _newFiles = new();
     private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
+    private const int MaxFileSize = 1024 * 1024 * 10; // 10MB
 
     private async Task ClearAsync()
     {
@@ -86,11 +88,37 @@
 
     private void Upload()
     {
-        new Thread(() =>
+        new Task(async () =>
         {
             while (_newFiles.TryDequeue(out var file))
             {
-                LogParser.AddLog(file.OpenReadStream(maxAllowedSize: long.MaxValue), file.Name);
+                using (MemoryStream ms = new())
+                {
+                    await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
+                    ms.Position = 0;
+                    using (MemoryStream? unpackedMemoryStream_ = new MemoryStream())
+                    {
+
+                        ZipArchive val = new ZipArchive(ms, (ZipArchiveMode)0);
+                        try
+                        {
+                            if (val.Entries.Count != 1)
+                            {
+                                Console.WriteLine("Invalid file");
+                                return;
+                            }
+                            using Stream stream = val.Entries[0].Open();
+                            stream.CopyTo(unpackedMemoryStream_);
+                            unpackedMemoryStream_.Position = 0L;
+                        }
+                        finally
+                        {
+                            ((IDisposable)val)?.Dispose();
+                        }
+
+                        LogParser.AddLog(unpackedMemoryStream_, file.Name);
+                    }
+                }
             }
         }).Start();
     }
