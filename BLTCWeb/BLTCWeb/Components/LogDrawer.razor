@@ -3,19 +3,18 @@
 @rendermode InteractiveServer
 @inject ServerParser LogParser
 
-
 <MudDrawer @bind-Open="_drawerOpen"
            Width="300px"
            Fixed="true"
            Anchor="Anchor.End"
            Elevation="3"
            Variant="DrawerVariant.Persistent"
-           ClipMode="DrawerClipMode.Docked"
->
+           ClipMode="DrawerClipMode.Docked">
 
     <MudDrawerHeader>
         <MudText Typo="Typo.h6">Upload Logs</MudText>
     </MudDrawerHeader>
+
     <MudStack Style="width: 100%; padding: 8px;">
         <MudFileUpload T="IReadOnlyList<IBrowserFile>"
                        @ref="@_fileUpload"
@@ -30,19 +29,22 @@
                        @ondragleave="@ClearDragClass"
                        @ondragend="@ClearDragClass">
             <ActivatorContent>
-                <MudPaper Height="300px"
+                <MudPaper Height="auto"
                           Outlined="true"
-                          Class="@_dragClass">
-                    <MudText Typo="Typo.h6">
+                          Class="@_dragClass"
+                          Style="display: flex; flex-direction: column; justify-content: flex-start; padding: 16px;">
+                    <MudText Typo="Typo.h6" Class="mb-2">
                         Drag and drop files here or click
                     </MudText>
-                    @foreach (var file in _fileNames)
-                    {
-                        <MudChip T="string"
-                                 Color="Color.Dark"
-                                 Text="@file.Name"
-                                 tabindex="-1" />
-                    }
+                    <div class="d-flex flex-column">
+                        @foreach (var uploadFile in _fileNames)
+                        {
+                            <MudChip T="string"
+                                     Color="@((uploadFile.IsUploaded) ? Color.Success : Color.Dark)"
+                                     Text="@uploadFile.Name"
+                                     tabindex="-1" />
+                        }
+                    </div>
                 </MudPaper>
             </ActivatorContent>
         </MudFileUpload>
@@ -53,7 +55,7 @@
                 Open file picker
             </MudButton>
             <MudButton Color="Color.Primary"
-                       Disabled="@(!_fileNames.Any())"
+                       Disabled="@(!_fileNames.Any() || _isLoading)"
                        OnClick="UploadAsync"
                        Variant="Variant.Filled">
                 Upload
@@ -65,6 +67,16 @@
                 Clear
             </MudButton>
         </MudToolBar>
+        @if (_processingCount > 0)
+        {
+            <MudText Typo="Typo.subtitle1" Color="Color.Primary" Class="mt-2">
+                Processing files: @_processingCount
+            </MudText>
+        }
+        @if (_isLoading)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+        }
     </MudStack>
 </MudDrawer>
 
@@ -75,21 +87,22 @@
 </div>
 
 @code {
-
     [Parameter]
     public EventCallback OnUpload { get; set; }
 
-    private bool _drawerOpen = true;  
+    private bool _drawerOpen = true;
     private const string DefaultDragClass = "relative rounded-lg border-2 border-dashed pa-4 mt-4 mud-width-full mud-height-full";
     private string _dragClass = DefaultDragClass;
-    private readonly List<IBrowserFile> _fileNames = new();
+    private readonly List<UploadFile> _fileNames = new();
     private Queue<IBrowserFile> _newFiles = new();
     private MudFileUpload<IReadOnlyList<IBrowserFile>>? _fileUpload;
     private const int MaxFileSize = 1024 * 1024 * 10; // 10MB
+    private int _processingCount = 0;
+    private bool _isLoading = false;
 
     private void ToggleEndDrawer()
     {
-        _drawerOpen = !_drawerOpen; 
+        _drawerOpen = !_drawerOpen;
     }
 
     private async Task ClearAsync()
@@ -97,6 +110,7 @@
         await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
         _fileNames.Clear();
         ClearDragClass();
+        _processingCount = 0;
     }
 
     private Task OpenFilePickerAsync()
@@ -108,39 +122,57 @@
         var files = e.GetMultipleFiles();
         foreach (var file in files)
         {
-            _fileNames.Add(file);
+            var uploadFile = new UploadFile(file);
+            _fileNames.Add(uploadFile);
             _newFiles.Enqueue(file);
         }
+        _processingCount = _newFiles.Count;
     }
 
     private async Task UploadAsync()
     {
+        _isLoading = true;
+        StateHasChanged();
+
         while (_newFiles.TryDequeue(out var file))
         {
-            using (MemoryStream ms = new())
+            await UploadFileAsync(file);
+            _processingCount--;
+            StateHasChanged();
+        }
+
+        _isLoading = false;
+        await OnUpload.InvokeAsync();
+    }
+
+    private async Task UploadFileAsync(IBrowserFile file)
+    {
+        using (MemoryStream ms = new())
+        {
+            await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
+            ms.Position = 0;
+
+            using (MemoryStream unpackedMemoryStream_ = new MemoryStream())
             {
-                await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
-                ms.Position = 0;
-                using (MemoryStream unpackedMemoryStream_ = new MemoryStream())
+                using (ZipArchive val = new ZipArchive(ms, ZipArchiveMode.Read))
                 {
-                    using (ZipArchive val = new ZipArchive(ms, ZipArchiveMode.Read))
+                    if (val.Entries.Count != 1)
                     {
-                        if (val.Entries.Count != 1)
-                        {
-                            Console.WriteLine("Invalid file");
-                            return;
-                        }
-
-                        using Stream stream = val.Entries[0].Open();
-                        await stream.CopyToAsync(unpackedMemoryStream_);
-                        unpackedMemoryStream_.Position = 0;
+                        Console.WriteLine("Invalid file");
+                        return;
                     }
-
-                    LogParser.AddLog(unpackedMemoryStream_, file.Name);
+                    using Stream stream = val.Entries[0].Open();
+                    await stream.CopyToAsync(unpackedMemoryStream_);
+                    unpackedMemoryStream_.Position = 0;
                 }
+                LogParser.AddLog(unpackedMemoryStream_, file.Name);
             }
         }
-        await OnUpload.InvokeAsync();
+        var uploadedFile = _fileNames.FirstOrDefault(f => f.Name == file.Name);
+        if (uploadedFile != null)
+        {
+            uploadedFile.IsUploaded = true;
+        }
     }
 
     private void SetDragClass()
@@ -148,4 +180,24 @@
 
     private void ClearDragClass()
         => _dragClass = DefaultDragClass;
+
+    // Put this wherever u want. idk how u usually structure
+    public class UploadFile
+    {
+        public IBrowserFile File { get; set; }
+        public bool IsUploaded { get; set; }
+
+        public UploadFile(IBrowserFile file)
+        {
+            File = file;
+            IsUploaded = false;
+        }
+
+        public string Name => File.Name;
+    }
 }
+
+
+
+
+
