@@ -1,3 +1,4 @@
+using BLTCWeb.Client;
 using BLTCWeb.Client.Pages;
 using BLTCWeb.Components;
 using MudBlazor.Services;
@@ -13,9 +14,12 @@ namespace BLTCWeb
             // Add services to the container.
             builder.Services.AddMudServices();
             builder.Services.AddRazorComponents()
-                .AddInteractiveWebAssemblyComponents();
+                .AddInteractiveWebAssemblyComponents()
+                .AddInteractiveServerComponents();
+            builder.Services.AddScoped<ServerParser>();
 
             var app = builder.Build();
+            
 
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
@@ -36,7 +40,8 @@ namespace BLTCWeb
 
             app.MapRazorComponents<App>()
                 .AddInteractiveWebAssemblyRenderMode()
-                .AddAdditionalAssemblies(typeof(Counter).Assembly);
+                .AddAdditionalAssemblies(typeof(Counter).Assembly)
+                .AddInteractiveServerRenderMode();
 
             app.Run();
         }
