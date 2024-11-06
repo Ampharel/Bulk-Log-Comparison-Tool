@@ -32,10 +32,9 @@
     private void OnNewData()
     {
         Series = new List<ChartSeries>();
-        var player = "Ampharel.6432";
+        var player = "Rickzter.6859";
         var boon = "Quickness";
         var phase = "";
-
 
         foreach (var Log in LogParser.BulkLog.Logs)
         {
@@ -44,10 +43,14 @@
             {
                 var boonAtTime = (int)Log.GetBoon(player, boon, phase, i / 1000, true);
                 chartData.Add(boonAtTime);
+                if(boonAtTime == 0){
+                    Console.WriteLine($"Boon ran out at {i}");
+                }
             }
             var chartSeries = new ChartSeries() { Name = Log.GetFileName(), Data = chartData.ToArray() };
             Series.Add(chartSeries);
         }
+        Options.YAxisTicks = 10;
         StateHasChanged();
     }
 

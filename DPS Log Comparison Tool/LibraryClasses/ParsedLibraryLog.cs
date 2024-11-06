@@ -558,22 +558,25 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 foreach (var buff in _buffEvents)
                 {
                     var buffApplyEvent = buff as BuffApplyEvent;
-                    if (buffApplyEvent == null)
+                    var buffExtensionEvent = buff as BuffExtensionEvent;
+                    if (buffApplyEvent == null && buffExtensionEvent == null)
                     {
                         continue;
                     }
-                    if (buffApplyEvent.Time > time)
+                    if (buff.Time > time)
                     {
                         break;
                     }
-                    currentDuration -= buffApplyEvent.Time - currentTime; //Figure out delta since last boon application
+                    var duration = buffApplyEvent != null ? buffApplyEvent.AppliedDuration : buffExtensionEvent.ExtendedDuration;
+
+                    currentDuration -= buff.Time - currentTime; //Figure out delta since last boon application
                     currentDuration = Math.Max(0, currentDuration);//Make sure we don't go negative
+                    currentTime = buff.Time;//Update current time
+                    currentDuration += duration;//Add boon duration
                     currentDuration = Math.Min(currentDuration, maxDuration);//Make sure we don't go over max duration
-                    currentTime = buffApplyEvent.Time;//Update current time
-                    currentDuration += buffApplyEvent.AppliedDuration;//Add boon duration
                 }
             }
-            return Math.Max(0, currentDuration - (time - currentTime)) / 1000L;
+            return Math.Round(Math.Max(0, currentDuration - (time - currentTime)) / 1000d);
         }
 
         private (PhaseData?, long, long) GetPhaseFromName(string phaseName)
