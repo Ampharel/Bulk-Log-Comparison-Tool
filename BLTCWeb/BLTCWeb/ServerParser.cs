@@ -10,6 +10,8 @@ namespace BLTCWeb
         public BulkLog BulkLog => _bulklog;
         private List<(string, long, long)> _customPhases = new();
 
+        public event Action NewDataEvent;
+
         public void AddCustomPhase(string name, long start, long duration)
         {
             _customPhases.Add((name, start, duration));
@@ -17,6 +19,7 @@ namespace BLTCWeb
             {
                 log.AddPhase(name, start, duration);
             }
+            NewDataEvent();
         }
 
         public void AddLog(string file)
@@ -27,6 +30,8 @@ namespace BLTCWeb
                 log.AddPhase(phase.Item1, phase.Item2, phase.Item3);
             }
             _bulklog.AddLog(log);
+
+            NewDataEvent?.Invoke();
         }
         public void AddLog(Stream file, string name)
         {
@@ -36,16 +41,19 @@ namespace BLTCWeb
                 log.AddPhase(phase.Item1, phase.Item2, phase.Item3);
             }
             _bulklog.AddLog(log);
+            NewDataEvent?.Invoke();
         }
 
         public void RemoveLog(string file)
         {
             _bulklog.RemoveLog(file);
+            NewDataEvent?.Invoke();
         }
 
         public void RemoveAll()
         {
             _bulklog = new();
+            NewDataEvent?.Invoke();
         }
     }
 }

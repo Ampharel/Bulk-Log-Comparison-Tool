@@ -1,0 +1,59 @@
+﻿@page "/boons"
+@using System.Net.Http.Json
+@using MudBlazor
+@rendermode InteractiveServer
+
+<h3>Boons</h3>
+
+@inject ServerParser LogParser
+<LogDrawer OnUpload="StateHasChanged" />
+
+
+<div style="overflow-x: auto;">
+    <MudChart ChartType="ChartType.Line" ChartSeries="@Series" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" Width="100%" Height="350px" ChartOptions="@Options" />
+    <MudGrid>
+        <MudItem xs="6">
+            <MudText Typo="Typo.body1" Class="py-3">Selected: @(Index < 0 ? "None" : Series[Index].Name)</MudText>
+        </MudItem>
+        <MudItem xs="6">
+            <MudSlider @bind-Value="Options.LineStrokeWidth" Min="1" Max="10" Color="Color.Info">Line Width: @Options.LineStrokeWidth.ToString()</MudSlider>
+            </MudItem>
+    </MudGrid>
+</div>
+
+    @code {
+
+    private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
+    public ChartOptions Options = new ChartOptions();
+
+    public List<ChartSeries> Series = new();
+    public string[] XAxisLabels = {};
+
+    private void OnNewData()
+    {
+        Series = new List<ChartSeries>();
+        var player = "Ampharel.6432";
+        var boon = "Quickness";
+        var phase = "";
+
+
+        foreach (var Log in LogParser.BulkLog.Logs)
+        {
+            List<double> chartData = new List<double>();
+            for (long i = Log.GetPhaseStart(phase); i < Log.GetPhaseEnd(phase); i += 1000)
+            {
+                var boonAtTime = (int)Log.GetBoon(player, boon, phase, i / 1000, true);
+                chartData.Add(boonAtTime);
+            }
+            var chartSeries = new ChartSeries() { Name = Log.GetFileName(), Data = chartData.ToArray() };
+            Series.Add(chartSeries);
+        }
+        StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        Console.WriteLine("Boons Page Initialized");
+        LogParser.NewDataEvent += OnNewData;
+    }
+}

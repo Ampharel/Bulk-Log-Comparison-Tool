@@ -566,11 +566,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     {
                         break;
                     }
-                    currentDuration -= buffApplyEvent.Time - currentTime;
-                    currentDuration = Math.Max(0, currentDuration);
-                    currentDuration = Math.Min(currentDuration, maxDuration);
-                    currentTime = buffApplyEvent.Time;
-                    currentDuration += buffApplyEvent.AppliedDuration;
+                    currentDuration -= buffApplyEvent.Time - currentTime; //Figure out delta since last boon application
+                    currentDuration = Math.Max(0, currentDuration);//Make sure we don't go negative
+                    currentDuration = Math.Min(currentDuration, maxDuration);//Make sure we don't go over max duration
+                    currentTime = buffApplyEvent.Time;//Update current time
+                    currentDuration += buffApplyEvent.AppliedDuration;//Add boon duration
                 }
             }
             return Math.Max(0, currentDuration - (time - currentTime)) / 1000L;

@@ -35,17 +35,4 @@
 @code {
     private bool _hidePosition;
     private bool _loading;
-
-    protected override async Task OnInitializedAsync()
-    {
-        Console.WriteLine($"LogCount: {LogParser.BulkLog.Logs.Count}");
-
-        foreach (var log in LogParser.BulkLog.Logs)
-        {
-            foreach (var player in LogParser.BulkLog.GetPlayers())
-            {
-                Console.WriteLine(log.GetPlayerDps(player));
-            }
-        }
-    }
 }
