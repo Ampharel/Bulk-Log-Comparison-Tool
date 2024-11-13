@@ -32,60 +32,49 @@
             }
         </HeaderContent>
         <RowTemplate>
-            @foreach (var log in LogParser.BulkLog.Logs){
-                        var results = @log.GetStealthTimeline().GetStealthResults(_selectedPhase);
-                        if(results.Count() > 0){
-                        var FirstResult = results.First();
-                        var prevTime = FirstResult.StealthTime;
-                        List<ChartSeries> Series = new List<ChartSeries>();
-                        foreach (var Result in log.GetStealthTimeline().GetStealthResults(_selectedPhase))
+            <MudTd>
+                @{
+
+                    @foreach (var log in LogParser.BulkLog.Logs)
+                    {
+                    var results = log.GetStealthTimeline().GetStealthResults(_selectedPhase);
+                    if (results.Count() > 0)
                         {
-                            Series.Add(new ChartSeries()
-                            {
-                                Name = $"{Result.Player} {Result.Reason}",
-                                Data = [(Result.Time - prevTime) / 1000f]
-                            });
-                            prevTime = Result.Time;
-                        }
-                    <MudTd>
-                            <MudChart ChartType="ChartType.StackedBar" ChartSeries="@Series" Width="100%" Height="350px"/>
-                            <MudTimeline>
+                        var FirstResult = results.First();
+                        var stealthTime = FirstResult.StealthTime / 1000f;
+                        <MudTimeline TimelineAlign="TimelineAlign.Start">
                                 <MudTimelineItem Color="Color.Info" Size="Size.Small">
                                     <ItemContent>
                                         <MudText Typo="Typo.h6">Stealth</MudText>
                                     </ItemContent>
-                                <ItemDot>@(FirstResult.StealthTime / 1000f)</ItemDot>
-                                    <ItemOpposite>
-                                        @{var spacingText = "";}
-                                    @for (int i = 0; i < (FirstResult.Time - FirstResult.StealthTime) / 1000f; i++)
-                                        {
-                                            spacingText += "a" + Environment.NewLine;
-                                        }
-                                        <MudText Color="Color.Info" Typo="Typo.h5">@spacingText</MudText>
-                                    </ItemOpposite>
+                                <ItemDot>@stealthTime</ItemDot>
                                 </MudTimelineItem>
-                                @foreach (var Result in log.GetStealthTimeline().GetStealthResults(_selectedPhase)){
-                                <MudTimelineItem Color="Color.Info" Size="Size.Small">
-                                    <ItemDot>@(Result.Time/1000f)</ItemDot>
+
+                            @for (double i = stealthTime; i < stealthTime + 6.0f; i++)
+                            {
+                                    var currTime = i;
+                                    var timedResults = results.Where(x => (x.Time / 1000f) >= currTime && (x.Time / 1000f) <= currTime + 1);
+                                    var hide = timedResults.Count() == 0;
+
+                                <MudTimelineItem Color="Color.Info" Size="Size.Small" HideDot="@hide">
+                                        <ItemDot>@currTime.ToString("0.##")</ItemDot>
                                     <ItemContent>
-                                        <MudText Typo="Typo.h6">@Result.Player : @Result.Reason</MudText>
+                                        @foreach (var result in timedResults.Select(result => $"{result.Player} : {result.Reason} @ {(result.Time/1000f).ToString("0.##")}"))
+                                        {
+                                            <MudText Typo="Typo.h6">@result</MudText>
+                                        }
                                     </ItemContent>
                                     <ItemOpposite>
-                                        @{
-                                            var spacingText = "";
-                                        }
-                                        @for (int i = 0; i < (Result.StealthTime - Result.Time)/1000f; i++)
-                                        {
-                                            spacingText += "a"+Environment.NewLine;
-                                        }
-                                        <MudText Color="Color.Info" Typo="Typo.h5">@spacingText</MudText>
+                                            <br /><br /><br />
                                     </ItemOpposite>
                                 </MudTimelineItem>
+
                                 }
-                            </MudTimeline>
-                        </MudTd>
+                        </MudTimeline>
                         }
-                        }
+                    }
+                }
+            </MudTd>
         </RowTemplate>
     </MudTable>
 </div>
