@@ -1,6 +1,8 @@
 ﻿@page "/boons"
 @using System.Net.Http.Json
 @using MudBlazor
+@using MudBlazor.Components.Chart.Models
+@using Bulk_Log_Comparison_Tool.Util;
 @rendermode InteractiveServer
 
 <h3>Boons</h3>
@@ -10,52 +12,89 @@
 
 
 <div style="overflow-x: auto;">
-    <MudChart ChartType="ChartType.Line" ChartSeries="@Series" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" Width="100%" Height="350px" ChartOptions="@Options" />
-    <MudGrid>
-        <MudItem xs="6">
-            <MudText Typo="Typo.body1" Class="py-3">Selected: @(Index < 0 ? "None" : Series[Index].Name)</MudText>
-        </MudItem>
-        <MudItem xs="6">
-            <MudSlider @bind-Value="Options.LineStrokeWidth" Min="1" Max="10" Color="Color.Info">Line Width: @Options.LineStrokeWidth.ToString()</MudSlider>
-            </MudItem>
-    </MudGrid>
+
+    <div>
+        <MudRadioGroup Value="@_selectedBoon" ValueChanged="ValueChanged">
+            @foreach (var boonName in LogParser.BulkLog.GetBoonNames())
+            {
+                <MudRadio Value="@boonName" Color="Color.Primary">@boonName</MudRadio>
+            }
+        </MudRadioGroup>
+    </div>
+    <MudTable Items="@LogParser.BulkLog.Logs"
+              Hover="true"
+              Breakpoint="Breakpoint.Sm"
+              LoadingProgressColor="Color.Info"
+              Class="flex-table">
+        <HeaderContent>
+            <MudTh>File</MudTh>
+            <MudTh>Graph</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            @{
+                var data = Series[context.GetFileName()];
+            }
+            <MudTd>@context.GetFileName()</MudTd>
+            <MudTimeSeriesChart ChartType="ChartType.Line" ChartSeries="@data" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+        </RowTemplate>
+    </MudTable>
 </div>
 
-    @code {
+@code {
 
     private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
     public ChartOptions Options = new ChartOptions();
 
-    public List<ChartSeries> Series = new();
+    public Dictionary<string, List<TimeSeriesChartSeries>> Series = new();
     public string[] XAxisLabels = {};
+    private string _selectedBoon = "Might";
+    public EventCallback<string> ValueChanged;
 
     private void OnNewData()
     {
-        Series = new List<ChartSeries>();
-        var player = "Rickzter.6859";
-        var boon = "Quickness";
+        Series = new();
         var phase = "";
 
         foreach (var Log in LogParser.BulkLog.Logs)
         {
-            List<double> chartData = new List<double>();
-            for (long i = Log.GetPhaseStart(phase); i < Log.GetPhaseEnd(phase); i += 1000)
+            Series.Add(Log.GetFileName(), new List<TimeSeriesChartSeries>());
+            var boonStackType = Log.GetBoonStackType(_selectedBoon);
+            var duration = (boonStackType == BuffStackTyping.Queue || boonStackType == BuffStackTyping.Regeneration) ? true : false;
+            foreach(var Player in Log.GetPlayers())
             {
-                var boonAtTime = (int)Log.GetBoon(player, boon, phase, i / 1000, true);
-                chartData.Add(boonAtTime);
-                if(boonAtTime == 0){
-                    Console.WriteLine($"Boon ran out at {i}");
+                List<TimeSeriesChartSeries.TimeValue> chartData = new List<TimeSeriesChartSeries.TimeValue>();
+                for (long i = Log.GetPhaseStart(phase); i < Log.GetPhaseEnd(phase); i += 1000)
+                {
+                    var boonAtTime = (int)Log.GetBoon(Player, _selectedBoon, phase, i, duration);
+                    chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(i),boonAtTime));
                 }
+                var chartSeries = new TimeSeriesChartSeries() { Name = Player, Data = chartData, Type = TimeSeriesDiplayType.Area };
+                Series[Log.GetFileName()].Add(chartSeries);
             }
-            var chartSeries = new ChartSeries() { Name = Log.GetFileName(), Data = chartData.ToArray() };
-            Series.Add(chartSeries);
+            foreach(var Group in Log.GetGroups())
+            {
+                List<TimeSeriesChartSeries.TimeValue> chartData = new List<TimeSeriesChartSeries.TimeValue>();
+                for (long i = Log.GetPhaseStart(phase); i < Log.GetPhaseEnd(phase); i += 1000)
+                {
+                    var boonAtTime = (int)Log.GetBoon(Group, _selectedBoon, phase, i, duration);
+                    chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(i),boonAtTime));
+                }
+                var chartSeries = new TimeSeriesChartSeries() { Name = $"Group {Group}", Data = chartData, Type = TimeSeriesDiplayType.Area };
+                Series[Log.GetFileName()].Add(chartSeries);
+            }
         }
         Options.YAxisTicks = 10;
         StateHasChanged();
     }
 
+    private void OnBoonSelectionChanged(string boon){
+        _selectedBoon = boon;
+        OnNewData();
+    }
+
     protected override void OnInitialized()
     {
+        ValueChanged = EventCallback.Factory.Create<string>(this, OnBoonSelectionChanged);
         Console.WriteLine("Boons Page Initialized");
         LogParser.NewDataEvent += OnNewData;
     }

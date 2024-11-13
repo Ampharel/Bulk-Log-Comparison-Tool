@@ -13,7 +13,8 @@ namespace BLTCWeb
 
             // Add services to the container.
             builder.Services.AddMudServices();
-            builder.Services.AddRazorComponents()
+            builder.Services.AddRazorComponents(options =>
+                options.DetailedErrors = builder.Environment.IsDevelopment())
                 .AddInteractiveWebAssemblyComponents()
                 .AddInteractiveServerComponents();
             builder.Services.AddScoped<ServerParser>();

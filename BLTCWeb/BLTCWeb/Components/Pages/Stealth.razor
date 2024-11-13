@@ -1,0 +1,106 @@
+﻿@page "/stealth"
+@using System.Net.Http.Json
+@using MudBlazor
+@using Bulk_Log_Comparison_Tool.LibraryClasses
+@rendermode InteractiveServer
+
+@inject ServerParser LogParser
+<LogDrawer OnUpload="StateHasChanged" />
+
+
+<div style="overflow-x: auto;">
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudButton>@_selectedPhase</MudButton>
+        <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+            @foreach (var log in LogParser.BulkLog.GetStealthPhases())
+            {
+                <MudMenuItem OnClick="() => SetButtonText(log)">@log</MudMenuItem>
+            }
+        </MudMenu>
+    </MudButtonGroup>
+
+    <MudTable Items="@LogParser.BulkLog.GetPlayers().Take(1)"
+              Hover="true"
+              Breakpoint="Breakpoint.Sm"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Info"
+              Class="flex-table">
+        <HeaderContent>
+            @foreach (var log in LogParser.BulkLog.Logs)
+            {
+                <MudTh>@log.GetFileName()</MudTh>
+            }
+        </HeaderContent>
+        <RowTemplate>
+            @foreach (var log in LogParser.BulkLog.Logs){
+                        var results = @log.GetStealthTimeline().GetStealthResults(_selectedPhase);
+                        if(results.Count() > 0){
+                        var FirstResult = results.First();
+                        var prevTime = FirstResult.StealthTime;
+                        List<ChartSeries> Series = new List<ChartSeries>();
+                        foreach (var Result in log.GetStealthTimeline().GetStealthResults(_selectedPhase))
+                        {
+                            Series.Add(new ChartSeries()
+                            {
+                                Name = $"{Result.Player} {Result.Reason}",
+                                Data = [(Result.Time - prevTime) / 1000f]
+                            });
+                            prevTime = Result.Time;
+                        }
+                    <MudTd>
+                            <MudChart ChartType="ChartType.StackedBar" ChartSeries="@Series" Width="100%" Height="350px"/>
+                            <MudTimeline>
+                                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                                    <ItemContent>
+                                        <MudText Typo="Typo.h6">Stealth</MudText>
+                                    </ItemContent>
+                                <ItemDot>@(FirstResult.StealthTime / 1000f)</ItemDot>
+                                    <ItemOpposite>
+                                        @{var spacingText = "";}
+                                    @for (int i = 0; i < (FirstResult.Time - FirstResult.StealthTime) / 1000f; i++)
+                                        {
+                                            spacingText += "a" + Environment.NewLine;
+                                        }
+                                        <MudText Color="Color.Info" Typo="Typo.h5">@spacingText</MudText>
+                                    </ItemOpposite>
+                                </MudTimelineItem>
+                                @foreach (var Result in log.GetStealthTimeline().GetStealthResults(_selectedPhase)){
+                                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                                    <ItemDot>@(Result.Time/1000f)</ItemDot>
+                                    <ItemContent>
+                                        <MudText Typo="Typo.h6">@Result.Player : @Result.Reason</MudText>
+                                    </ItemContent>
+                                    <ItemOpposite>
+                                        @{
+                                            var spacingText = "";
+                                        }
+                                        @for (int i = 0; i < (Result.StealthTime - Result.Time)/1000f; i++)
+                                        {
+                                            spacingText += "a"+Environment.NewLine;
+                                        }
+                                        <MudText Color="Color.Info" Typo="Typo.h5">@spacingText</MudText>
+                                    </ItemOpposite>
+                                </MudTimelineItem>
+                                }
+                            </MudTimeline>
+                        </MudTd>
+                        }
+                        }
+        </RowTemplate>
+    </MudTable>
+</div>
+
+<MudSwitch @bind-Value="_hidePosition" Color="Color.Primary">Hide <b>position</b> when Breakpoint=Xs</MudSwitch>
+<MudSwitch @bind-Value="_loading" Color="Color.Primary">Show Loading</MudSwitch>
+
+@code {
+    private bool _hidePosition;
+    private bool _loading;
+    private string _selectedPhase = "Choose a phase";
+    private List<string> _stealthResults = new List<string>();
+
+    private void SetButtonText(string text)
+    {
+        _selectedPhase = text;
+    }
+}

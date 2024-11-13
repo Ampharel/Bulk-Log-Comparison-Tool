@@ -1,6 +1,7 @@
 ﻿using Bulk_Log_Comparison_Tool.Util;
 using Bulk_Log_Comparison_Tool.Enums;
 using GW2EIEvtcParser.EIData;
+using Bulk_Log_Comparison_Tool.LibraryClasses;
 
 namespace Bulk_Log_Comparison_Tool.DataClasses
 {
@@ -22,6 +23,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public bool IsAlive(string player, long time);
         public BuffStackTyping GetBoonStackType(string boonName);
         public List<(string, string)> GetStealthResult(string accountName, StealthAlgoritmns algoritmn, bool showLate = false);
+        public StealthTimeline GetStealthTimeline();
         public long GetStealthTiming(string phase);
         public List<string> GetDownReasons(string accountName);
 

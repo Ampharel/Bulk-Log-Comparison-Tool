@@ -1,16 +1,18 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
+using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool.LibraryClasses;
 
 namespace BLTCWeb
 {
     public class ServerParser
     {
+        public StealthAlgoritmns stealthAlgoritmn = StealthAlgoritmns.OutlierFiltering;
         private BulkLog _bulklog = new();
 
         public BulkLog BulkLog => _bulklog;
         private List<(string, long, long)> _customPhases = new();
 
-        public event Action NewDataEvent;
+        public event Action NewDataEvent; 
 
         public void AddCustomPhase(string name, long start, long duration)
         {

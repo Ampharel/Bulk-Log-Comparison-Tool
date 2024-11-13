@@ -332,6 +332,9 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 });
             }
         }
+
+
+
         public List<(string, string)> GetStealthResult(string accountName, StealthAlgoritmns algoritmn, bool showLate = false)
         {
 
@@ -399,6 +402,53 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
         }
 
+        public StealthTimeline GetStealthTimeline()
+        {
+            var stealthResultsPerPhase = new Dictionary<string, List<StealthResult>>();
+            var MassInvis = _log.CombatData.GetAnimatedCastData(10245);
+
+            foreach (var stealthPhase in _expectedStealthPhases)
+            {
+                var phase = _log.FightData.GetPhases(_log).FirstOrDefault(y => y.Name == stealthPhase.Key);
+                if (phase == null)
+                {
+                    stealthResultsPerPhase.Add(stealthPhase.Value, new List<StealthResult>());
+                    continue;
+                }
+                var invis = MassInvis.FirstOrDefault(x => phase.Start - 10000 < x.EndTime);
+                List<StealthResult> stealthResults = new List<StealthResult>();
+                foreach (var player in _log.PlayerList)
+                {
+                    if(invis == null)
+                    {
+                        stealthResults.Add(new StealthResult(player.Account, "No MI"));
+                    }
+                    var dmgData = _log.CombatData.GetDamageData(player.AgentItem).Where(x => x.Time >= invis.EndTime && x.Time <= invis.EndTime + 6000);
+                    if(dmgData.Count() == 0)
+                    {
+                        stealthResults.Add(new StealthResult(player.Account, "Stealth timeout", invis.EndTime + 6000, invis.EndTime));
+                        continue;
+                    }
+                    var skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment") && x is DirectHealthDamageEvent);
+                    if (skill == null)
+                    {
+                        skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
+                    }
+                    if (skill == null)
+                    {
+                        stealthResults.Add(new StealthResult(player.Account, "Unknown"));
+                    }
+                    else
+                    {
+                        stealthResults.Add(new StealthResult(player.Account, skill.Skill.Name, skill.Time, invis.EndTime));
+                    }
+                }
+                stealthResults = stealthResults.OrderBy(x => x.Time).ToList();
+                stealthResultsPerPhase.Add(stealthPhase.Value, stealthResults);
+            }
+
+            return new StealthTimeline(stealthResultsPerPhase);
+        }
         private string GetStealth(PhaseData phase, string accountName, long stealthTime, Enums.StealthAlgoritmns stealthAlgoritmn, bool showLate = false)
         {
             if (!_log.PlayerList.Any(x => x.Account == accountName))
@@ -519,7 +569,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var phaseData = GetPhaseFromName(phase);
             if (phaseData.Item1 == null)
                 return 0;
-            return GetBoonDuration(target, boonName, phaseData.Item2 + time * 1000);
+            return GetBoonDuration(target, boonName, phaseData.Item2 + time);
         }
         private double GetBoonDuration(string target, string boonName, long time)
         {
