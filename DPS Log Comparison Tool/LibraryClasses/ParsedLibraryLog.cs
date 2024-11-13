@@ -626,7 +626,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     currentDuration = Math.Min(currentDuration, maxDuration);//Make sure we don't go over max duration
                 }
             }
-            return Math.Round(Math.Max(0, currentDuration - (time - currentTime)) / 1000d);
+            return Math.Ceiling(Math.Max(0, currentDuration - (time - currentTime)) / 1000d);
         }
 
         private (PhaseData?, long, long) GetPhaseFromName(string phaseName)
