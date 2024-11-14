@@ -1,20 +1,25 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
 using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool.Util;
-using System.Drawing;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.Processing;
 
 namespace BLTCWeb
 {
     internal class WebImageGenerator
     {
 
-        public byte[] GetImageBytes(IParsedEvtcLog Log, string Player, List<(long, int)> shockwaves)
+        public byte[][] GetImageBytes(IParsedEvtcLog Log, string Player, List<(long, int)> shockwaves)
         {
-            return GetImage(Log, Player, null, shockwaves)?.ToBytes() ?? [];
+            return GetImage(Log, Player, null, shockwaves).Select(x => x.BytesFromImage()).ToArray();
         }
 
-        public Image? GetImage(IParsedEvtcLog Log, string Player, Image? image, List<(long, int)> shockwaves)
+
+        private List<Image> GetImage(IParsedEvtcLog Log, string Player, Image? image, List<(long, int)> shockwaves)
         {
+            var images = new List<Image>();
             var mechanic = "";
             var sortedShockwaves = shockwaves.OrderBy(x => x.Item1);
             foreach (var shockwave in sortedShockwaves)
@@ -42,27 +47,27 @@ namespace BLTCWeb
                 var wasAlive = Log.IsAlive(Player, shockwave.Item1);
                 if (!wasAlive)
                 {
-                    image = image.StitchImages(GetImage(shockwave.Item2,"death"));
+                    images.Add(GetImage(shockwave.Item2,"death"));
                 }
                 else if (hadStab && wasHit)
                 {
-                    image = image.StitchImages(GetImage(shockwave.Item2,"shield"));
+                    images.Add(GetImage(shockwave.Item2,"shield"));
                 }
                 else if (hadStab)
                 {
-                    image = image.StitchImages(GetImage(shockwave.Item2, "jumped"));
+                    images.Add(GetImage(shockwave.Item2,"jumped"));
                 }
                 else if (wasHit)
                 {
-                    image = image.StitchImages(GetImage(shockwave.Item2,"down"));
+                    images.Add(GetImage(shockwave.Item2,"down"));
                 }
                 else
                 {
-                    image = image.StitchImages(GetImage(shockwave.Item2,"warning"));
+                    images.Add(GetImage(shockwave.Item2,"warning"));
                 }
             }
 
-            return image;
+            return images;
         }
 
         enum StabStatus
@@ -77,106 +82,79 @@ namespace BLTCWeb
 
         private Image GetImage(int shockwaveType, string name)
         {
-            Bitmap bmp = (Bitmap)GetIcon(name);
-            var bmpData = bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), 
-                System.Drawing.Imaging.ImageLockMode.ReadWrite,
-                bmp.PixelFormat);
-
-            IntPtr ptr = bmpData.Scan0;
-
-            int bytes = Math.Abs(bmpData.Stride) * bmp.Height;
-            byte[] argbValues = new byte[bytes];
-
-            System.Runtime.InteropServices.Marshal.Copy(ptr, argbValues, 0, bytes);
-
-            var Colour = GetBrushColour(shockwaveType);
-            for (int counter = 0; counter < argbValues.Length; counter += 4)
-            {
-                argbValues[counter] = Colour.B;
-                argbValues[counter + 1] = Colour.G;
-                argbValues[counter + 2] = Colour.R;
-            }
-
-
-            System.Runtime.InteropServices.Marshal.Copy(argbValues, 0, ptr, bytes);
-
-            // Unlock the bits.
-            bmp.UnlockBits(bmpData);
-            
-            return bmp;
+            Image img = GetIcon(name);
+            img.Mutate(x => x.Filter(GetColorMatrix(shockwaveType)));
+            return img;
         }
 
         private SettingsFile _colorFile = new SettingsFile("ColorSettings", new (string, string)[] { ("Mordemoth", "#274e13"), ("Soo-Won", "#0b5394"), ("Obliterator", "#674ea7")});
-        private Color GetBrushColour(int shockwaveType)
+        
+        private ColorMatrix GetColorMatrix(int shockwaveType)
+        {
+            var hex = GetHexForType(shockwaveType);
+            var r = byte.Parse(hex.Substring(1, 2), System.Globalization.NumberStyles.HexNumber) / 255f;
+            var g = byte.Parse(hex.Substring(3, 2), System.Globalization.NumberStyles.HexNumber) / 255f;
+            var b = byte.Parse(hex.Substring(5, 2), System.Globalization.NumberStyles.HexNumber) / 255f;
+            var cm = new ColorMatrix(
+                1, 0, 0, 0,
+                0, 1, 0, 0,
+                0, 0, 1, 0,
+                0, 0, 0, 1,
+                r, g, b, 0
+                );
+            return cm;
+        }
+
+        private string GetHexForType(int shockwaveType)
+        {
+            switch (shockwaveType)
+            {
+                case 0:
+                    return _colorFile.GetSetting("Mordemoth");
+                case 1:
+                    return _colorFile.GetSetting("Soo-Won");
+                case 2:
+                    return _colorFile.GetSetting("Obliterator");
+            }
+            return "#000000";
+        }
+        
+        private float GetHueAngle(int shockwaveType)
         {
             string hex = "";
             switch (shockwaveType)
             {
                 case 0:
-                    hex = _colorFile.GetSetting("Mordemoth");
-                    break;
+                    return 150f;
                 case 1:
-                    hex = _colorFile.GetSetting("Soo-Won");
-                    break;
+                    return 240f;
                 case 2:
-                    hex = _colorFile.GetSetting("Obliterator");
-                    break;
-                default:
-                    hex = "#000000";
-                    break;
+                    return 60f;
             }
-            return Color.FromArgb(int.Parse(hex.Replace("#",null), System.Globalization.NumberStyles.HexNumber));
+            return 0f;
         }
 
-        public Brush GetBrush(int i)
-        {
-            i = i % 5;
-            return i switch
-            {
-                0 => Brushes.Green,
-                1 => Brushes.Blue,
-                2 => Brushes.Purple,
-                3 => Brushes.Red,
-                4 => Brushes.Yellow,
-                _ => Brushes.Black
-            };
-        }
-
-        public static Image BlankImage = new Bitmap(1, 1);
         private readonly Dictionary<string, Image> _specIcons = new();
 
         public Image? GetIcon(string iconName)
         {
-            string path = $"icons/{iconName.ToLower()}.png";
+            string path = $"wwwroot/icons/{iconName.ToLower()}.png";
             if (File.Exists(path))
             {
-                return Image.FromFile(path);
+                return Image.Load(path);
             }
-            return BlankImage;
+            return null;
         }
     }
-    public static class ImageExtensions
+
+    static class ImageExtensions
     {
-        public static Image StitchImages(this Image? image1, Image image2)
+        public static byte[] BytesFromImage(this Image img)
         {
-            if (image1 == null)
+            using (var ms = new MemoryStream())
             {
-                return image2;
-            }
-            var newImage = new Bitmap(image1.Width + image2.Width, image1.Height);
-            using (var g = Graphics.FromImage(newImage))
-            {
-                g.DrawImage(image1, 0, 0);
-                g.DrawImage(image2, image1.Width, 0);
-            }
-            return newImage;
-        }
-        public static byte[] ToBytes(this Image img)
-        {
-            using (var stream = new MemoryStream())
-            {
-                img.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                return stream.ToArray();
+                img.Save(ms, new PngEncoder());
+                return ms.ToArray();
             }
         }
     }

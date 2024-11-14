@@ -26,8 +26,10 @@
             <MudTd>@context</MudTd>
             @foreach(var log in LogParser.BulkLog.Logs){
             <MudTd>
-                    <img src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(GetImageForPlayer(log,@context)))" />
-                    </MudTd>
+                    @foreach (var ImageData in GetImageForPlayer(log, @context)){
+                        <MudImage src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(ImageData))" />
+                    }
+            </MudTd>
             }
         </RowTemplate>
     </MudTable>
@@ -36,7 +38,7 @@
 @code {
 
     private WebImageGenerator imageGenerator = new WebImageGenerator();
-    private byte[] GetImageForPlayer(IParsedEvtcLog Log, string Player)
+    private byte[][] GetImageForPlayer(IParsedEvtcLog Log, string Player)
     {
         var shockwaves = GetShockwaves(Log, 0);
         shockwaves = shockwaves.Concat(GetShockwaves(Log, 1)).ToList();
