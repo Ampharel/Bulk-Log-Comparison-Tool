@@ -35,21 +35,46 @@
 
             @foreach (var log in LogParser.BulkLog.Logs)
             {
-            <MudTd>
-                @{
-                    var stealthTimeline = log.GetStealthTimeline().GetStealthResults(_selectedPhase);
+                <MudTd Style="align-content:start">
+                    @{
+                        var stealthTimeline = log.GetStealthTimeline().GetStealthResults(_selectedPhase);
                         if (stealthTimeline.Phase.Equals(_selectedPhase))
                         {
+                            var phaseTime = stealthTimeline.PhaseEnd / 1000f;
                             var miTime = stealthTimeline.MassInvisTime / 1000f;
                             var stealthTime = stealthTimeline.StealthEventTime / 1000f;
-                        <MudTimeline TimelineAlign="TimelineAlign.Start">
+
+                            var StealthColour = Color.Success;
+                            if(stealthTime - phaseTime > 3.0)
+                            {
+                                StealthColour = Color.Error;
+                            }
+                            else if(stealthTime - phaseTime > 2.0){
+                                StealthColour = Color.Warning;
+                            }
+                            else if(stealthTime - phaseTime < 0.0)
+                            {
+                                StealthColour = Color.Error;
+                            }
+                            <MudTimeline TimelineAlign="TimelineAlign.Start">
                                 <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                                    <ItemContent>
+                                        <MudText Typo="Typo.h6">Phasing</MudText>
+                                    </ItemContent>
+                                    <ItemDot>@phaseTime</ItemDot>
+                                </MudTimelineItem>
+                                <MudTimelineItem Color="@StealthColour" Size="Size.Small">
                                     <ItemContent>
                                         <MudText Typo="Typo.h6">Mass Invis</MudText>
                                     </ItemContent>
+                                        <ItemOpposite>
+                                    @if(!stealthTimeline.HadQuickness){
+                                            <MudText Typo="Typo.h6" Color="Color.Error">No quickness</MudText>
+                                        }
+                                        </ItemOpposite>
                                     <ItemDot>@miTime</ItemDot>
                                 </MudTimelineItem>
-                                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                                <MudTimelineItem Color="@StealthColour" Size="Size.Small">
                                     <ItemContent>
                                         <MudText Typo="Typo.h6">Stealth</MudText>
                                     </ItemContent>

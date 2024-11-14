@@ -406,6 +406,8 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         {
             var stealthResultsPerPhase = new Dictionary<string, StealthTimeline>();
             var MassInvis = _log.CombatData.GetAnimatedCastData(10245);
+            var Phases = _log.FightData.GetPhases(_log);
+
 
             foreach (var stealthPhase in _expectedStealthPhases)
             {
@@ -415,6 +417,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline());
                     continue;
                 }
+                var killedPhase = Phases.OrderByDescending(x => x.End).FirstOrDefault(x => x.End < phase.Start);
                 var invis = MassInvis.FirstOrDefault(x => phase.Start - 10000 < x.EndTime);
                 long stealthTime = -1;
                 List<StealthResult> stealthResults = new List<StealthResult>();
@@ -450,7 +453,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     }
                 }
                 stealthResults = stealthResults.OrderBy(x => x.Time).ToList();
-                stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline(stealthPhase.Value,invis.Time, stealthTime,stealthResults));
+                stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline(stealthPhase.Value,invis.Time, stealthTime, killedPhase.End, invis.Caster.HasBuff(_log, 1187, invis.Time, invis.EndTime - invis.Time), stealthResults));
             }
             return new StealthTimelineCollection(stealthResultsPerPhase);
         }

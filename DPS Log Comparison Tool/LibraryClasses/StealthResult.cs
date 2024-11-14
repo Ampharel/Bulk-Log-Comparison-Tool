@@ -34,8 +34,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
     public class StealthTimeline
     {
         public string Phase;
+        public bool HadQuickness;
         public long MassInvisTime;
         public long StealthEventTime;
+        public long PhaseEnd;
         public List<StealthResult> Results;
 
         public StealthTimeline()
@@ -46,12 +48,14 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             Results = new List<StealthResult>();
         }
 
-        public StealthTimeline(string phase, long massInvisTime, long stealthEvent, List<StealthResult> results)
+        public StealthTimeline(string phase, long massInvisTime, long stealthEvent, long phaseEnd, bool hadQuickness, List<StealthResult> results)
         {
             Phase = phase;
             MassInvisTime = massInvisTime;
             StealthEventTime = stealthEvent;
             Results = results;
+            PhaseEnd = phaseEnd;
+            HadQuickness = hadQuickness;
         }
     }
 
