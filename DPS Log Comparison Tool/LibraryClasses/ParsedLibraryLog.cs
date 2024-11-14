@@ -402,9 +402,9 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
         }
 
-        public StealthTimeline GetStealthTimeline()
+        public StealthTimelineCollection GetStealthTimeline()
         {
-            var stealthResultsPerPhase = new Dictionary<string, List<StealthResult>>();
+            var stealthResultsPerPhase = new Dictionary<string, StealthTimeline>();
             var MassInvis = _log.CombatData.GetAnimatedCastData(10245);
 
             foreach (var stealthPhase in _expectedStealthPhases)
@@ -412,28 +412,34 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 var phase = _log.FightData.GetPhases(_log).FirstOrDefault(y => y.Name == stealthPhase.Key);
                 if (phase == null)
                 {
-                    stealthResultsPerPhase.Add(stealthPhase.Value, new List<StealthResult>());
+                    stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline());
                     continue;
                 }
                 var invis = MassInvis.FirstOrDefault(x => phase.Start - 10000 < x.EndTime);
+                long stealthTime = -1;
                 List<StealthResult> stealthResults = new List<StealthResult>();
                 foreach (var player in _log.PlayerList)
                 {
-                    if(invis == null)
+                    var stealthEvent = _log.CombatData.GetBuffDataByIDByDst(10269, player.AgentItem).Where(x => x is BuffApplyEvent && x.Time >= invis.Time).FirstOrDefault();
+                    if(stealthEvent == null)
                     {
                         stealthResults.Add(new StealthResult(player.Account, "No MI"));
+                        continue;
                     }
-                    var dmgData = _log.CombatData.GetDamageData(player.AgentItem).Where(x => x.Time >= invis.EndTime && x.Time <= invis.EndTime + 6000);
-                    if(dmgData.Count() == 0)
+                    stealthTime = stealthEvent.Time;
+                    var _buffEvents = _log.CombatData.GetBuffDataByIDByDst(890, player.AgentItem);
+                    var revealed = _buffEvents.FirstOrDefault(x => x.Time >= stealthEvent.Time);
+                    var dmgData = _log.CombatData.GetDamageData(player.AgentItem).Where(x => x.Time <= stealthEvent.Time + 6000);
+
+                    if (revealed == null)
                     {
                         stealthResults.Add(new StealthResult(player.Account, "Stealth timeout", invis.EndTime + 6000, invis.EndTime));
                         continue;
                     }
-                    var skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment") && x is DirectHealthDamageEvent);
-                    if (skill == null)
-                    {
-                        skill = dmgData.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
-                    }
+
+                    var directEventData = dmgData.Where(x => x is DirectHealthDamageEvent);
+                    var descending = directEventData.OrderByDescending(x => x.Time);
+                    var skill = descending.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
                     if (skill == null)
                     {
                         stealthResults.Add(new StealthResult(player.Account, "Unknown"));
@@ -444,10 +450,9 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     }
                 }
                 stealthResults = stealthResults.OrderBy(x => x.Time).ToList();
-                stealthResultsPerPhase.Add(stealthPhase.Value, stealthResults);
+                stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline(stealthPhase.Value,invis.Time, stealthTime,stealthResults));
             }
-
-            return new StealthTimeline(stealthResultsPerPhase);
+            return new StealthTimelineCollection(stealthResultsPerPhase);
         }
         private string GetStealth(PhaseData phase, string accountName, long stealthTime, Enums.StealthAlgoritmns stealthAlgoritmn, bool showLate = false)
         {

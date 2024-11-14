@@ -11,24 +11,48 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
-    public class StealthTimeline
+    public class StealthTimelineCollection
     {
-        public Dictionary<string, List<StealthResult>> _stealthResultsPerPhase;
-        public IReadOnlyDictionary<string, List<StealthResult>> Results => _stealthResultsPerPhase.AsReadOnly();
 
-        public StealthTimeline(Dictionary<string, List<StealthResult>> stealthResultsPerPhase)
+        public Dictionary<string, StealthTimeline> _stealthResultsPerPhase;
+        public IReadOnlyDictionary<string, StealthTimeline> Results => _stealthResultsPerPhase.AsReadOnly();
+
+        public StealthTimelineCollection(Dictionary<string, StealthTimeline> stealthResultsPerPhase)
         {
             _stealthResultsPerPhase = stealthResultsPerPhase;
         }
 
-        public List<StealthResult> GetStealthResults(string phaseName)
+        public StealthTimeline GetStealthResults(string phaseName)
         {
-            if (_stealthResultsPerPhase.TryGetValue(phaseName, out List<StealthResult> value))
+            if (_stealthResultsPerPhase.TryGetValue(phaseName, out StealthTimeline value))
             {
                 return value;
             }
-            return new List<StealthResult>();
-        }   
+            return new StealthTimeline();
+        }
+    }
+    public class StealthTimeline
+    {
+        public string Phase;
+        public long MassInvisTime;
+        public long StealthEventTime;
+        public List<StealthResult> Results;
+
+        public StealthTimeline()
+        {
+            Phase = "";
+            MassInvisTime = -1;
+            StealthEventTime = -1;
+            Results = new List<StealthResult>();
+        }
+
+        public StealthTimeline(string phase, long massInvisTime, long stealthEvent, List<StealthResult> results)
+        {
+            Phase = phase;
+            MassInvisTime = massInvisTime;
+            StealthEventTime = stealthEvent;
+            Results = results;
+        }
     }
 
     public class StealthResult

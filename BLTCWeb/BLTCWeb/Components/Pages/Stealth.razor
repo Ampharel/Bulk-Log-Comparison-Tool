@@ -32,36 +32,42 @@
             }
         </HeaderContent>
         <RowTemplate>
+
+            @foreach (var log in LogParser.BulkLog.Logs)
+            {
             <MudTd>
                 @{
-
-                    @foreach (var log in LogParser.BulkLog.Logs)
-                    {
-                    var results = log.GetStealthTimeline().GetStealthResults(_selectedPhase);
-                    if (results.Count() > 0)
+                    var stealthTimeline = log.GetStealthTimeline().GetStealthResults(_selectedPhase);
+                        if (stealthTimeline.Phase.Equals(_selectedPhase))
                         {
-                        var FirstResult = results.First();
-                        var stealthTime = FirstResult.StealthTime / 1000f;
+                            var miTime = stealthTimeline.MassInvisTime / 1000f;
+                            var stealthTime = stealthTimeline.StealthEventTime / 1000f;
                         <MudTimeline TimelineAlign="TimelineAlign.Start">
+                                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                                    <ItemContent>
+                                        <MudText Typo="Typo.h6">Mass Invis</MudText>
+                                    </ItemContent>
+                                    <ItemDot>@miTime</ItemDot>
+                                </MudTimelineItem>
                                 <MudTimelineItem Color="Color.Info" Size="Size.Small">
                                     <ItemContent>
                                         <MudText Typo="Typo.h6">Stealth</MudText>
                                     </ItemContent>
-                                <ItemDot>@stealthTime</ItemDot>
+                                    <ItemDot>@stealthTime</ItemDot>
                                 </MudTimelineItem>
 
                             @for (double i = stealthTime; i < stealthTime + 6.0f; i++)
                             {
                                     var currTime = i;
-                                    var timedResults = results.Where(x => (x.Time / 1000f) >= currTime && (x.Time / 1000f) <= currTime + 1);
+                                    var timedResults = stealthTimeline.Results.Where(x => (x.Time / 1000f) >= currTime && (x.Time / 1000f) <= currTime + 1);
                                     var hide = timedResults.Count() == 0;
 
                                 <MudTimelineItem Color="Color.Info" Size="Size.Small" HideDot="@hide">
                                         <ItemDot>@currTime.ToString("0.##")</ItemDot>
                                     <ItemContent>
-                                        @foreach (var result in timedResults.Select(result => $"{result.Player} : {result.Reason} @ {(result.Time/1000f).ToString("0.##")}"))
+                                        @foreach (var result in timedResults.Where(x => !x.Reason.Equals("Stealth timeout")).Select(result => $"{result.Player} : {result.Reason} @ {(result.Time/1000f).ToString("0.##")}"))
                                         {
-                                            <MudText Typo="Typo.h6">@result</MudText>
+                                                <MudText Typo="Typo.body1">@result</MudText>
                                         }
                                     </ItemContent>
                                     <ItemOpposite>
@@ -69,12 +75,12 @@
                                     </ItemOpposite>
                                 </MudTimelineItem>
 
-                                }
-                        </MudTimeline>
-                        }
+                            }
+                    </MudTimeline>
                     }
                 }
             </MudTd>
+            }
         </RowTemplate>
     </MudTable>
 </div>
