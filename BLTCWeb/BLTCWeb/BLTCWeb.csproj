@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\BLTCWeb.Client\BLTCWeb.Client.csproj" />
+    <PackageReference Include="Aspose.Drawing" Version="24.11.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0" />
     <PackageReference Include="MudBlazor" Version="7.15.0" />
   </ItemGroup>

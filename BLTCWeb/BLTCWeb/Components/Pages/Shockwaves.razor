@@ -1,0 +1,56 @@
+﻿@page "/shockwaves"
+@using System.Net.Http.Json
+@using MudBlazor
+@using Bulk_Log_Comparison_Tool.DataClasses
+@using System.Drawing;
+@using System.Drawing.Drawing2D;
+@using System.Drawing.Imaging;
+@rendermode InteractiveServer
+
+@inject ServerParser LogParser
+<LogDrawer OnUpload="StateHasChanged" />
+<div style="overflow-x: auto;">
+    <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+              Hover="true"
+              Breakpoint="Breakpoint.Sm"
+              LoadingProgressColor="MudBlazor.Color.Info"
+              Class="flex-table">
+        <HeaderContent>
+            <MudTh>Player</MudTh>
+            @foreach (var log in LogParser.BulkLog.Logs)
+            {
+                <MudTh>@log.GetFileName()</MudTh>
+            }
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context</MudTd>
+            @foreach(var log in LogParser.BulkLog.Logs){
+            <MudTd>
+                    <img src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(GetImageForPlayer(log,@context)))" />
+                    </MudTd>
+            }
+        </RowTemplate>
+    </MudTable>
+</div>
+
+@code {
+
+    private WebImageGenerator imageGenerator = new WebImageGenerator();
+    private byte[] GetImageForPlayer(IParsedEvtcLog Log, string Player)
+    {
+        var shockwaves = GetShockwaves(Log, 0);
+        shockwaves = shockwaves.Concat(GetShockwaves(Log, 1)).ToList();
+        shockwaves = shockwaves.Concat(GetShockwaves(Log, 2)).ToList();
+        return imageGenerator.GetImageBytes(Log, Player, shockwaves); ;
+    }
+
+    private List<(long, int)> GetShockwaves(IParsedEvtcLog Log, int shockwaveType)
+    {
+        List<(long, int)> shockwaves = new();
+        foreach (var shockwave in Log.GetShockwaves(shockwaveType))
+        {
+            shockwaves.Add((shockwave, shockwaveType));
+        }
+        return shockwaves;
+    }
+}

@@ -9,7 +9,6 @@
     <MudTable Items="@LogParser.BulkLog.GetPlayers()"
               Hover="true"
               Breakpoint="Breakpoint.Sm"
-              Loading="@_loading"
               LoadingProgressColor="Color.Info"
               Class="flex-table">
         <HeaderContent>
@@ -29,10 +28,5 @@
     </MudTable>
 </div>
 
-<MudSwitch @bind-Value="_hidePosition" Color="Color.Primary">Hide <b>position</b> when Breakpoint=Xs</MudSwitch>
-<MudSwitch @bind-Value="_loading" Color="Color.Primary">Show Loading</MudSwitch>
-
 @code {
-    private bool _hidePosition;
-    private bool _loading;
 }
