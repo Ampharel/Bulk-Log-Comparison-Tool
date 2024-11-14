@@ -86,13 +86,24 @@
                                     var currTime = i;
                                     var timedResults = stealthTimeline.Results.Where(x => (x.Time / 1000f) >= currTime && (x.Time / 1000f) <= currTime + 1);
                                     var hide = timedResults.Count() == 0;
-
-                                <MudTimelineItem Color="Color.Info" Size="Size.Small" HideDot="@hide">
+                                    var bold = false;
+                                    var fontweight = "font-weight:normal";
+                                    <MudTimelineItem Color="Color.Info" Size="Size.Small" HideDot="@hide">
                                         <ItemDot>@currTime.ToString("0.##")</ItemDot>
                                     <ItemContent>
                                         @foreach (var result in timedResults.Where(x => !x.Reason.Equals("Stealth timeout")).Select(result => $"{result.Player} : {result.Reason} @ {(result.Time/1000f).ToString("0.##")}"))
                                         {
-                                                <MudText Typo="Typo.body1">@result</MudText>
+                                            <MudText Style=@fontweight Typo="Typo.body1">@result</MudText>
+                                            if (bold)
+                                            {
+                                                bold = false;
+                                                fontweight = "font-weight:normal";
+                                            }
+                                            else
+                                            {
+                                                bold = true;
+                                                fontweight = "font-weight:bold";
+                                            }
                                         }
                                     </ItemContent>
                                     <ItemOpposite>
