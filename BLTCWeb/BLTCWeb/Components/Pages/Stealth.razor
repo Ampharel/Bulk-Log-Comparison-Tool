@@ -19,25 +19,24 @@
         </MudMenu>
     </MudButtonGroup>
 
-    <MudTable Items="@LogParser.BulkLog.GetPlayers().Take(1)"
+    <MudTable Items="@LogParser.BulkLog.Logs"
               Hover="true"
               Breakpoint="Breakpoint.Sm"
               Loading="@_loading"
               LoadingProgressColor="Color.Info"
               Class="flex-table">
         <HeaderContent>
-            @foreach (var log in LogParser.BulkLog.Logs)
-            {
-                <MudTh>@log.GetFileName()</MudTh>
-            }
+            <MudTh>@_selectedPhase</MudTh>
         </HeaderContent>
         <RowTemplate>
 
-            @foreach (var log in LogParser.BulkLog.Logs)
-            {
+            <MudTd>@context.GetFileName()</MudTd>
                 <MudTd Style="align-content:start">
                     @{
-                        var stealthTimeline = log.GetStealthTimeline().GetStealthResults(_selectedPhase);
+                        var right = true;
+                        var rightStyle = "text-align:right";
+                        var leftStyle = "text-align:left";
+                        var stealthTimeline = context.GetStealthTimeline().GetStealthResults(_selectedPhase);
                         if (stealthTimeline.Phase.Equals(_selectedPhase))
                         {
                             var phaseTime = stealthTimeline.PhaseEnd / 1000f;
@@ -65,7 +64,7 @@
                                 </MudTimelineItem>
                                 <MudTimelineItem Color="@StealthColour" Size="Size.Small">
                                     <ItemContent>
-                                        <MudText Typo="Typo.h6">Mass Invis</MudText>
+                                        <MudText Typo="Typo.h6" Style="text-align:right">Mass Invis</MudText>
                                     </ItemContent>
                                         <ItemOpposite>
                                     @if(!stealthTimeline.HadQuickness){
@@ -83,7 +82,13 @@
 
                             @for (double i = stealthTime; i < stealthTime + 6.0f; i++)
                             {
-                                    var currTime = i;
+                                var currentStyle = leftStyle;
+                                if (right)
+                                {
+                                    currentStyle = rightStyle;
+                                }
+                                right = !right;
+                                var currTime = i;
                                     var timedResults = stealthTimeline.Results.Where(x => (x.Time / 1000f) >= currTime && (x.Time / 1000f) <= currTime + 1);
                                     var hide = timedResults.Count() == 0;
                                     var bold = false;
@@ -93,7 +98,8 @@
                                     <ItemContent>
                                         @foreach (var result in timedResults.Where(x => !x.Reason.Equals("Stealth timeout")).Select(result => $"{result.Player} : {result.Reason} @ {(result.Time/1000f).ToString("0.##")}"))
                                         {
-                                            <MudText Style=@fontweight Typo="Typo.body1">@result</MudText>
+                                            var style = $"{fontweight};{currentStyle}";
+                                            <MudText Style=@style Typo="Typo.body1">@result</MudText>
                                             if (bold)
                                             {
                                                 bold = false;
@@ -116,7 +122,6 @@
                     }
                 }
             </MudTd>
-            }
         </RowTemplate>
     </MudTable>
 </div>
