@@ -9,7 +9,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
     {
         public string GetFileName();
         public string GetLogStart();
-        public double GetPlayerDps(string accountName, string phaseName = "", bool cumulative = false, bool allTarget = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
+        public double GetPlayerDps(string accountName, string phaseName = "", bool allTarget = false, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
         protected double GetPlayerDps(string accountName, long start, long end, AbstractSingleActor[] targets, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
         public string[] GetPhases();
         public void AddPhase(string name, long start, long duration);

@@ -8,10 +8,10 @@
 <div style="overflow-x: auto;">
     <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
         <MudButton>@_selectedPhase</MudButton>
-            <MudMenu Value=@_selectedPhase ValueChange="UpdatePhase" Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
-            @foreach (var phase in LogParser.BulkLog.GetPhases())
+            <MudMenu Value=@_selectedPhase Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                @foreach (var log in LogParser.BulkLog.GetPhases())
             {
-                <MudMenuItem Value="@phase">@phase</MudMenuItem>
+                <MudMenuItem OnClick="() => UpdatePhase(log)">@log</MudMenuItem>
             }
         </MudMenu>
     </MudButtonGroup>
@@ -47,16 +47,16 @@
             <MudTd>@context</MudTd>
             @foreach (var log in LogParser.BulkLog.Logs)
             {
-                <MudTd>@log.GetPlayerDps(@context,_selectedPhase,_cumulative,_allTargets,_defiance)</MudTd>
+                <MudTd>@log.GetPlayerDps(@context, _selectedPhase, _allTargets, _cumulative, _defiance)</MudTd>
             }
         </RowTemplate>
     </MudTable>
 </div>
 
 @code {
-    private bool _cumulative;
-    private bool _defiance;
-    private bool _allTargets;
+    private bool _cumulative = false;
+    private bool _defiance = false;
+    private bool _allTargets = false;
     private string _selectedPhase = "";
 
     public EventCallback<bool> UpdateCumulativeEvent;

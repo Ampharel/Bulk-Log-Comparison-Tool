@@ -10,6 +10,7 @@ using System.Numerics;
 using Bulk_Log_Comparison_Tool.Enums;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Reflection;
+using System.Xml.Linq;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
