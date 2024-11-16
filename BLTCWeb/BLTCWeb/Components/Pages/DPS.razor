@@ -6,6 +6,31 @@
 @inject ServerParser LogParser
 <LogDrawer OnUpload="StateHasChanged" />
 <div style="overflow-x: auto;">
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudButton>@_selectedPhase</MudButton>
+            <MudMenu Value=@_selectedPhase ValueChange="UpdatePhase" Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+            @foreach (var phase in LogParser.BulkLog.GetPhases())
+            {
+                <MudMenuItem Value="@phase">@phase</MudMenuItem>
+            }
+        </MudMenu>
+    </MudButtonGroup>
+
+    <MudRadioGroup Value="@_cumulative" ValueChanged="UpdateCumulativeEvent">
+        <MudRadio Value="false" Color="Color.Primary">Per Second</MudRadio>
+        <MudRadio Value="true" Color="Color.Primary">Cumulative</MudRadio>
+    </MudRadioGroup>
+
+    <MudRadioGroup Value="@_defiance" ValueChanged="UpdateDefianceEvent">
+        <MudRadio Value="false" Color="Color.Primary">Damage</MudRadio>
+        <MudRadio Value="true" Color="Color.Primary">Defiance</MudRadio>
+    </MudRadioGroup>
+
+    <MudRadioGroup Value="@_allTargets" ValueChanged="UpdateAllTargetsEvent">
+        <MudRadio Value="false" Color="Color.Primary">SingleTarget</MudRadio>
+        <MudRadio Value="true" Color="Color.Primary">AllTargets</MudRadio>
+    </MudRadioGroup>
+
     <MudTable Items="@LogParser.BulkLog.GetPlayers()"
               Hover="true"
               Breakpoint="Breakpoint.Sm"
@@ -22,11 +47,60 @@
             <MudTd>@context</MudTd>
             @foreach (var log in LogParser.BulkLog.Logs)
             {
-                <MudTd>@log.GetPlayerDps(@context)</MudTd>
+                <MudTd>@log.GetPlayerDps(@context,_selectedPhase,_cumulative,_allTargets,_defiance)</MudTd>
             }
         </RowTemplate>
     </MudTable>
 </div>
 
 @code {
+    private bool _cumulative;
+    private bool _defiance;
+    private bool _allTargets;
+    private string _selectedPhase = "";
+
+    public EventCallback<bool> UpdateCumulativeEvent;
+    public EventCallback<bool> UpdateDefianceEvent;
+    public EventCallback<bool> UpdateAllTargetsEvent;
+    public EventCallback<string> UpdatePhaseEvent;
+
+    private void UpdatePhase(string phase)
+    {
+        _selectedPhase = phase;
+        OnNewData();
+    }
+
+    private void OnNewData()
+    {
+        StateHasChanged();
+    }
+
+    private void UpdateCumulative(bool value)
+    {
+        _cumulative = value;
+        OnNewData();
+    }
+
+    private void UpdateDefiance(bool value)
+    {
+        _defiance = value;
+        OnNewData();
+    }
+
+    private void UpdateAllTargets(bool value)
+    {
+        _allTargets = value;
+        OnNewData();
+    }
+
+
+    protected override void OnInitialized()
+    {
+        UpdateCumulativeEvent = EventCallback.Factory.Create<bool>(this, UpdateCumulative);
+        UpdateDefianceEvent = EventCallback.Factory.Create<bool>(this, UpdateDefiance);
+        UpdateAllTargetsEvent = EventCallback.Factory.Create<bool>(this, UpdateAllTargets);
+        UpdatePhaseEvent = EventCallback.Factory.Create<string>(this, UpdatePhase);
+        LogParser.NewDataEvent += OnNewData;
+    }
+
 }
