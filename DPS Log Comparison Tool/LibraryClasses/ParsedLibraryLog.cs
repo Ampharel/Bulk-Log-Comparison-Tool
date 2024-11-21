@@ -199,16 +199,6 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
 
             var Buffs = Target.GetBuffs(BuffEnum.Self, _log, start, end);
-            var kneel = Buffs.TryGetValue(42869, out var kneelValue);
-            var trigger = Buffs.TryGetValue(62823, out var triggerValue);
-            if (kneel)
-            {
-                Console.WriteLine("Kneeling");
-            }
-            if (trigger)
-            {
-                Console.WriteLine("Trigger");
-            }
             var targetBuffs = new List<Buff>();
             foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
             {
@@ -446,6 +436,42 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     var _buffEvents = _log.CombatData.GetBuffDataByIDByDst(890, player.AgentItem);
                     var revealed = _buffEvents.FirstOrDefault(x => x.Time >= stealthEvent.Time);
                     var dmgData = _log.CombatData.GetDamageData(player.AgentItem).Where(x => x.Time <= stealthEvent.Time + 6000);
+
+                    bool isKneeling = false;
+                    bool isTriggered = false;
+
+                    long endTime = stealthTime+6000;
+                    if(revealed != null)
+                    {
+                        endTime = revealed.Time;
+                    }
+                    
+                    for(long i = stealthTime; i < endTime; i += 100)
+                    {
+                        var Buffs = player.GetBuffs(BuffEnum.Self, _log, i, i+100);
+                        var kneel = Buffs.TryGetValue(42869, out var kneelValue);
+                        var trigger = Buffs.TryGetValue(62823, out var triggerValue);
+                        if(!isKneeling && kneelValue?.Uptime > 0)
+                        {
+                            stealthResults.Add(new StealthResult(player.Account, "Kneeling!", i,stealthTime));
+                            isKneeling = true;
+                        }
+                        if(isKneeling && kneelValue?.Uptime == 0)
+                        {
+                            stealthResults.Add(new StealthResult(player.Account, "Stopped Kneeling", i, stealthTime));
+                            isKneeling = false;
+                        }
+                        if(!isTriggered && triggerValue?.Uptime > 0)
+                        {
+                            stealthResults.Add(new StealthResult(player.Account, "Dragon Trigger!", i, stealthTime));
+                            isTriggered = true;
+                        }
+                        if(isTriggered && triggerValue?.Uptime == 0)
+                        {
+                            stealthResults.Add(new StealthResult(player.Account, "Stopped Dragon Trigger", i, stealthTime));
+                            isTriggered = false;
+                        }
+                    }
 
                     if (revealed == null)
                     {
