@@ -196,7 +196,19 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 }
             }
 
+
+
             var Buffs = Target.GetBuffs(BuffEnum.Self, _log, start, end);
+            var kneel = Buffs.TryGetValue(42869, out var kneelValue);
+            var trigger = Buffs.TryGetValue(62823, out var triggerValue);
+            if (kneel)
+            {
+                Console.WriteLine("Kneeling");
+            }
+            if (trigger)
+            {
+                Console.WriteLine("Trigger");
+            }
             var targetBuffs = new List<Buff>();
             foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
             {
@@ -609,6 +621,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
 
             long currentTime = 0;
+            bool firstTime = true;
             long currentDuration = 0;
 
             foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
@@ -618,15 +631,29 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     var buffApplyEvent = buff as BuffApplyEvent;
                     var buffExtensionEvent = buff as BuffExtensionEvent;
-                    if (buffApplyEvent == null && buffExtensionEvent == null)
+                    var buffRemovedEvent = buff as BuffRemoveAllEvent;
+                    if (buffApplyEvent == null && buffExtensionEvent == null && buffRemovedEvent == null)
                     {
                         continue;
                     }
+                    var duration = 0L;
                     if (buff.Time > time)
                     {
                         break;
                     }
-                    var duration = buffApplyEvent != null ? buffApplyEvent.AppliedDuration : buffExtensionEvent.ExtendedDuration;
+                    if(firstTime)
+                    {
+                        firstTime = false;
+                        currentTime = buff.Time;
+                    }
+
+                    if(buffRemovedEvent != null)
+                    {
+                        Console.Write("asdf");
+                    }
+                    duration -= buffRemovedEvent?.RemovedDuration ?? 0;
+                    duration += buffApplyEvent?.AppliedDuration ?? 0;
+                    duration += buffExtensionEvent?.ExtendedDuration ?? 0;
 
                     currentDuration -= buff.Time - currentTime; //Figure out delta since last boon application
                     currentDuration = Math.Max(0, currentDuration);//Make sure we don't go negative
