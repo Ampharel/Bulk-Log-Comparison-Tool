@@ -6,7 +6,7 @@ using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.Processing;
 
-namespace BLTCWeb
+namespace BLCTWeb
 {
     internal class WebImageGenerator
     {

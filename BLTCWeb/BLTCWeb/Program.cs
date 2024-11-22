@@ -1,9 +1,9 @@
-using BLTCWeb.Client;
-using BLTCWeb.Client.Pages;
-using BLTCWeb.Components;
+using BLCTWeb.Client;
+using BLCTWeb.Client.Pages;
+using BLCTWeb.Components;
 using MudBlazor.Services;
 
-namespace BLTCWeb
+namespace BLCTWeb
 {
     public class Program
     {

@@ -1,4 +1,4 @@
-using BLTCWeb.Client;
+using BLCTWeb.Client;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 

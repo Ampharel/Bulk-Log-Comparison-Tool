@@ -2,7 +2,7 @@
 using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool.LibraryClasses;
 
-namespace BLTCWeb
+namespace BLCTWeb
 {
     public class ServerParser
     {
