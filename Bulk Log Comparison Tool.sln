@@ -7,9 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bulk Log Comparison Tool", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Bulk Log Comparison Tool Frontend", "Bulk Log Comparison Tool Frontend\Bulk Log Comparison Tool Frontend.csproj", "{37925C82-8218-4167-857E-CEF9D5080DF8}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BLTCWeb", "BLTCWeb\BLTCWeb\BLTCWeb.csproj", "{C797EAFA-5714-4AC1-9818-8FD6BC8FF4F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BLCTWeb", "BLTCWeb\BLTCWeb\BLCTWeb.csproj", "{C797EAFA-5714-4AC1-9818-8FD6BC8FF4F7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BLTCWeb.Client", "BLTCWeb\BLTCWeb.Client\BLTCWeb.Client.csproj", "{F5EF592C-A0E9-4831-BCEB-0E7C8ABCCF4E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BLCTWeb.Client", "BLTCWeb\BLTCWeb.Client\BLCTWeb.Client.csproj", "{F5EF592C-A0E9-4831-BCEB-0E7C8ABCCF4E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

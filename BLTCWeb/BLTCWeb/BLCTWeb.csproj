@@ -51,7 +51,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\BLTCWeb.Client\BLTCWeb.Client.csproj" />
+    <ProjectReference Include="..\BLTCWeb.Client\BLCTWeb.Client.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0" />
     <PackageReference Include="MudBlazor" Version="7.15.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />

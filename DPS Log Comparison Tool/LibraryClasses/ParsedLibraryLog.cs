@@ -22,6 +22,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         private static Dictionary<string, string>? _expectedStealthPhases;
 
 
+
         public ParsedLibraryLog(ParsedEvtcLog log, string path)
         {
             _log = log;
@@ -29,7 +30,6 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
 
             LoadFile();
-
         }
 
         private void LoadFile()

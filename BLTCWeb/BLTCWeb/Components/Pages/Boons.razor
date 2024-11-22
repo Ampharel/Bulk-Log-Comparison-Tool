@@ -52,10 +52,14 @@
             </HeaderContent>
             <RowTemplate>
                 @{
+                    if (Series.Count() == 0)
+                    {
+                        OnNewData();
+                    }
                     var data = Series[context.GetFileName()];
                 }
                 <MudTd>@context.GetFileName()</MudTd>
-                    <MudTimeSeriesChart ChartType="ChartType.Line" ChartSeries="@data" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+                    <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="mm:ss" TimeLabelSpacing="@_graphSpacing" ChartSeries="@data" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
              </RowTemplate>
          </MudTable>
     }
@@ -75,13 +79,13 @@
                     var data = Series[context];
                 }
                 <MudTd>@context</MudTd>
-                    <MudTimeSeriesChart ChartType="ChartType.Line" ChartSeries="@data" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+                    <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="mm:ss" TimeLabelSpacing="@_graphSpacing" ChartSeries="@data" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
              </RowTemplate>
          </MudTable>
     }
 </div>
 
- @code {
+@code {
 
     private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
     public ChartOptions Options = new ChartOptions();
@@ -102,6 +106,8 @@
     public EventCallback<bool> ShowPlayersChanged;
     public EventCallback<bool> ShowGroupsChanged;
 
+    private TimeSpan _graphSpacing = TimeSpan.FromSeconds(30);
+
     private void OnNewData()
     {
         Series = new();
@@ -109,7 +115,7 @@
         foreach (var Log in LogParser.BulkLog.Logs)
         {
             if (_chartDisplayMode == ChartDisplayMode.GraphPerLog){
-            Series.Add(Log.GetFileName(), new List<TimeSeriesChartSeries>());
+                Series.Add(Log.GetFileName(), new List<TimeSeriesChartSeries>());
             }
             var boonStackType = Log.GetBoonStackType(_selectedBoon);
             var duration = (boonStackType == BuffStackTyping.Queue || boonStackType == BuffStackTyping.Regeneration) ? true : false;
@@ -124,16 +130,19 @@
                     for (long i = Log.GetPhaseStart(_selectedPhase); i < Log.GetPhaseEnd(_selectedPhase); i += 1000)
                     {
                         var boonAtTime = (int)Log.GetBoon(Player, _selectedBoon, _selectedPhase, i, duration);
-                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(i), boonAtTime));
+                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(i * 10000), boonAtTime));
                     }
+                    _graphSpacing = TimeSpan.FromSeconds(Math.Round(chartData.Select(x => x.DateTime.Ticks).Max()/100000L * 1.0f)*10);
                     if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
                     {
                         var chartSeries = new TimeSeriesChartSeries() { Name = Player, Data = chartData, Type = TimeSeriesDiplayType.Area };
+                        Console.WriteLine($"Log: {Log.GetFileName()}");
                         Series[Log.GetFileName()].Add(chartSeries);
                     }
                     else
                     {
                         var chartSeries = new TimeSeriesChartSeries() { Name = Log.GetFileName(), Data = chartData, Type = TimeSeriesDiplayType.Area };
+                        Console.WriteLine($"Player: {Player}");
                         Series[Player].Add(chartSeries);
                     }
                 }
@@ -150,7 +159,7 @@
                     for (long i = Log.GetPhaseStart(_selectedPhase); i < Log.GetPhaseEnd(_selectedPhase); i += 500)
                     {
                         var boonAtTime = (int)Log.GetBoon(Group, _selectedBoon, _selectedPhase, i, duration);
-                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(i), boonAtTime));
+                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(i*10000), boonAtTime));
                     }
                     if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
                     {
@@ -165,7 +174,11 @@
                 }
             }
         }
-        Options.YAxisTicks = 10;
+        Options.YAxisTicks = 5;
+        Options.XAxisLines = true;
+        Options.YAxisLines = true;
+        Options.YAxisRequireZeroPoint = true;
+
         StateHasChanged();
     }
 
