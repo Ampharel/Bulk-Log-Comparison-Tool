@@ -422,6 +422,9 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 }
                 var killedPhase = Phases.OrderByDescending(x => x.End).FirstOrDefault(x => x.End < phase.Start);
                 var invis = MassInvis.FirstOrDefault(x => phase.Start - 10000 < x.EndTime);
+               
+
+
                 long stealthTime = -1;
                 List<StealthResult> stealthResults = new List<StealthResult>();
                 foreach (var player in _log.PlayerList)
@@ -445,8 +448,16 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     {
                         endTime = revealed.Time;
                     }
-                    
-                    for(long i = stealthTime; i < endTime; i += 100)
+
+                    var naturalConvergences = _log.CombatData.GetAnimatedCastData(31503);
+                    var naturalConvergencesByPlayer = naturalConvergences.Where(x => x.Caster.Name.Equals(player.AgentItem.Name));
+                    var lingeringNaturalConvergence = naturalConvergencesByPlayer.Where(x => x.EndTime > stealthTime - 8000 && x.Time < endTime).FirstOrDefault();
+                    if (lingeringNaturalConvergence != null)
+                    {
+                        stealthResults.Add(new StealthResult(player.Account, "Lingering Natural Convergence!", stealthTime, stealthTime));
+                    }
+
+                    for (long i = stealthTime; i < endTime; i += 100)
                     {
                         var Buffs = player.GetBuffs(BuffEnum.Self, _log, i, i+100);
                         var kneel = Buffs.TryGetValue(42869, out var kneelValue);
@@ -671,11 +682,6 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     {
                         firstTime = false;
                         currentTime = buff.Time;
-                    }
-
-                    if(buffRemovedEvent != null)
-                    {
-                        Console.Write("asdf");
                     }
                     duration -= buffRemovedEvent?.RemovedDuration ?? 0;
                     duration += buffApplyEvent?.AppliedDuration ?? 0;

@@ -28,6 +28,7 @@
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
                     <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerLog)">Graph Per Log</MudMenuItem>
                     <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerPlayer)">Graph Per Player</MudMenuItem>
+                    <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.LostTimings)">Boon lost timings</MudMenuItem>
             </MudMenu>
         </MudButtonGroup>
             <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox>
@@ -63,7 +64,7 @@
              </RowTemplate>
          </MudTable>
     }
-    else
+    else if(_chartDisplayMode == ChartDisplayMode.GraphPerPlayer)
     {
         <MudTable Items="@LogParser.BulkLog.GetPlayers()"
                   Hover="true"
@@ -83,6 +84,29 @@
              </RowTemplate>
          </MudTable>
     }
+    else if(_chartDisplayMode == ChartDisplayMode.LostTimings)
+    {
+        <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+                  Hover="true"
+                  Breakpoint="Breakpoint.Sm"
+                  LoadingProgressColor="Color.Info"
+                  Class="flex-table">
+            <HeaderContent>
+                @foreach(var log in @LogParser.BulkLog.Logs)
+                {
+                    <MudTh>log.GetFileName()</MudTh>
+                }
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context</MudTd>
+
+                @foreach(var log in @LogParser.BulkLog.Logs)
+                {
+                    <MudTd>@_buffLostTimings[log.GetFileName()][context]</MudTd>
+                }
+             </RowTemplate>
+         </MudTable>
+    }
 </div>
 
 @code {
@@ -93,10 +117,12 @@
     private enum ChartDisplayMode
     {
         GraphPerLog,
-        GraphPerPlayer
+        GraphPerPlayer,
+        LostTimings
     }
     private ChartDisplayMode _chartDisplayMode = ChartDisplayMode.GraphPerLog;
     public Dictionary<string, List<TimeSeriesChartSeries>> Series = new();
+    private Dictionary<string, Dictionary<string, string>> _buffLostTimings = new Dictionary<string, Dictionary<string, string>>();
     public string[] XAxisLabels = {};
     private string _selectedBoon = "Might";
     private string _selectedPhase = "";
@@ -111,9 +137,11 @@
     private void OnNewData()
     {
         Series = new();
+        _buffLostTimings = new();
 
         foreach (var Log in LogParser.BulkLog.Logs)
         {
+            _buffLostTimings.Add(Log.GetFileName(), new Dictionary<string, string>());
             if (_chartDisplayMode == ChartDisplayMode.GraphPerLog){
                 Series.Add(Log.GetFileName(), new List<TimeSeriesChartSeries>());
             }
@@ -121,27 +149,40 @@
             var duration = (boonStackType == BuffStackTyping.Queue || boonStackType == BuffStackTyping.Regeneration) ? true : false;
             if (_showPlayers)
             {
+                var hasBuff = true;
                 foreach (var Player in Log.GetPlayers())
                 {
-                    if (_chartDisplayMode == ChartDisplayMode.GraphPerPlayer && !Series.ContainsKey(Player)){
+                    if (!_buffLostTimings[Log.GetFileName()].ContainsKey(Player))
+                    {
+                        _buffLostTimings[Log.GetFileName()].Add(Player, "");
+                    }
+                    if (_chartDisplayMode != ChartDisplayMode.GraphPerLog && !Series.ContainsKey(Player))
+                    {
                         Series.Add(Player, new List<TimeSeriesChartSeries>());
                     }
                     List<TimeSeriesChartSeries.TimeValue> chartData = new List<TimeSeriesChartSeries.TimeValue>();
                     for (long i = Log.GetPhaseStart(_selectedPhase); i < Log.GetPhaseEnd(_selectedPhase); i += 1000)
                     {
                         var boonAtTime = (int)Log.GetBoon(Player, _selectedBoon, _selectedPhase, i, duration);
+                        if(boonAtTime == 0 && hasBuff){
+                            hasBuff = false;
+                            _buffLostTimings[Log.GetFileName()][Player] += ("" + (i / 1000f).ToString("0.##") + " ");
+                        }
+                        else if(boonAtTime > 0){
+                            hasBuff = true;
+                        }
                         chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(i * 10000), boonAtTime));
                     }
                     _graphSpacing = TimeSpan.FromSeconds(Math.Round(chartData.Select(x => x.DateTime.Ticks).Max()/100000L * 1.0f)*10);
                     if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
                     {
-                        var chartSeries = new TimeSeriesChartSeries() { Name = Player, Data = chartData, Type = TimeSeriesDiplayType.Area };
+                        var chartSeries = new TimeSeriesChartSeries() { Name = Player, Data = chartData, Type = TimeSeriesDiplayType.Line };
                         Console.WriteLine($"Log: {Log.GetFileName()}");
                         Series[Log.GetFileName()].Add(chartSeries);
                     }
                     else
                     {
-                        var chartSeries = new TimeSeriesChartSeries() { Name = Log.GetFileName(), Data = chartData, Type = TimeSeriesDiplayType.Area };
+                        var chartSeries = new TimeSeriesChartSeries() { Name = Log.GetFileName(), Data = chartData, Type = TimeSeriesDiplayType.Line };
                         Console.WriteLine($"Player: {Player}");
                         Series[Player].Add(chartSeries);
                     }
@@ -151,7 +192,7 @@
             {
                 foreach (var Group in Log.GetGroups())
                 {
-                    if (_chartDisplayMode == ChartDisplayMode.GraphPerPlayer && !Series.ContainsKey(Group.ToString()))
+                    if (_chartDisplayMode != ChartDisplayMode.GraphPerLog && !Series.ContainsKey(Group.ToString()))
                     {
                         Series.Add(Group.ToString(), new List<TimeSeriesChartSeries>());
                     }
@@ -163,12 +204,12 @@
                     }
                     if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
                     {
-                        var chartSeries = new TimeSeriesChartSeries() { Name = Group.ToString(), Data = chartData, Type = TimeSeriesDiplayType.Area };
+                        var chartSeries = new TimeSeriesChartSeries() { Name = Group.ToString(), Data = chartData, Type = TimeSeriesDiplayType.Line };
                         Series[Log.GetFileName()].Add(chartSeries);
                     }
                     else
                     {
-                        var chartSeries = new TimeSeriesChartSeries() { Name = Log.GetFileName(), Data = chartData, Type = TimeSeriesDiplayType.Area };
+                        var chartSeries = new TimeSeriesChartSeries() { Name = Log.GetFileName(), Data = chartData, Type = TimeSeriesDiplayType.Line };
                         Series[Group.ToString()].Add(chartSeries);
                     }
                 }
