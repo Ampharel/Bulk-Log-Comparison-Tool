@@ -15,6 +15,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public void AddPhase(string name, long start, long duration);
         public string[] GetTargets(string phaseName = "");
         public double GetBoon(string target, string boonName, string phaseName = "", long time = 0, bool duration = false);
+        public List<(double,double)> GetBoonTimedEvents(string target, string boonName, string phaseName = "");
         public double GetBoon(int group, string boonName, string phaseName = "", long time = 0, bool duration = false);
         public long[] GetShockwaves(int shockwaveType);
         public bool HasPlayer(string accountName);
@@ -30,6 +31,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public string[] GetPlayers();
         public string GetSpec(string accountName);
         public int[] GetGroups();
+        public bool IsPlayerInGroup(string accountName, int group);
         IEnumerable<string> GetBoonNames();
         public string[] GetMechanicNames(string phaseName = "", long start = 0, long end = 0);
         public (string, long)[] GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0);

@@ -183,6 +183,78 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 return GetBoon(target, boonName, GetPhaseStart(phaseName), endTime);
             }
         }
+        public List<(double, double)> GetBoonTimedEvents(string target, string boonName, string phaseName = "")
+        {
+            boonName = "Alacrity";
+            AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
+            if (Target == null)
+            {
+                Target = _log.FightData.GetMainTargets(_log).FirstOrDefault(x => x.Equals("target"));
+                if (Target == null)
+                {
+                    return new();
+                }
+            }
+
+            var boonStackingType = GetBoonStackType(boonName);
+            if (boonStackingType == BuffStackTyping.Unknown)
+            {
+                return new();
+            }
+
+            var startTime = GetPhaseStart(phaseName);
+            var endTime = GetPhaseEnd(phaseName);
+            var prevTime = startTime;
+            var prevDuration = GetBoonDuration(target, boonName, startTime);
+            var boonEvents = new List<(double, double)>
+            {
+                { (startTime, prevDuration) }
+            };
+            foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
+            {
+                var _buffEvents = _log.CombatData.GetBuffDataByIDByDst(Boon.ID, Target.AgentItem);
+                foreach (var buff in _buffEvents)
+                {
+                    if(buff.Time < startTime && startTime != 0)
+                    {
+                        continue;
+                    }
+                    if(buff.Time > endTime)
+                    {
+                        break;
+                    }
+                    var buffApplyEvent = buff as BuffApplyEvent;
+                    var buffExtensionEvent = buff as BuffExtensionEvent;
+                    var buffRemovedEvent = buff as BuffRemoveAllEvent;
+                    if (buffApplyEvent == null && buffExtensionEvent == null && buffRemovedEvent == null)
+                    {
+                        continue;
+                    }
+                    var leftoverDuration = prevDuration - (buff.Time - prevTime);
+                    if(leftoverDuration < 0)
+                    {
+                        boonEvents.Add((buff.Time + leftoverDuration, 0));
+                        boonEvents.Add((buff.Time, 0));
+                        prevDuration = 0;
+                    }
+                    else
+                    {
+                        boonEvents.Add((buff.Time-1, leftoverDuration));
+                        prevDuration = leftoverDuration;
+                    }
+                    prevDuration -= buffRemovedEvent?.RemovedDuration ?? 0L;
+                    prevDuration += buffApplyEvent?.AppliedDuration ?? 0L;
+                    prevDuration += buffExtensionEvent?.ExtendedDuration ?? 0L;
+                    if(prevDuration < 0)
+                    {
+                        prevDuration = 0;
+                    }
+                    boonEvents.Add((buff.Time, prevDuration));
+                    prevTime = buff.Time;
+                }
+            }
+            return boonEvents;
+        }
 
         private double GetBoon(string target, string boonName, long start, long end, long time = 0, bool duration = false)
         {
@@ -422,88 +494,96 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 }
                 var killedPhase = Phases.OrderByDescending(x => x.End).FirstOrDefault(x => x.End < phase.Start);
                 var invis = MassInvis.FirstOrDefault(x => phase.Start - 10000 < x.EndTime);
-               
 
-
-                long stealthTime = -1;
                 List<StealthResult> stealthResults = new List<StealthResult>();
-                foreach (var player in _log.PlayerList)
+                long stealthTime = killedPhase.End;
+                if (invis == null)
                 {
-                    var stealthEvent = _log.CombatData.GetBuffDataByIDByDst(10269, player.AgentItem).Where(x => x is BuffApplyEvent && x.Time >= invis.Time).FirstOrDefault();
-                    if(stealthEvent == null)
+                    foreach (var player in _log.PlayerList)
                     {
                         stealthResults.Add(new StealthResult(player.Account, "No MI"));
-                        continue;
                     }
-                    stealthTime = stealthEvent.Time;
-                    var _buffEvents = _log.CombatData.GetBuffDataByIDByDst(890, player.AgentItem);
-                    var revealed = _buffEvents.FirstOrDefault(x => x.Time >= stealthEvent.Time);
-                    var dmgData = _log.CombatData.GetDamageData(player.AgentItem).Where(x => x.Time <= stealthEvent.Time + 6000);
-
-                    bool isKneeling = false;
-                    bool isTriggered = false;
-
-                    long endTime = stealthTime+6000;
-                    if(revealed != null)
+                }
+                else
+                {
+                    foreach (var player in _log.PlayerList)
                     {
-                        endTime = revealed.Time;
-                    }
-
-                    var naturalConvergences = _log.CombatData.GetAnimatedCastData(31503);
-                    var naturalConvergencesByPlayer = naturalConvergences.Where(x => x.Caster.Name.Equals(player.AgentItem.Name));
-                    var lingeringNaturalConvergence = naturalConvergencesByPlayer.Where(x => x.EndTime > stealthTime - 8000 && x.Time < endTime).FirstOrDefault();
-                    if (lingeringNaturalConvergence != null)
-                    {
-                        stealthResults.Add(new StealthResult(player.Account, "Lingering Natural Convergence!", stealthTime, stealthTime));
-                    }
-
-                    for (long i = stealthTime; i < endTime; i += 100)
-                    {
-                        var Buffs = player.GetBuffs(BuffEnum.Self, _log, i, i+100);
-                        var kneel = Buffs.TryGetValue(42869, out var kneelValue);
-                        var trigger = Buffs.TryGetValue(62823, out var triggerValue);
-                        if(!isKneeling && kneelValue?.Uptime > 0)
+                        var stealthEvent = _log.CombatData.GetBuffDataByIDByDst(10269, player.AgentItem).Where(x => x is BuffApplyEvent && x.Time >= invis.Time).FirstOrDefault();
+                        if (stealthEvent == null)
                         {
-                            stealthResults.Add(new StealthResult(player.Account, "Kneeling!", i,stealthTime));
-                            isKneeling = true;
+                            stealthResults.Add(new StealthResult(player.Account, "No MI"));
+                            continue;
                         }
-                        if(isKneeling && kneelValue?.Uptime == 0)
-                        {
-                            stealthResults.Add(new StealthResult(player.Account, "Stopped Kneeling", i, stealthTime));
-                            isKneeling = false;
-                        }
-                        if(!isTriggered && triggerValue?.Uptime > 0)
-                        {
-                            stealthResults.Add(new StealthResult(player.Account, "Dragon Trigger!", i, stealthTime));
-                            isTriggered = true;
-                        }
-                        if(isTriggered && triggerValue?.Uptime == 0)
-                        {
-                            stealthResults.Add(new StealthResult(player.Account, "Stopped Dragon Trigger", i, stealthTime));
-                            isTriggered = false;
-                        }
-                    }
+                        stealthTime = stealthEvent.Time;
+                        var _buffEvents = _log.CombatData.GetBuffDataByIDByDst(890, player.AgentItem);
+                        var revealed = _buffEvents.FirstOrDefault(x => x.Time >= stealthEvent.Time);
+                        var dmgData = _log.CombatData.GetDamageData(player.AgentItem).Where(x => x.Time <= stealthEvent.Time + 6000);
 
-                    if (revealed == null)
-                    {
-                        stealthResults.Add(new StealthResult(player.Account, "Stealth timeout", invis.EndTime + 6000, invis.EndTime));
-                        continue;
-                    }
+                        bool isKneeling = false;
+                        bool isTriggered = false;
 
-                    var directEventData = dmgData.Where(x => x is DirectHealthDamageEvent);
-                    var descending = directEventData.OrderByDescending(x => x.Time);
-                    var skill = descending.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
-                    if (skill == null)
-                    {
-                        stealthResults.Add(new StealthResult(player.Account, "Unknown"));
-                    }
-                    else
-                    {
-                        stealthResults.Add(new StealthResult(player.Account, skill.Skill.Name, skill.Time, invis.EndTime));
+                        long endTime = stealthTime + 6000;
+                        if (revealed != null)
+                        {
+                            endTime = revealed.Time;
+                        }
+
+                        var naturalConvergences = _log.CombatData.GetAnimatedCastData(31503);
+                        var naturalConvergencesByPlayer = naturalConvergences.Where(x => x.Caster.Name.Equals(player.AgentItem.Name));
+                        var lingeringNaturalConvergence = naturalConvergencesByPlayer.Where(x => x.EndTime > stealthTime - 8000 && x.Time < endTime).FirstOrDefault();
+                        if (lingeringNaturalConvergence != null)
+                        {
+                            stealthResults.Add(new StealthResult(player.Account, "Lingering Natural Convergence!", stealthTime, stealthTime));
+                        }
+
+                        for (long i = stealthTime; i < endTime; i += 100)
+                        {
+                            var Buffs = player.GetBuffs(BuffEnum.Self, _log, i, i + 100);
+                            var kneel = Buffs.TryGetValue(42869, out var kneelValue);
+                            var trigger = Buffs.TryGetValue(62823, out var triggerValue);
+                            if (!isKneeling && kneelValue?.Uptime > 0)
+                            {
+                                stealthResults.Add(new StealthResult(player.Account, "Kneeling!", i, stealthTime));
+                                isKneeling = true;
+                            }
+                            if (isKneeling && kneelValue?.Uptime == 0)
+                            {
+                                stealthResults.Add(new StealthResult(player.Account, "Stopped Kneeling", i, stealthTime));
+                                isKneeling = false;
+                            }
+                            if (!isTriggered && triggerValue?.Uptime > 0)
+                            {
+                                stealthResults.Add(new StealthResult(player.Account, "Dragon Trigger!", i, stealthTime));
+                                isTriggered = true;
+                            }
+                            if (isTriggered && triggerValue?.Uptime == 0)
+                            {
+                                stealthResults.Add(new StealthResult(player.Account, "Stopped Dragon Trigger", i, stealthTime));
+                                isTriggered = false;
+                            }
+                        }
+
+                        if (revealed == null)
+                        {
+                            stealthResults.Add(new StealthResult(player.Account, "Stealth timeout", invis.EndTime + 6000, invis.EndTime));
+                            continue;
+                        }
+
+                        var directEventData = dmgData.Where(x => x is DirectHealthDamageEvent);
+                        var descending = directEventData.OrderByDescending(x => x.Time);
+                        var skill = descending.FirstOrDefault(x => !x.Skill.Name.Equals("Nourishment"));
+                        if (skill == null)
+                        {
+                            stealthResults.Add(new StealthResult(player.Account, "Unknown"));
+                        }
+                        else
+                        {
+                            stealthResults.Add(new StealthResult(player.Account, skill.Skill.Name, skill.Time, invis.EndTime));
+                        }
                     }
                 }
                 stealthResults = stealthResults.OrderBy(x => x.Time).ToList();
-                stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline(stealthPhase.Value,invis.Time, stealthTime, killedPhase.End, invis.Caster.HasBuff(_log, 1187, invis.Time, invis.EndTime - invis.Time), stealthResults));
+                stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline(stealthPhase.Value,invis?.Time ?? killedPhase.End, stealthTime, killedPhase.End, invis?.Caster.HasBuff(_log, 1187, invis.Time, invis.EndTime - invis.Time) ?? true, stealthResults));
             }
             return new StealthTimelineCollection(stealthResultsPerPhase);
         }
@@ -737,6 +817,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         public int[] GetGroups()
         {
             return _log.PlayerList.Select(x => x.Group).Distinct().ToArray();
+        }
+        public bool IsPlayerInGroup(string accountName, int group)
+        {
+            return _log.PlayerList.Any(x => x.Account == accountName && x.Group == group);
         }
 
         public IEnumerable<string> GetBoonNames()
