@@ -10,6 +10,13 @@
 
 <div style="overflow-x: auto;">
     <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudButton>@_showType.ToString()</MudButton>
+        <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+            <MudMenuItem OnClick="() => SetShowType(ShowType.Graph)">Graph</MudMenuItem>
+            <MudMenuItem OnClick="() => SetShowType(ShowType.Table)">Table</MudMenuItem>
+        </MudMenu>
+    </MudButtonGroup>
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
         <MudButton>@_selectedPhase</MudButton>
         <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
             @foreach (var log in LogParser.BulkLog.GetStealthPhases())
@@ -18,7 +25,33 @@
             }
         </MudMenu>
     </MudButtonGroup>
-
+    
+    @{
+        if (!_selectedPhase.Equals("Choose a phase") && _showType == ShowType.Table)
+        {
+            <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+              Hover="true"
+              Breakpoint="Breakpoint.Sm"
+              LoadingProgressColor="Color.Info"
+              Class="flex-table">
+                <HeaderContent>
+                    <MudTh>Player</MudTh>
+                    @foreach (var log in LogParser.BulkLog.Logs)
+                    {
+                        <MudTh>@log.GetFileName()</MudTh>
+                    }
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context</MudTd>
+                    @foreach (var log in LogParser.BulkLog.Logs)
+                    {
+                        <MudTd>@log.GetStealthResult(@context, Bulk_Log_Comparison_Tool.Enums.StealthAlgoritmns.OutlierFiltering).FirstOrDefault(x => x.Item1.Equals(_selectedPhase)).Item2</MudTd>
+                    }
+                </RowTemplate>
+            </MudTable>            
+        }
+        else if (!_selectedPhase.Equals("Choose a phase"))
+        {
     <MudTable Items="@LogParser.BulkLog.Logs"
               Hover="true"
               Breakpoint="Breakpoint.Sm"
@@ -96,7 +129,7 @@
                                         @foreach (var result in timedResults.Where(x => !x.Reason.Equals("Stealth timeout")).Select(result => $"{result.Player} : {result.Reason} @ {(result.Time/1000f).ToString("0.##")}"))
                                         {
                                             var style = $"{fontweight};{currentStyle}";
-                                            <MudText Style=@style Typo="Typo.body1">@result</MudText>
+                                            <MudText Style=@style Typo="Typo.h6">@result</MudText>
                                             if (bold)
                                             {
                                                 bold = false;
@@ -136,19 +169,30 @@
             </MudTd>
         </RowTemplate>
     </MudTable>
+    }
+    }
 </div>
-
-<MudSwitch @bind-Value="_hidePosition" Color="Color.Primary">Hide <b>position</b> when Breakpoint=Xs</MudSwitch>
-<MudSwitch @bind-Value="_loading" Color="Color.Primary">Show Loading</MudSwitch>
 
 @code {
     private bool _hidePosition;
     private bool _loading;
     private string _selectedPhase = "Choose a phase";
     private List<string> _stealthResults = new List<string>();
+    private ShowType _showType = ShowType.Graph;
 
     private void SetButtonText(string text)
     {
         _selectedPhase = text;
+    }
+
+    private void SetShowType(ShowType type)
+    {
+        _showType = type;
+    }
+
+    private enum ShowType
+    {
+        Graph,
+        Table
     }
 }

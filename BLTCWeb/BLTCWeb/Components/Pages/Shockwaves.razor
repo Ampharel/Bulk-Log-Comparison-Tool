@@ -10,6 +10,49 @@
 @inject ServerParser LogParser
 <LogDrawer OnUpload="StateHasChanged" />
 <div style="overflow-x: auto;">
+    <MudGrid>
+        <MudItem>
+        <MudTooltip Text="Player is dead when shockwave passes">
+            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"death").BytesFromImage()))" />
+        </MudTooltip>
+        </MudItem>
+        <MudItem>
+        <MudTooltip Text="Player got hit by shockwave, but was protected by stability">
+            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"shield").BytesFromImage()))" />
+        </MudTooltip>
+        </MudItem>
+        <MudItem>
+        <MudTooltip Text="Player did not get hit by the shockwave, and was protected by stability">
+            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"jumped").BytesFromImage()))" />
+        </MudTooltip>
+        </MudItem>
+        <MudItem>
+        <MudTooltip Text="Player is down when the shockwave hits them / gets downed by the shockwave">
+            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"down").BytesFromImage()))" />
+        </MudTooltip>
+        </MudItem>
+        <MudItem>
+        <MudTooltip Text="Player did not get hit by the shockwave, but also did not have stability">
+            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"warning").BytesFromImage()))" />
+        </MudTooltip>
+        </MudItem>
+        <MudItem>
+        <MudFlexBreak/>
+        <MudTooltip Text="This colour represents mordremoth shockwaves">
+            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"jumped").BytesFromImage()))" />
+        </MudTooltip>
+        </MudItem>
+        <MudItem>
+        <MudTooltip Text="This colour represents soo-won shockwaves">
+            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(1,"jumped").BytesFromImage()))" />
+        </MudTooltip>
+        </MudItem>
+        <MudItem>
+        <MudTooltip Text="This colour represents obliterator shockwaves">
+            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(2,"jumped").BytesFromImage()))" />
+        </MudTooltip>
+        </MudItem>
+    </MudGrid>
     <MudTable Items="@LogParser.BulkLog.GetPlayers()"
               Hover="true"
               Breakpoint="Breakpoint.Sm"
@@ -19,17 +62,19 @@
             <MudTh>Player</MudTh>
             @foreach (var log in LogParser.BulkLog.Logs)
             {
+                if(log.GetShockwaves(0).Count() > 0){
                 <MudTh>@log.GetFileName()</MudTh>
+                }
             }
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context</MudTd>
             @foreach(var log in LogParser.BulkLog.Logs){
+                if(log.GetShockwaves(0).Count() > 0){
             <MudTd>
-                    @foreach (var ImageData in GetImageForPlayer(log, @context)){
-                        <MudImage src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(ImageData))" />
-                    }
+                <MudImage src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(GetImageForPlayer(log, @context)))" />
             </MudTd>
+                }
             }
         </RowTemplate>
     </MudTable>
@@ -38,7 +83,7 @@
 @code {
 
     private WebImageGenerator imageGenerator = new WebImageGenerator();
-    private byte[][] GetImageForPlayer(IParsedEvtcLog Log, string Player)
+    private byte[] GetImageForPlayer(IParsedEvtcLog Log, string Player)
     {
         var shockwaves = GetShockwaves(Log, 0);
         shockwaves = shockwaves.Concat(GetShockwaves(Log, 1)).ToList();

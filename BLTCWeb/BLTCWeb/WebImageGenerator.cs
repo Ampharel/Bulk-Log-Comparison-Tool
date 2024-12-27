@@ -4,6 +4,7 @@ using Bulk_Log_Comparison_Tool.Util;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 namespace BLCTWeb
@@ -11,9 +12,19 @@ namespace BLCTWeb
     internal class WebImageGenerator
     {
 
-        public byte[][] GetImageBytes(IParsedEvtcLog Log, string Player, List<(long, int)> shockwaves)
+        public byte[] GetImageBytes(IParsedEvtcLog Log, string Player, List<(long, int)> shockwaves)
         {
-            return GetImage(Log, Player, null, shockwaves).Select(x => x.BytesFromImage()).ToArray();
+            var images = GetImage(Log, Player, null, shockwaves);
+            using (Image<Rgba32> outputImage = new Image<Rgba32>(images.Sum(x => x.Width), images.First().Height))
+            {
+                var offset = 0;
+                foreach(var img in images)
+                {
+                    outputImage.Mutate(o => o.DrawImage(img, new Point(offset, 0), 1f));
+                    offset += img.Width;
+                }
+                return outputImage.BytesFromImage();
+            }
         }
 
 
@@ -80,7 +91,7 @@ namespace BLCTWeb
         private const string fontName = "Segoe UI Symbol";
 
 
-        private Image GetImage(int shockwaveType, string name)
+        public Image GetImage(int shockwaveType, string name)
         {
             Image img = GetIcon(name);
             img.Mutate(x => x.Filter(GetColorMatrix(shockwaveType)));

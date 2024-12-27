@@ -32,18 +32,21 @@
             </MudMenu>
         </MudButtonGroup>
             <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox>
-            <MudTable Items="@_showPlayersDict" MultiSelection=true>
-               <HeaderContent Selectable="true">
-                    <MudTh>Player</MudTh>
-                </HeaderContent>
-            </MudTable>
+            <MudGrid>
+            @foreach(var player in LogParser.BulkLog.GetPlayers())
+            {
+                <MudItem>
+                <MudCheckBox T="bool" Value="@_showPlayersDict[player]" ValueChanged="(isChecked) => UpdateShowPlayer(player, isChecked)" Color="Color.Primary">@player</MudCheckBox>
+                </MudItem>
+            }
+            </MudGrid>
         <MudCheckBox Value="@_showGroups" ValueChanged="ShowGroupsChanged" Color="Color.Primary">Groups</MudCheckBox>            
         <MudGrid>
             @foreach (var group in _showGroupsDict)
             {
                 <MudItem>
-                    <MudCheckBox Value="@group.Value" ValueChanged="ShowGroupsChanged" Color="Color.Primary">@group.Key</MudCheckBox>
-                    </MudItem>
+                    <MudCheckBox T="bool" Value="@group.Value" ValueChanged="(isChecked) => UpdateShowGroup(group.Key, isChecked)" Color="Color.Primary">@group.Key</MudCheckBox>
+                </MudItem>
             }
         </MudGrid>
             <MudRadioGroup Value="@_selectedBoon" ValueChanged="SelectedBoonChanged">
@@ -160,7 +163,7 @@
         }
         foreach(var group in LogParser.BulkLog.GetGroups()){
             if (!_showGroupsDict.ContainsKey(group.ToString()))
-                _showGroupsDict.Add(group.ToString(), true);
+                _showGroupsDict.Add(group.ToString(), false);
         }
         Series = new();
         _buffLostTimings = new();
@@ -242,6 +245,9 @@
                         }
                         boonEvents.AddRange(Log.GetBoonTimedEvents(Player, _selectedBoon, _selectedPhase));
                     }
+                    if(boonEvents.Count == 0){
+                        continue;
+                    }
                     boonEvents = boonEvents.DistinctBy(x => x.Item1).OrderBy(x => x.Item1).ToList();
 
                     var groupEvents = new List<(double,double)>();
@@ -306,20 +312,18 @@
         SelectedBoonChanged = EventCallback.Factory.Create<string>(this, OnBoonSelectionChanged);
         ShowPlayersChanged = EventCallback.Factory.Create<bool>(this, UpdateShowPlayers);
         ShowGroupsChanged = EventCallback.Factory.Create<bool>(this, UpdateShowGroups);
-        ShowPlayerChanged = EventCallback.Factory.Create<string>(this, UpdateShowPlayer);
-        ShowGroupChanged = EventCallback.Factory.Create<string>(this, UpdateShowGroup);
         Console.WriteLine("Boons Page Initialized");
         LogParser.NewDataEvent += OnNewData;
 
     }
 
-    private void UpdateShowPlayer(string player){
-        _showPlayersDict[player] = !_showPlayersDict[player];
+    private void UpdateShowPlayer(string player, bool isChecked){
+        _showPlayersDict[player] = isChecked;
         OnNewData();
     }
 
-    private void UpdateShowGroup(string group){
-        _showGroupsDict[group] = !_showGroupsDict[group];
+    private void UpdateShowGroup(string group, bool isChecked){
+        _showGroupsDict[group] = isChecked;
         OnNewData();
     }
 

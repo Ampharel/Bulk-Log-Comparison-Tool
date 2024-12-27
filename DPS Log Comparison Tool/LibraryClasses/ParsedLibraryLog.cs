@@ -185,7 +185,6 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         }
         public List<(double, double)> GetBoonTimedEvents(string target, string boonName, string phaseName = "")
         {
-            boonName = "Alacrity";
             AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
             if (Target == null)
             {
