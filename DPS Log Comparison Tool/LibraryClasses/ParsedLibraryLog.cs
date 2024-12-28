@@ -188,7 +188,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
             if (Target == null)
             {
-                Target = _log.FightData.GetMainTargets(_log).FirstOrDefault(x => x.Equals("target"));
+                Target = _log.FightData.GetMainTargets(_log).FirstOrDefault(x => x.Equals(target));
                 if (Target == null)
                 {
                     return new();
@@ -196,29 +196,119 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
 
             var boonStackingType = GetBoonStackType(boonName);
-            if (boonStackingType == BuffStackTyping.Unknown)
+            switch(boonStackingType)
             {
-                return new();
+                case BuffStackTyping.Stacking:
+                case BuffStackTyping.StackingConditionalLoss:
+                case BuffStackTyping.StackingTargetUniqueSrc:
+                    return GetBoonStackingEvents([target], boonName, phaseName);
+                case BuffStackTyping.Queue:
+                case BuffStackTyping.Regeneration:
+                    return GetBoonDurationEvents([target], boonName, phaseName);
+                default:
+                    return new();
             }
+        }
 
+        private List<(double, double)> GetBoonStackingEvents(string[] targets, string boonName, string phaseName)
+        {
             var startTime = GetPhaseStart(phaseName);
             var endTime = GetPhaseEnd(phaseName);
             var prevTime = startTime;
-            var prevDuration = GetBoonDuration(target, boonName, startTime);
+
+            var boonStart = 0d;
+            foreach (var target in targets)
+            {
+                boonStart += GetBoon(target, boonName, startTime, startTime + 1);
+            }
+            boonStart /= targets.Length;
             var boonEvents = new List<(double, double)>
             {
-                { (startTime, prevDuration) }
+                { (startTime, boonStart) }
             };
             foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
             {
-                var _buffEvents = _log.CombatData.GetBuffDataByIDByDst(Boon.ID, Target.AgentItem);
-                foreach (var buff in _buffEvents)
+                var _buffEvents = new List<AbstractBuffEvent>();
+                foreach (var target in targets)
+                {
+                    _buffEvents.AddRange(GetBuffEventsForTarget(Boon.ID, target));
+                }
+                foreach(var buff in _buffEvents)
                 {
                     if(buff.Time < startTime && startTime != 0)
                     {
                         continue;
                     }
                     if(buff.Time > endTime)
+                    {
+                        break;
+                    }
+                    if (boonEvents.Any(x => x.Item1 == buff.Time))
+                    {
+                        continue;
+                    }
+                    var buffApplyEvent = buff as BuffApplyEvent;
+                    var buffExtensionEvent = buff as BuffExtensionEvent;
+                    var buffRemovedEvent = buff as BuffRemoveAllEvent;
+                    var boonAverage = 0d;
+                    foreach (var target in targets)
+                    {
+                        boonAverage += GetBoon(target, boonName, buff.Time, buff.Time + 1);
+                    }
+                    boonAverage /= targets.Length;
+                    boonEvents.Add((buff.Time, boonAverage));
+                }
+            }
+
+            var boonEnd = 0d;
+            foreach (var target in targets)
+            {
+                boonEnd += GetBoon(target, boonName, startTime, startTime + 1);
+            }
+            boonEnd /= targets.Length;
+
+            boonEvents.Add((endTime, boonEnd));
+            return boonEvents;
+        }
+
+        private List<AbstractBuffEvent> GetBuffEventsForTarget(long ID, string target)
+        {
+            AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
+            if (Target == null)
+            {
+                Target = _log.FightData.GetMainTargets(_log).FirstOrDefault(x => x.Equals(target));
+                if (Target == null)
+                {
+                    return new();
+                }
+            }
+            return _log.CombatData.GetBuffDataByIDByDst(ID, Target.AgentItem).ToList();
+        }
+
+        private List<(double, double)> GetBoonDurationEvents(string[] targets, string boonName, string phaseName)
+        {
+            var startTime = GetPhaseStart(phaseName);
+            var endTime = GetPhaseEnd(phaseName);
+            var prevTime = startTime;
+            var prevDuration = GetAverageBoonDuration(targets, boonName, startTime);
+            var boonEvents = new List<(double, double)>
+            {
+                { (startTime, prevDuration) }
+            };
+            foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
+            {
+                var _buffEvents = new List<AbstractBuffEvent>();
+                foreach(var target in targets)
+                {
+                    _buffEvents.AddRange(GetBuffEventsForTarget(Boon.ID, target));
+                }
+                foreach (var buff in _buffEvents)
+                {
+                    if (buff.Time < startTime && startTime != 0)
+                    {
+                        continue;
+                    }
+                    if (buff.Time > endTime)
                     {
                         break;
                     }
@@ -230,7 +320,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                         continue;
                     }
                     var leftoverDuration = prevDuration - (buff.Time - prevTime);
-                    if(leftoverDuration < 0)
+                    if (leftoverDuration < 0)
                     {
                         boonEvents.Add((buff.Time + leftoverDuration, 0));
                         boonEvents.Add((buff.Time, 0));
@@ -238,20 +328,21 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     }
                     else
                     {
-                        boonEvents.Add((buff.Time-1, leftoverDuration));
+                        boonEvents.Add((buff.Time - 1, leftoverDuration/1000f));
                         prevDuration = leftoverDuration;
                     }
                     prevDuration -= buffRemovedEvent?.RemovedDuration ?? 0L;
                     prevDuration += buffApplyEvent?.AppliedDuration ?? 0L;
                     prevDuration += buffExtensionEvent?.ExtendedDuration ?? 0L;
-                    if(prevDuration < 0)
+                    if (prevDuration < 0)
                     {
                         prevDuration = 0;
                     }
-                    boonEvents.Add((buff.Time, prevDuration));
+                    boonEvents.Add((buff.Time, prevDuration / 1000f));
                     prevTime = buff.Time;
                 }
             }
+
             return boonEvents;
         }
 
@@ -708,6 +799,16 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 return 0;
             return GetBoonDuration(target, boonName, phaseData.Item2 + time);
         }
+        private double GetAverageBoonDuration(string[] targets, string boonName, long time)
+        {
+            var totalDuration = 0d;
+            foreach (var target in targets)
+            {
+                totalDuration += GetBoonDuration(target, boonName, time);
+            }
+            return totalDuration / targets.Length;
+        }
+
         private double GetBoonDuration(string target, string boonName, long time)
         {
             AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);

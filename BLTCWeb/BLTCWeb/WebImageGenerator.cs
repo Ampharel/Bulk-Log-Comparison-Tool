@@ -15,6 +15,10 @@ namespace BLCTWeb
         public byte[] GetImageBytes(IParsedEvtcLog Log, string Player, List<(long, int)> shockwaves)
         {
             var images = GetImage(Log, Player, null, shockwaves);
+            if(images.Count == 0)
+            {
+                return [];
+            }
             using (Image<Rgba32> outputImage = new Image<Rgba32>(images.Sum(x => x.Width), images.First().Height))
             {
                 var offset = 0;
@@ -98,7 +102,7 @@ namespace BLCTWeb
             return img;
         }
 
-        private SettingsFile _colorFile = new SettingsFile("ColorSettings", new (string, string)[] { ("Mordemoth", "#274e13"), ("Soo-Won", "#0b5394"), ("Obliterator", "#674ea7")});
+        private SettingsFile _colorFile = new SettingsFile("ColorSettings.txt", new (string, string)[] { ("Mordemoth", "#2E8B57"), ("Soo-Won", "#89CFF0"), ("Obliterator", "#A45EE9")});
         
         private ColorMatrix GetColorMatrix(int shockwaveType)
         {

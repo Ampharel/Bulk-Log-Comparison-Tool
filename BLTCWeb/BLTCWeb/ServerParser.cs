@@ -1,6 +1,7 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
 using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool.LibraryClasses;
+using System.Diagnostics;
 
 namespace BLCTWeb
 {
@@ -12,7 +13,7 @@ namespace BLCTWeb
         public BulkLog BulkLog => _bulklog;
         private List<(string, long, long)> _customPhases = new();
 
-        public event Action NewDataEvent; 
+        public event Action NewDataEvent;
 
         public void AddCustomPhase(string name, long start, long duration)
         {
@@ -56,6 +57,22 @@ namespace BLCTWeb
         {
             _bulklog = new();
             NewDataEvent?.Invoke();
+        }
+
+        private Stopwatch _stopwatch = new();
+
+        public void StartStopwatch()
+        {
+            _stopwatch.Start();
+        }
+
+        public long GetStopwatchTime()
+        {
+            return _stopwatch.ElapsedMilliseconds;
+        }
+        public void StopStopwatch()
+        {
+            _stopwatch.Stop();
         }
     }
 }

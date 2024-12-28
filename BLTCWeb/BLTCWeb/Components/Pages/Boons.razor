@@ -15,7 +15,14 @@
 
     <div>
         <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
-            <MudButton>@_selectedPhase</MudButton>
+            @if(_selectedPhase== "")
+            {
+                <MudButton>Phase</MudButton>
+            }
+            else
+            {
+                <MudButton>@_selectedPhase</MudButton>
+            }
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
                     @foreach (var log in LogParser.BulkLog.GetPhases())
                 {
@@ -27,16 +34,16 @@
             <MudButton>@_chartDisplayMode.ToString()</MudButton>
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
                     <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerLog)">Graph Per Log</MudMenuItem>
-                    <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerPlayer)">Graph Per Player</MudMenuItem>
+                    <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerPlayer )">Graph Per Player</MudMenuItem>
                     <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.LostTimings)">Boon lost timings</MudMenuItem>
             </MudMenu>
         </MudButtonGroup>
             <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox>
             <MudGrid>
-            @foreach(var player in LogParser.BulkLog.GetPlayers())
+                @foreach (var player in _showPlayersDict)
             {
                 <MudItem>
-                <MudCheckBox T="bool" Value="@_showPlayersDict[player]" ValueChanged="(isChecked) => UpdateShowPlayer(player, isChecked)" Color="Color.Primary">@player</MudCheckBox>
+                <MudCheckBox T="bool" Value="@player.Value" ValueChanged="(isChecked) => UpdateShowPlayer(player.Key, isChecked)" Color="Color.Primary">@player.Key</MudCheckBox>
                 </MudItem>
             }
             </MudGrid>
@@ -118,7 +125,11 @@
 
                 @foreach(var log in @LogParser.BulkLog.Logs)
                 {
-                    <MudTd>@_buffLostTimings[log.GetFileName()][context]</MudTd>
+                    if (_buffLostTimings.ContainsKey(log.GetFileName()) && _buffLostTimings[log.GetFileName()].ContainsKey(context))
+                    {
+                        <MudTd>@_buffLostTimings[log.GetFileName()][context]
+                        </MudTd>
+                    }
                 }
              </RowTemplate>
          </MudTable>
@@ -143,7 +154,7 @@
     private string _selectedBoon = "Might";
     private string _selectedPhase = "";
     private bool _showPlayers = true;
-    private bool _showGroups = true;
+    private bool _showGroups = false;
     public EventCallback<string> SelectedBoonChanged;
     public EventCallback<bool> ShowPlayersChanged;
     public EventCallback<string> ShowPlayerChanged;
@@ -157,6 +168,8 @@
 
     private void OnNewData()
     {
+        Console.WriteLine("New data stopwatch start");
+        LogParser.StartStopwatch();
         foreach(var player in LogParser.BulkLog.GetPlayers()){
             if (!_showPlayersDict.ContainsKey(player))
                 _showPlayersDict.Add(player, true);
@@ -168,8 +181,10 @@
         Series = new();
         _buffLostTimings = new();
 
+        Console.WriteLine($"Pre loop stopwatch {LogParser.GetStopwatchTime()}");
         foreach (var Log in LogParser.BulkLog.Logs)
         {
+            Console.WriteLine($"Starting log {Log.GetFileName()}");
             _buffLostTimings.Add(Log.GetFileName(), new Dictionary<string, string>());
             if (_chartDisplayMode == ChartDisplayMode.GraphPerLog){
                 Series.Add(Log.GetFileName(), new List<TimeSeriesChartSeries>());
@@ -178,6 +193,7 @@
             var duration = (boonStackType == BuffStackTyping.Queue || boonStackType == BuffStackTyping.Regeneration) ? true : false;
             if (_showPlayers)
             {
+                Console.WriteLine($"Showing players {LogParser.GetStopwatchTime()}");
                 foreach (var Player in Log.GetPlayers())
                 {
                     if (_showPlayersDict.ContainsKey(Player) && !_showPlayersDict[Player])
@@ -197,7 +213,12 @@
                     var boonEvents = Log.GetBoonTimedEvents(Player, _selectedBoon, _selectedPhase);
                     foreach (var boonEvent in boonEvents)
                     {
-                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)boonEvent.Item1 * 10000L), boonEvent.Item2/1000));
+                        Console.WriteLine($"Time is {boonEvent.Item1 * 10000L}");
+                        if(boonEvent.Item1 < 0)
+                        {
+                            continue;
+                        }
+                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)boonEvent.Item1 * 10000L), boonEvent.Item2));
                         if(boonEvent.Item2 == 0){
                             _buffLostTimings[Log.GetFileName()][Player] += ("" + (boonEvent.Item1).ToString("0.##") + " ");
                         }
@@ -228,9 +249,11 @@
                         Series[Player].Add(chartSeries);
                     }
                 }
+                Console.WriteLine($"Player loop stopwatch {LogParser.GetStopwatchTime()}");
             }
             if (_showGroups)
             {
+                Console.WriteLine($"Showing groups {LogParser.GetStopwatchTime()}");
                 foreach (var Group in Log.GetGroups())
                 {
                     if (!_showGroupsDict.ContainsKey(Group.ToString()) || !_showGroupsDict[Group.ToString()])
@@ -292,6 +315,7 @@
                         Series[Group.ToString()].Add(chartSeries);
                     }
                 }
+                Console.WriteLine($"Group loop stopwatch {LogParser.GetStopwatchTime()}");
             }
         }
         Options.YAxisTicks = 5;

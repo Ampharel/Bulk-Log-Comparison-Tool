@@ -13,27 +13,27 @@
     <MudGrid>
         <MudItem>
         <MudTooltip Text="Player is dead when shockwave passes">
-            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"death").BytesFromImage()))" />
+            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(-1,"death").BytesFromImage()))" />
         </MudTooltip>
         </MudItem>
         <MudItem>
         <MudTooltip Text="Player got hit by shockwave, but was protected by stability">
-            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"shield").BytesFromImage()))" />
+                <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(-1,"shield").BytesFromImage()))" />
         </MudTooltip>
         </MudItem>
         <MudItem>
         <MudTooltip Text="Player did not get hit by the shockwave, and was protected by stability">
-            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"jumped").BytesFromImage()))" />
+                <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(-1,"jumped").BytesFromImage()))" />
         </MudTooltip>
         </MudItem>
         <MudItem>
         <MudTooltip Text="Player is down when the shockwave hits them / gets downed by the shockwave">
-            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"down").BytesFromImage()))" />
+                <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(-1,"down").BytesFromImage()))" />
         </MudTooltip>
         </MudItem>
         <MudItem>
         <MudTooltip Text="Player did not get hit by the shockwave, but also did not have stability">
-            <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(0,"warning").BytesFromImage()))" />
+                <MudImage Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(imageGenerator.GetImage(-1,"warning").BytesFromImage()))" />
         </MudTooltip>
         </MudItem>
         <MudItem>
@@ -71,9 +71,17 @@
             <MudTd>@context</MudTd>
             @foreach(var log in LogParser.BulkLog.Logs){
                 if(log.GetShockwaves(0).Count() > 0){
-            <MudTd>
+                    var data = GetImageForPlayer(log, @context);
+                    if(data.Length > 0){
+                    <MudTd>
                 <MudImage src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(GetImageForPlayer(log, @context)))" />
-            </MudTd>
+                        </MudTd>
+                    }
+                    else
+                    {
+                    <MudTd/>
+                        
+                    }
                 }
             }
         </RowTemplate>
