@@ -250,6 +250,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     var buffApplyEvent = buff as BuffApplyEvent;
                     var buffExtensionEvent = buff as BuffExtensionEvent;
                     var buffRemovedEvent = buff as BuffRemoveAllEvent;
+                    boonEvents.Add((buff.Time, boonStart));
                     var boonAverage = 0d;
                     foreach (var target in targets)
                     {
@@ -257,6 +258,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     }
                     boonAverage /= targets.Length;
                     boonEvents.Add((buff.Time, boonAverage));
+                    boonStart = boonAverage;
                 }
             }
 
@@ -295,6 +297,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             {
                 { (startTime, prevDuration) }
             };
+            prevDuration *= 1000;
             foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
             {
                 var _buffEvents = new List<AbstractBuffEvent>();
@@ -607,7 +610,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                         stealthTime = stealthEvent.Time;
                         var _buffEvents = _log.CombatData.GetBuffDataByIDByDst(890, player.AgentItem);
                         var revealed = _buffEvents.FirstOrDefault(x => x.Time >= stealthEvent.Time);
-                        var dmgData = _log.CombatData.GetDamageData(player.AgentItem).Where(x => x.Time <= stealthEvent.Time + 6000);
+                        var dmgData = _log.CombatData.GetDamageData(player.AgentItem).Where(x => x.Time <= revealed?.Time);
 
                         bool isKneeling = false;
                         bool isTriggered = false;

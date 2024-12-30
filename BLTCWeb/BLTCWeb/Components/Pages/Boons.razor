@@ -31,7 +31,7 @@
             </MudMenu>
         </MudButtonGroup>
         <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
-            <MudButton>@_chartDisplayMode.ToString()</MudButton>
+            <MudButton>@CDMToString(_chartDisplayMode)</MudButton>
                 <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
                     <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerLog)">Graph Per Log</MudMenuItem>
                     <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerPlayer )">Graph Per Player</MudMenuItem>
@@ -83,7 +83,7 @@
                     var data = Series[context.GetFileName()];
                 }
                 <MudTd>@context.GetFileName()</MudTd>
-                    <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="mm:ss" TimeLabelSpacing="@_graphSpacing" ChartSeries="@data" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+                    <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="ss" TimeLabelSpacing="@_graphSpacing" ChartSeries="@data" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
              </RowTemplate>
          </MudTable>
     }
@@ -164,7 +164,27 @@
     private Dictionary<string, bool> _showPlayersDict = new();
     private Dictionary<string, bool> _showGroupsDict = new();
 
+    private Dictionary<string, string> _playerColours = new();
+    private string[] Colours = 
+    {
+            Colors.Blue.Accent3, Colors.Teal.Accent3, Colors.Amber.Accent3, Colors.Orange.Accent3, Colors.Red.Accent3,
+            Colors.DeepPurple.Accent3, Colors.Green.Accent3, Colors.LightBlue.Accent3, Colors.Teal.Lighten1, Colors.Amber.Lighten1,
+            Colors.Orange.Lighten1, Colors.Red.Lighten1, Colors.DeepPurple.Lighten1, Colors.Green.Lighten1, Colors.LightBlue.Lighten1,
+            Colors.Amber.Darken2, Colors.Orange.Darken2, Colors.Red.Darken2, Colors.DeepPurple.Darken2, Colors.Gray.Darken2
+    };
+
     private TimeSpan _graphSpacing = TimeSpan.FromSeconds(30);
+
+    private string CDMToString(ChartDisplayMode cdm)
+    {
+        return cdm switch
+        {
+            ChartDisplayMode.GraphPerLog => "Graph Per Log",
+            ChartDisplayMode.GraphPerPlayer => "Graph Per Player",
+            ChartDisplayMode.LostTimings => "Lost Timings",
+            _ => "Unknown"
+        };
+    }
 
     private void OnNewData()
     {
@@ -173,6 +193,8 @@
         foreach(var player in LogParser.BulkLog.GetPlayers()){
             if (!_showPlayersDict.ContainsKey(player))
                 _showPlayersDict.Add(player, true);
+            if (!_playerColours.ContainsKey(player))
+                _playerColours.Add(player, Colours[_playerColours.Count % Colours.Length]);
         }
         foreach(var group in LogParser.BulkLog.GetGroups()){
             if (!_showGroupsDict.ContainsKey(group.ToString()))
@@ -322,6 +344,7 @@
         Options.XAxisLines = true;
         Options.YAxisLines = true;
         Options.YAxisRequireZeroPoint = true;
+        Options.ChartPalette = _playerColours.Where(x => _showPlayersDict[x.Key]).Select(x => x.Value).ToArray();
 
         StateHasChanged();
     }
