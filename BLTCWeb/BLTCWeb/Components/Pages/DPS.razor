@@ -27,6 +27,11 @@
         <MudRadio Value="true" Color="Color.Primary">Defiance</MudRadio>
     </MudRadioGroup>
 
+    <MudRadioGroup Value="@_allTargets" ValueChanged="UpdateAllTargetsEvent">
+        <MudRadio Value="false" Color="Color.Primary">SingleTarget</MudRadio>
+        <MudRadio Value="true" Color="Color.Primary">AllTargets</MudRadio>
+    </MudRadioGroup>
+
     <MudTable Items="@LogParser.BulkLog.GetPlayers()"
               Hover="true"
               Breakpoint="Breakpoint.Sm"
@@ -52,7 +57,7 @@
 @code {
     private bool _cumulative = false;
     private bool _defiance = false;
-    private bool _allTargets = true;
+    private bool _allTargets = false;
     private string _selectedPhase = "";
 
     public EventCallback<bool> UpdateCumulativeEvent;

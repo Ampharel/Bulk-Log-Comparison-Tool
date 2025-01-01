@@ -74,5 +74,10 @@ namespace BLCTWeb
         {
             _stopwatch.Stop();
         }
+
+        public bool IsPlayerInGroup(string player, int group)
+        {
+            return _bulklog.IsPlayerInGroup(player, group);
+        }
     }
 }

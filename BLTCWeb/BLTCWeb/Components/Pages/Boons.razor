@@ -39,14 +39,28 @@
             </MudMenu>
         </MudButtonGroup>
             <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox>
-            <MudGrid>
-                @foreach (var player in _showPlayersDict)
-            {
-                <MudItem>
-                <MudCheckBox T="bool" Value="@player.Value" ValueChanged="(isChecked) => UpdateShowPlayer(player.Key, isChecked)" Color="Color.Primary">@player.Key</MudCheckBox>
-                </MudItem>
+            <MudCard>
+                <MudCardContent>
+                @foreach (var group in LogParser.BulkLog.GetGroups())
+                {
+                    <MudItem>
+                        <MudText>Group @group</MudText>
+                        </MudItem>
+                <MudGrid>
+                    @foreach (var player in _showPlayersDict)
+                    {
+                    if (LogParser.IsPlayerInGroup(player.Key, group))
+                    {
+                        <MudItem>
+                            <MudCheckBox T="bool" Value="@player.Value" ValueChanged="(isChecked) => UpdateShowPlayer(player.Key, isChecked)" Color="Color.Primary">@player.Key</MudCheckBox>
+                            </MudItem>
+                    }
+                }
+                </MudGrid>
             }
-            </MudGrid>
+                </MudCardContent>
+            </MudCard>
+
         <MudCheckBox Value="@_showGroups" ValueChanged="ShowGroupsChanged" Color="Color.Primary">Groups</MudCheckBox>            
         <MudGrid>
             @foreach (var group in _showGroupsDict)
@@ -83,7 +97,7 @@
                     var data = Series[context.GetFileName()];
                 }
                 <MudTd>@context.GetFileName()</MudTd>
-                    <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="ss" TimeLabelSpacing="@_graphSpacing" ChartSeries="@data" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+                    <MudTimeSeriesChart ChartType="ChartType.Line"  TimeLabelFormat="mm:ss" ChartSeries="@data" @bind-SelectedIndex="Index" TimeLabelSpacing="@graphTimespan" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
              </RowTemplate>
          </MudTable>
     }
@@ -103,7 +117,7 @@
                     var data = Series[context];
                 }
                 <MudTd>@context</MudTd>
-                    <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="mm:ss" TimeLabelSpacing="@_graphSpacing" ChartSeries="@data" @bind-SelectedIndex="Index" XAxisLabels="@XAxisLabels" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+                    <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="mm:ss" TimeLabelSpacing="@graphTimespan" ChartSeries="@data" @bind-SelectedIndex="Index" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
              </RowTemplate>
          </MudTable>
     }
@@ -161,6 +175,8 @@
     public EventCallback<bool> ShowGroupsChanged;
     public EventCallback<string> ShowGroupChanged;
 
+    private TimeSpan graphTimespan;
+
     private Dictionary<string, bool> _showPlayersDict = new();
     private Dictionary<string, bool> _showGroupsDict = new();
 
@@ -202,6 +218,10 @@
         }
         Series = new();
         _buffLostTimings = new();
+        List<string> xDataLabel = new();
+        var maxTime = 0L;
+        var minTime = long.MaxValue; 
+        var maxStack = 25;
 
         Console.WriteLine($"Pre loop stopwatch {LogParser.GetStopwatchTime()}");
         foreach (var Log in LogParser.BulkLog.Logs)
@@ -213,6 +233,15 @@
             }
             var boonStackType = Log.GetBoonStackType(_selectedBoon);
             var duration = (boonStackType == BuffStackTyping.Queue || boonStackType == BuffStackTyping.Regeneration) ? true : false;
+
+            if (duration)
+            {
+                maxStack = 30;
+                if(_selectedBoon == "Swiftness")
+                {
+                    maxStack = 60;
+                }
+            }
             if (_showPlayers)
             {
                 Console.WriteLine($"Showing players {LogParser.GetStopwatchTime()}");
@@ -240,7 +269,7 @@
                         {
                             continue;
                         }
-                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)boonEvent.Item1 * 10000L), boonEvent.Item2));
+                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)boonEvent.Item1 * 10000L), boonEvent.Item2 > maxStack ? maxStack : boonEvent.Item2));
                         if(boonEvent.Item2 == 0){
                             _buffLostTimings[Log.GetFileName()][Player] += ("" + (boonEvent.Item1).ToString("0.##") + " ");
                         }
@@ -312,7 +341,7 @@
                     List<TimeSeriesChartSeries.TimeValue> chartData = new List<TimeSeriesChartSeries.TimeValue>();
                     foreach(var ge in groupEvents)
                     {
-                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)ge.Item1 * 10000), ge.Item2));
+                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)ge.Item1 * 10000), ge.Item2 > maxStack ? maxStack : ge.Item2));
                     }
 
 
@@ -339,8 +368,41 @@
                 }
                 Console.WriteLine($"Group loop stopwatch {LogParser.GetStopwatchTime()}");
             }
+            Options.MaxNumYAxisTicks = maxStack;
+            var endTime = Log.GetPhaseEnd(_selectedPhase);
+            if (endTime > maxTime)
+            {
+                maxTime = endTime;
+            }
+            var startTime = Log.GetPhaseStart(_selectedPhase);
+            if (startTime < minTime)
+            {
+                minTime = startTime;
+            }
         }
-        Options.YAxisTicks = 5;
+        if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
+        {
+            foreach(var Log in LogParser.BulkLog.Logs)
+            {
+                var selectedPhaseStart = Log.GetPhaseStart(_selectedPhase);
+                var selectedPhaseEnd = Log.GetPhaseEnd(_selectedPhase);
+                foreach(var phase in Log.GetPhases())
+                {
+                    var phaseStart = Log.GetPhaseStart(phase);
+                    if (phaseStart < selectedPhaseStart || phaseStart > selectedPhaseEnd)
+                    {
+                        continue;
+                    }
+                    var chartData = new List<TimeSeriesChartSeries.TimeValue>() { new TimeSeriesChartSeries.TimeValue(new DateTime((long)phaseStart * 10000), 0), new TimeSeriesChartSeries.TimeValue(new DateTime((long)phaseStart * 10000+1), maxStack) };
+
+                    var chartSeries = new TimeSeriesChartSeries() { Name = phase, Data = chartData, Type = TimeSeriesDiplayType.Line };
+                }
+            }
+        }
+
+        graphTimespan = TimeSpan.FromMilliseconds((maxTime - minTime)/10);
+        //Options.YAxisTicks = 5;
+        Options.YAxisTicks = 1;
         Options.XAxisLines = true;
         Options.YAxisLines = true;
         Options.YAxisRequireZeroPoint = true;
