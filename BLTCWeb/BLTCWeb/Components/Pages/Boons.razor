@@ -37,7 +37,7 @@
                     <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerPlayer )">Graph Per Player</MudMenuItem>
                     <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.LostTimings)">Boon lost timings</MudMenuItem>
             </MudMenu>
-        </MudButtonGroup>
+            </MudButtonGroup>
             <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox>
             <MudCard>
                 <MudCardContent>
@@ -168,6 +168,7 @@
     private string _selectedBoon = "Might";
     private string _selectedPhase = "";
     private bool _showPlayers = true;
+    private bool _showGraphPerPhase = false;
     private bool _showGroups = false;
     public EventCallback<string> SelectedBoonChanged;
     public EventCallback<bool> ShowPlayersChanged;

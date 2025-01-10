@@ -14,6 +14,7 @@ namespace BLCTWeb
         private List<(string, long, long)> _customPhases = new();
 
         public event Action NewDataEvent;
+        private LibraryParser parser = new LibraryParser(false);
 
         public void AddCustomPhase(string name, long start, long duration)
         {
@@ -27,7 +28,7 @@ namespace BLCTWeb
 
         public void AddLog(string file)
         {
-            var log = new LibraryParser(false).ParseLog(file);
+            var log = parser.ParseLog(file);
             foreach (var phase in _customPhases)
             {
                 log.AddPhase(phase.Item1, phase.Item2, phase.Item3);
@@ -38,7 +39,7 @@ namespace BLCTWeb
         }
         public void AddLog(Stream file, string name)
         {
-            var log = new LibraryParser(false).ParseLog(file, name);
+            var log = parser.ParseLog(file, name);
             foreach (var phase in _customPhases)
             {
                 log.AddPhase(phase.Item1, phase.Item2, phase.Item3);
