@@ -1021,10 +1021,6 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         public long GetShockwaveIntersectionTime(string player, ShockwaveType type, Point3D shockwavePoint, long shockwaveTime)
         {
-            if (player.Contains("Link"))
-            {
-                var mechHit = GetMechanicLogs("Mordremoth Shockwave", "Full Fight").Where(x => x.Item1.Contains(player)).FirstOrDefault();
-            }
             var currentTime = shockwaveTime;
             var waveEnd = shockwaveTime + GetShockwaveDuration(type)*1000;
             while (currentTime < waveEnd)

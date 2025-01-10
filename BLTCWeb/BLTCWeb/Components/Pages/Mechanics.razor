@@ -47,7 +47,7 @@
             <MudTd>@context</MudTd>
                 @foreach (var log in LogParser.BulkLog.Logs)
             {
-                var mechanics = log.GetMechanicLogs(_selectedMechanic, _selectedPhase).Where(x => x.Item1.Equals(context)).Select(x => (x.Item2 / 1000f).ToString());
+                var mechanics = log.GetMechanicLogs(_selectedMechanic, _selectedPhase).Where(x => x.Item1.Equals(context)).Select(x => (x.Item2 / 1000f).ToString("0.#"));
                 if(mechanics.Count() == 0)
                 {
                     <MudTd></MudTd>
