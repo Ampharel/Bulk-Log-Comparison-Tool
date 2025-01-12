@@ -26,6 +26,11 @@ namespace BLCTWeb
             NewDataEvent();
         }
 
+        public bool HasLog(string file)
+        {
+            return _bulklog.Logs.Any(x => x.GetFileName().Equals(file));
+        }
+
         public void AddLog(string file)
         {
             var log = parser.ParseLog(file);

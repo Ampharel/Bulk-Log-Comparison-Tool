@@ -175,6 +175,9 @@
 
     private async Task UploadFileAsync(IBrowserFile file)
     {
+        if(LogParser.HasLog(file.Name)){
+            return;
+        }
         using (MemoryStream ms = new())
         {
             await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);

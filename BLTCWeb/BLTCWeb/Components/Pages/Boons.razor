@@ -1,5 +1,6 @@
 ﻿@page "/boons"
 @using System.Net.Http.Json
+@using Bulk_Log_Comparison_Tool.DataClasses
 @using MudBlazor
 @using MudBlazor.Components.Chart.Models
 @using Bulk_Log_Comparison_Tool.Util;
@@ -38,14 +39,13 @@
                     <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.LostTimings)">Boon lost timings</MudMenuItem>
             </MudMenu>
             </MudButtonGroup>
+            <MudCheckBox Value="@_showPhases" ValueChanged="ShowPhasesChanged" Color="Color.Primary">Phases</MudCheckBox>
             <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox>
+            @foreach (var group in LogParser.BulkLog.GetGroups())
+            {
+            <MudCheckBox T="bool" Value="@IsFullGroupSelected(group)" ValueChanged="(isChecked) => UpdateShowGroupPlayers(group, isChecked)" Color="Color.Primary"> Group @group</MudCheckBox>
             <MudCard>
                 <MudCardContent>
-                @foreach (var group in LogParser.BulkLog.GetGroups())
-                {
-                    <MudItem>
-                        <MudText>Group @group</MudText>
-                        </MudItem>
                 <MudGrid>
                     @foreach (var player in _showPlayersDict)
                     {
@@ -57,11 +57,11 @@
                     }
                 }
                 </MudGrid>
-            }
                 </MudCardContent>
             </MudCard>
+        }
 
-        <MudCheckBox Value="@_showGroups" ValueChanged="ShowGroupsChanged" Color="Color.Primary">Groups</MudCheckBox>            
+        @* <MudCheckBox Value="@_showGroups" ValueChanged="ShowGroupsChanged" Color="Color.Primary">Groups</MudCheckBox>            
         <MudGrid>
             @foreach (var group in _showGroupsDict)
             {
@@ -69,7 +69,7 @@
                     <MudCheckBox T="bool" Value="@group.Value" ValueChanged="(isChecked) => UpdateShowGroup(group.Key, isChecked)" Color="Color.Primary">@group.Key</MudCheckBox>
                 </MudItem>
             }
-        </MudGrid>
+        </MudGrid> *@
             <MudRadioGroup Value="@_selectedBoon" ValueChanged="SelectedBoonChanged">
             @foreach (var boonName in LogParser.BulkLog.GetBoonNames())
             {
@@ -94,10 +94,16 @@
                     {
                         OnNewData();
                     }
-                    var data = Series[context.GetFileName()];
+                    else
+                    {
+                         var data = Series[context.GetFileName()];
+                         foreach(var dat in data){
+                             Console.WriteLine(dat);
+                         }
+                    <MudTd>@context.GetFileName()</MudTd>
+                     <MudTimeSeriesChart ChartType="ChartType.Line"  TimeLabelFormat="mm:ss" ChartSeries="@data" @bind-SelectedIndex="Index" TimeLabelSpacing="@graphTimespan" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+                    }
                 }
-                <MudTd>@context.GetFileName()</MudTd>
-                    <MudTimeSeriesChart ChartType="ChartType.Line"  TimeLabelFormat="mm:ss" ChartSeries="@data" @bind-SelectedIndex="Index" TimeLabelSpacing="@graphTimespan" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
              </RowTemplate>
          </MudTable>
     }
@@ -167,14 +173,15 @@
     public string[] XAxisLabels = {};
     private string _selectedBoon = "Might";
     private string _selectedPhase = "";
-    private bool _showPlayers = true;
+    private bool _showPlayers = false;
+    private bool _showPhases = false;
     private bool _showGraphPerPhase = false;
     private bool _showGroups = false;
     public EventCallback<string> SelectedBoonChanged;
     public EventCallback<bool> ShowPlayersChanged;
-    public EventCallback<string> ShowPlayerChanged;
     public EventCallback<bool> ShowGroupsChanged;
-    public EventCallback<string> ShowGroupChanged;
+    public EventCallback<bool> ShowPhasesChanged;
+    public EventCallback<string> GroupSelectionChanged;
 
     private TimeSpan graphTimespan;
 
@@ -203,171 +210,135 @@
         };
     }
 
-    private void OnNewData()
+    private void UpdatePlayerData()
     {
-        Console.WriteLine("New data stopwatch start");
-        LogParser.StartStopwatch();
-        foreach(var player in LogParser.BulkLog.GetPlayers()){
+        foreach (var player in LogParser.BulkLog.GetPlayers())
+        {
             if (!_showPlayersDict.ContainsKey(player))
                 _showPlayersDict.Add(player, true);
             if (!_playerColours.ContainsKey(player))
                 _playerColours.Add(player, Colours[_playerColours.Count % Colours.Length]);
         }
-        foreach(var group in LogParser.BulkLog.GetGroups()){
+        foreach (var group in LogParser.BulkLog.GetGroups())
+        {
             if (!_showGroupsDict.ContainsKey(group.ToString()))
                 _showGroupsDict.Add(group.ToString(), false);
         }
+    }
+
+    private bool IsDurationBuff(BuffStackTyping boonStackType)
+    {
+        if (boonStackType == BuffStackTyping.Queue || boonStackType == BuffStackTyping.Regeneration)
+        {
+            return true;
+        }
+        return false;
+
+    }
+
+    private void SetupDictionaries()
+    {
         Series = new();
         _buffLostTimings = new();
-        List<string> xDataLabel = new();
-        var maxTime = 0L;
-        var minTime = long.MaxValue; 
-        var maxStack = 25;
+    }
 
-        Console.WriteLine($"Pre loop stopwatch {LogParser.GetStopwatchTime()}");
+    private void AddLogToDictionaries(IParsedEvtcLog Log){
+        if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
+        {
+            Series.Add(Log.GetFileName(), new List<TimeSeriesChartSeries>());
+        }
+        _buffLostTimings.Add(Log.GetFileName(), new Dictionary<string, string>());
+        foreach (var Player in LogParser.BulkLog.GetPlayers())
+        {
+            if (!_buffLostTimings[Log.GetFileName()].ContainsKey(Player))
+            {
+                _buffLostTimings[Log.GetFileName()].Add(Player, "");
+            }
+            if (_chartDisplayMode == ChartDisplayMode.GraphPerPlayer && (_showPlayersDict.ContainsKey(Player) && !_showPlayersDict[Player]))
+            {
+                Series.Add(Player, new List<TimeSeriesChartSeries>());
+            }
+        }
+    }
+
+    private List<TimeSeriesChartSeries.TimeValue> CreateChartData(string Player, IParsedEvtcLog Log, int maxValue)
+    {
+        List<TimeSeriesChartSeries.TimeValue> chartData = new List<TimeSeriesChartSeries.TimeValue>();
+        var boonEvents = Log.GetBoonTimedEvents(Player, _selectedBoon, _selectedPhase);
+        foreach (var boonEvent in boonEvents)
+        {
+            if (boonEvent.Item1 < 0)
+            {
+                continue;
+            }
+            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)boonEvent.Item1 * 10000L), boonEvent.Item2 > maxValue ? maxValue : boonEvent.Item2));
+            if (boonEvent.Item2 == 0)
+            {
+                _buffLostTimings[Log.GetFileName()][Player] += ("" + (boonEvent.Item1).ToString("0.##") + " ");
+            }
+        }
+        return chartData;
+    }
+
+    private void AddChartDataToGraph(List<TimeSeriesChartSeries.TimeValue> chartData, string Player, string LogName)
+    {
+        if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
+        {
+            var chartSeries = new TimeSeriesChartSeries() { Name = Player, Data = chartData, Type = TimeSeriesDiplayType.Line };
+            Series[LogName].Add(chartSeries);
+        }
+        else
+        {
+            var chartSeries = new TimeSeriesChartSeries() { Name = LogName, Data = chartData, Type = TimeSeriesDiplayType.Line };
+            Series[Player].Add(chartSeries);
+        }
+    }
+
+    private void AddPhaseTimingToGraph(IParsedEvtcLog Log, int maxValue)
+    {
+        foreach (var phase in Log.GetPhases())
+        {
+            var chartData = new List<TimeSeriesChartSeries.TimeValue>();
+            if (phase == "Full Fight" || phase.Contains("Breakbar"))
+            {
+                continue;
+            }
+            var phaseStart = Log.GetPhaseStart(phase);
+            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L), 0));
+            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L + 10000), maxValue));
+            var chartSeries = new TimeSeriesChartSeries() { Name = phase, Data = chartData, Type = TimeSeriesDiplayType.Line };
+            Series[Log.GetFileName()].Add(chartSeries);
+        }
+    }
+
+    private void OnNewData()
+    {
+        UpdatePlayerData();
+        SetupDictionaries();
+        var maxTime = 0L;
+        var minTime = long.MaxValue;
+        var duration = IsDurationBuff(LogParser.BulkLog.Logs.First().GetBoonStackType(_selectedBoon));
+        var maxStack = duration ? 25 : 30;
+        if (_selectedBoon == "Swiftness")
+        {
+            maxStack = 60;
+        }
+
         foreach (var Log in LogParser.BulkLog.Logs)
         {
-            Console.WriteLine($"Starting log {Log.GetFileName()}");
-            _buffLostTimings.Add(Log.GetFileName(), new Dictionary<string, string>());
-            if (_chartDisplayMode == ChartDisplayMode.GraphPerLog){
-                Series.Add(Log.GetFileName(), new List<TimeSeriesChartSeries>());
-            }
-            var boonStackType = Log.GetBoonStackType(_selectedBoon);
-            var duration = (boonStackType == BuffStackTyping.Queue || boonStackType == BuffStackTyping.Regeneration) ? true : false;
-
-            if (duration)
-            {
-                maxStack = 30;
-                if(_selectedBoon == "Swiftness")
-                {
-                    maxStack = 60;
-                }
-            }
+            AddLogToDictionaries(Log);
             if (_showPlayers)
             {
-                Console.WriteLine($"Showing players {LogParser.GetStopwatchTime()}");
                 foreach (var Player in Log.GetPlayers())
                 {
-                    if (_showPlayersDict.ContainsKey(Player) && !_showPlayersDict[Player])
-                    {
-                        continue;
-                    }
-                    if (!_buffLostTimings[Log.GetFileName()].ContainsKey(Player))
-                    {
-                        _buffLostTimings[Log.GetFileName()].Add(Player, "");
-                    }
-                    if (_chartDisplayMode != ChartDisplayMode.GraphPerLog && !Series.ContainsKey(Player))
-                    {
-                        Series.Add(Player, new List<TimeSeriesChartSeries>());
-                    }
-                    List<TimeSeriesChartSeries.TimeValue> chartData = new List<TimeSeriesChartSeries.TimeValue>();
-
-                    var boonEvents = Log.GetBoonTimedEvents(Player, _selectedBoon, _selectedPhase);
-                    foreach (var boonEvent in boonEvents)
-                    {
-                        Console.WriteLine($"Time is {boonEvent.Item1 * 10000L}");
-                        if(boonEvent.Item1 < 0)
-                        {
-                            continue;
-                        }
-                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)boonEvent.Item1 * 10000L), boonEvent.Item2 > maxStack ? maxStack : boonEvent.Item2));
-                        if(boonEvent.Item2 == 0){
-                            _buffLostTimings[Log.GetFileName()][Player] += ("" + (boonEvent.Item1).ToString("0.##") + " ");
-                        }
-                    }
-                    // for (long i = Log.GetPhaseStart(_selectedPhase); i < Log.GetPhaseEnd(_selectedPhase); i += 1000)
-                    // {
-                    //     var boonAtTime = (int)Log.GetBoon(Player, _selectedBoon, _selectedPhase, i, duration);
-                    //     if(boonAtTime == 0 && hasBuff){
-                    //         hasBuff = false;
-                    //         _buffLostTimings[Log.GetFileName()][Player] += ("" + (i / 1000f).ToString("0.##") + " ");
-                    //     }
-                    //     else if(boonAtTime > 0){
-                    //         hasBuff = true;
-                    //     }
-                    //     chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(i * 10000), boonAtTime));
-                    // }
+                    var chartData = CreateChartData(Player, Log, maxStack);
                     _graphSpacing = TimeSpan.FromSeconds(Math.Round(chartData.Select(x => x.DateTime.Ticks).Max()/100000L * 1.0f)*10);
-                    if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
-                    {
-                        var chartSeries = new TimeSeriesChartSeries() { Name = Player, Data = chartData, Type = TimeSeriesDiplayType.Line };
-                        Console.WriteLine($"Log: {Log.GetFileName()}");
-                        Series[Log.GetFileName()].Add(chartSeries);
-                    }
-                    else
-                    {
-                        var chartSeries = new TimeSeriesChartSeries() { Name = Log.GetFileName(), Data = chartData, Type = TimeSeriesDiplayType.Line };
-                        Console.WriteLine($"Player: {Player}");
-                        Series[Player].Add(chartSeries);
-                    }
+                    AddChartDataToGraph(chartData, Player, Log.GetFileName());
                 }
-                Console.WriteLine($"Player loop stopwatch {LogParser.GetStopwatchTime()}");
             }
-            if (_showGroups)
+            if(_showPhases && (_selectedPhase == "" || _selectedPhase == "Full Fight"))
             {
-                Console.WriteLine($"Showing groups {LogParser.GetStopwatchTime()}");
-                foreach (var Group in Log.GetGroups())
-                {
-                    if (!_showGroupsDict.ContainsKey(Group.ToString()) || !_showGroupsDict[Group.ToString()])
-                    {
-                        continue;
-                    }
-                    List<(double,double)> boonEvents = new();
-                    foreach (var Player in Log.GetPlayers().Where(x => Log.IsPlayerInGroup(x, Group)))
-                    {
-                        if(_showPlayersDict.ContainsKey(Player) && !_showPlayersDict[Player]){
-                            continue;
-                        }
-                        boonEvents.AddRange(Log.GetBoonTimedEvents(Player, _selectedBoon, _selectedPhase));
-                    }
-                    if(boonEvents.Count == 0){
-                        continue;
-                    }
-                    boonEvents = boonEvents.DistinctBy(x => x.Item1).OrderBy(x => x.Item1).ToList();
-
-                    var groupEvents = new List<(double,double)>();
-                    foreach(var boonEvent in boonEvents)
-                    {
-                        var time = boonEvent.Item1;
-                        var boonTime = 0d;
-                        var playerCount = 0;
-                        foreach (var Player in Log.GetPlayers().Where(x => Log.IsPlayerInGroup(x,Group)))
-                        {
-                            boonTime += Log.GetBoon(Player, _selectedBoon, _selectedPhase, (long)time, duration);
-                            playerCount++;
-                        }
-                        groupEvents.Add((time, boonTime/playerCount));
-                    }
-
-                    List<TimeSeriesChartSeries.TimeValue> chartData = new List<TimeSeriesChartSeries.TimeValue>();
-                    foreach(var ge in groupEvents)
-                    {
-                        chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)ge.Item1 * 10000), ge.Item2 > maxStack ? maxStack : ge.Item2));
-                    }
-
-
-                    if (_chartDisplayMode != ChartDisplayMode.GraphPerLog && !Series.ContainsKey(Group.ToString()))
-                    {
-                        Series.Add(Group.ToString(), new List<TimeSeriesChartSeries>());
-                    }
-                    // List<TimeSeriesChartSeries.TimeValue> chartData = new List<TimeSeriesChartSeries.TimeValue>();
-                    // for (long i = Log.GetPhaseStart(_selectedPhase); i < Log.GetPhaseEnd(_selectedPhase); i += 500)
-                    // {
-                    //     var boonAtTime = (int)Log.GetBoon(Group, _selectedBoon, _selectedPhase, i, duration);
-                    //     chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(i*10000), boonAtTime));
-                    // }
-                    if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
-                    {
-                        var chartSeries = new TimeSeriesChartSeries() { Name = Group.ToString(), Data = chartData, Type = TimeSeriesDiplayType.Line };
-                        Series[Log.GetFileName()].Add(chartSeries);
-                    }
-                    else
-                    {
-                        var chartSeries = new TimeSeriesChartSeries() { Name = Log.GetFileName(), Data = chartData, Type = TimeSeriesDiplayType.Line };
-                        Series[Group.ToString()].Add(chartSeries);
-                    }
-                }
-                Console.WriteLine($"Group loop stopwatch {LogParser.GetStopwatchTime()}");
+                AddPhaseTimingToGraph(Log, maxStack * 2);
             }
             Options.MaxNumYAxisTicks = maxStack;
             var endTime = Log.GetPhaseEnd(_selectedPhase);
@@ -379,25 +350,6 @@
             if (startTime < minTime)
             {
                 minTime = startTime;
-            }
-        }
-        if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
-        {
-            foreach(var Log in LogParser.BulkLog.Logs)
-            {
-                var selectedPhaseStart = Log.GetPhaseStart(_selectedPhase);
-                var selectedPhaseEnd = Log.GetPhaseEnd(_selectedPhase);
-                foreach(var phase in Log.GetPhases())
-                {
-                    var phaseStart = Log.GetPhaseStart(phase);
-                    if (phaseStart < selectedPhaseStart || phaseStart > selectedPhaseEnd)
-                    {
-                        continue;
-                    }
-                    var chartData = new List<TimeSeriesChartSeries.TimeValue>() { new TimeSeriesChartSeries.TimeValue(new DateTime((long)phaseStart * 10000), 0), new TimeSeriesChartSeries.TimeValue(new DateTime((long)phaseStart * 10000+1), maxStack) };
-
-                    var chartSeries = new TimeSeriesChartSeries() { Name = phase, Data = chartData, Type = TimeSeriesDiplayType.Line };
-                }
             }
         }
 
@@ -422,13 +374,31 @@
         SelectedBoonChanged = EventCallback.Factory.Create<string>(this, OnBoonSelectionChanged);
         ShowPlayersChanged = EventCallback.Factory.Create<bool>(this, UpdateShowPlayers);
         ShowGroupsChanged = EventCallback.Factory.Create<bool>(this, UpdateShowGroups);
-        Console.WriteLine("Boons Page Initialized");
+        ShowPhasesChanged = EventCallback.Factory.Create<bool>(this, UpdateShowPhases);
         LogParser.NewDataEvent += OnNewData;
 
     }
 
+    private bool IsFullGroupSelected(int group)
+    {
+        var playersInGroup = _showPlayersDict.Select(x => x.Key).Where(x => LogParser.IsPlayerInGroup(x, group));
+        return _showPlayersDict.Where(x => playersInGroup.Contains(x.Key)).All(x => x.Value);
+    }
+
     private void UpdateShowPlayer(string player, bool isChecked){
         _showPlayersDict[player] = isChecked;
+        OnNewData();
+    }
+
+    private void UpdateShowGroupPlayers(int group, bool isChecked)
+    {
+        foreach (var player in _showPlayersDict)
+        {
+            if (LogParser.IsPlayerInGroup(player.Key, group))
+            {
+                _showPlayersDict[player.Key] = isChecked;
+            }
+        }
         OnNewData();
     }
 
@@ -437,6 +407,10 @@
         OnNewData();
     }
 
+    private void UpdateShowPhases(bool show){
+        _showPhases = show;
+        OnNewData();
+    }
     private void UpdateShowPlayers(bool show){
         _showPlayers = show;
         OnNewData();
