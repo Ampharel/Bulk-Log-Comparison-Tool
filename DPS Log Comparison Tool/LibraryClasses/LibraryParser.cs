@@ -19,7 +19,9 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         internal readonly string TraitAPICacheLocation = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) + "/Content/TraitList.json";
 
         internal EvtcParserSettings parserSettings;
-        internal GW2APIController APIController;
+        internal static GW2APIController? APIController;
+        private object _apiLock = new object();
+
 
         public LibraryParser(bool multiThreadAccelerationForBuffs)
         {
@@ -27,7 +29,13 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
             parserSettings = new EvtcParserSettings(false, false, true, true, true, 2200, true);
             Console.WriteLine("SkillAPI: " + SkillAPICacheLocation);
-            APIController = new GW2APIController(SkillAPICacheLocation, SpecAPICacheLocation, TraitAPICacheLocation);
+            lock (_apiLock)
+            {
+                if (APIController == null)
+                {
+                    APIController = new GW2APIController(SkillAPICacheLocation, SpecAPICacheLocation, TraitAPICacheLocation);
+                }
+            }
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
         }
         public IParsedEvtcLog ParseLog(ParserController operation, FileInfo evtc, out ParsingFailureReason parsingFailureReason, bool multiThreadAccelerationForBuffs = false)

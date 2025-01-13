@@ -9,6 +9,9 @@ namespace BLCTWeb
     {
         public static void Main(string[] args)
         {
+            //var sw = new StreamWriter($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\\OutputLog.txt", true);
+            //sw.AutoFlush = true;
+            //Console.SetOut(sw);
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.

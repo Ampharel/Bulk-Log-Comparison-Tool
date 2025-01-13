@@ -31,18 +31,25 @@ namespace BLCTWeb
             return _bulklog.Logs.Any(x => x.GetFileName().Equals(file));
         }
 
-        public void AddLog(string file)
+        public void AddLog(string file, bool multiload = false)
         {
-            var log = parser.ParseLog(file);
+            var log = new LibraryParser(false).ParseLog(file);
             foreach (var phase in _customPhases)
             {
                 log.AddPhase(phase.Item1, phase.Item2, phase.Item3);
             }
             _bulklog.AddLog(log);
 
+            if(!multiload)
+                NewDataEvent?.Invoke();
+        }
+
+        public void FinishMultiload()
+        {
             NewDataEvent?.Invoke();
         }
-        public void AddLog(Stream file, string name)
+
+        public void AddLog(Stream file, string name, bool multiload = false)
         {
             var log = parser.ParseLog(file, name);
             foreach (var phase in _customPhases)
@@ -50,35 +57,23 @@ namespace BLCTWeb
                 log.AddPhase(phase.Item1, phase.Item2, phase.Item3);
             }
             _bulklog.AddLog(log);
-            NewDataEvent?.Invoke();
+
+            if (!multiload)
+                NewDataEvent?.Invoke();
         }
 
-        public void RemoveLog(string file)
+        public void RemoveLog(string file, bool multiload = false)
         {
             _bulklog.RemoveLog(file);
-            NewDataEvent?.Invoke();
+
+            if (!multiload)
+                NewDataEvent?.Invoke();
         }
 
         public void RemoveAll()
         {
             _bulklog = new();
             NewDataEvent?.Invoke();
-        }
-
-        private Stopwatch _stopwatch = new();
-
-        public void StartStopwatch()
-        {
-            _stopwatch.Start();
-        }
-
-        public long GetStopwatchTime()
-        {
-            return _stopwatch.ElapsedMilliseconds;
-        }
-        public void StopStopwatch()
-        {
-            _stopwatch.Stop();
         }
 
         public bool IsPlayerInGroup(string player, int group)

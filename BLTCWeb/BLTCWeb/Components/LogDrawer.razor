@@ -123,7 +123,7 @@
     {
         foreach (var file in SelectedFiles)
         {
-            LogParser.BulkLog.RemoveLog(file);
+            LogParser.RemoveLog(file, true);
         }
         SelectedFiles = [];
     }
@@ -166,19 +166,30 @@
         Console.WriteLine($"Starting processing of {_newFiles.Count} files");
         sw.Start();
 
-        while (_newFiles.TryDequeue(out var file))
+        await Parallel.ForEachAsync(_newFiles, async (file,token) =>
         {
             await UploadFileAsync(file);
             _fileNames.RemoveAll(f => f.Name.Equals(file.Name));
             _processingCount--;
-            StateHasChanged();
-        }
+        });
+
+        LogParser.FinishMultiload();
+        StateHasChanged();
+        // while (_newFiles.TryDequeue(out var file))
+        // {
+        //     await UploadFileAsync(file);
+        //     _fileNames.RemoveAll(f => f.Name.Equals(file.Name));
+        //     _processingCount--;
+        //     StateHasChanged();
+        // }
 
         Console.WriteLine($"Finished processing of files, took {sw.ElapsedMilliseconds} ms in total");
 
         _isLoading = false;
         await OnUpload.InvokeAsync();
     }
+
+    private static SemaphoreSlim fileLockObject = new SemaphoreSlim(1);
 
     private async Task UploadFileAsync(IBrowserFile file)
     {
@@ -192,9 +203,19 @@
             Stopwatch sw = new Stopwatch();
             sw.Start();
             var elapsed = 0L;
-            Console.WriteLine($"Starting upload of file: {file.Name}");
-            await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
-            Console.WriteLine($"Upload of file: {file.Name} took {sw.ElapsedMilliseconds} ms");
+
+            await fileLockObject.WaitAsync();
+            try
+            {
+                Console.WriteLine($"Starting upload of file: {file.Name}");
+                await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
+                Console.WriteLine($"Upload of file: {file.Name} took {sw.ElapsedMilliseconds} ms");
+            }
+            finally
+            {
+                fileLockObject.Release();
+            }
+
             ms.Position = 0;
 
             Console.WriteLine($"Starting unpacking of file: {file.Name}");
@@ -217,7 +238,7 @@
 
                 Console.WriteLine($"Starting parsing of file: {file.Name}");
                 elapsed = sw.ElapsedMilliseconds;
-                LogParser.AddLog(unpackedMemoryStream_, file.Name);
+                LogParser.AddLog(unpackedMemoryStream_, file.Name,true);
                 Console.WriteLine($"Parsing of file: {file.Name} took {sw.ElapsedMilliseconds - elapsed} ms");
             }
 
