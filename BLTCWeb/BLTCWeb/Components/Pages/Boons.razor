@@ -40,7 +40,7 @@
             </MudMenu>
             </MudButtonGroup>
             <MudCheckBox Value="@_showPhases" ValueChanged="ShowPhasesChanged" Color="Color.Primary">Phases</MudCheckBox>
-            <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox>
+            @* <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox> *@
             @foreach (var group in LogParser.BulkLog.GetGroups())
             {
             <MudCheckBox T="bool" Value="@IsFullGroupSelected(group)" ValueChanged="(isChecked) => UpdateShowGroupPlayers(group, isChecked)" Color="Color.Primary"> Group @group</MudCheckBox>
@@ -173,8 +173,8 @@
     public string[] XAxisLabels = {};
     private string _selectedBoon = "Might";
     private string _selectedPhase = "";
-    private bool _showPlayers = false;
-    private bool _showPhases = false;
+    private bool _showPlayers = true;
+    private bool _showPhases = true;
     private bool _showGraphPerPhase = false;
     private bool _showGroups = false;
     public EventCallback<string> SelectedBoonChanged;
@@ -325,7 +325,7 @@
         var maxTime = 0L;
         var minTime = long.MaxValue;
         var duration = IsDurationBuff(LogParser.BulkLog.Logs.First().GetBoonStackType(_selectedBoon));
-        var maxStack = duration ? 25 : 30;
+        var maxStack = duration ? 30 : 25;
         if (_selectedBoon == "Swiftness")
         {
             maxStack = 60;
