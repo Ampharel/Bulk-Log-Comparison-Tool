@@ -224,6 +224,13 @@
             if (!_showGroupsDict.ContainsKey(group.ToString()))
                 _showGroupsDict.Add(group.ToString(), false);
         }
+        foreach(var phase in LogParser.BulkLog.GetPhases())
+        {
+            if (!_showPlayersDict.ContainsKey(phase))
+                _showPlayersDict.Add(phase, true);
+            if (!_playerColours.ContainsKey(phase))
+                _playerColours.Add(phase, Colours[_playerColours.Count % Colours.Length]);
+        }
     }
 
     private bool IsDurationBuff(BuffStackTyping boonStackType)
@@ -294,7 +301,7 @@
         }
     }
 
-    private void AddPhaseTimingToGraph(IParsedEvtcLog Log, int maxValue)
+    private void AddPhaseTimingToGraph(IParsedEvtcLog Log, float maxValue)
     {
         foreach (var phase in Log.GetPhases())
         {
@@ -305,7 +312,7 @@
             }
             var phaseStart = Log.GetPhaseStart(phase);
             chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L), 0));
-            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L + 10000), maxValue));
+            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L), maxValue));
             var chartSeries = new TimeSeriesChartSeries() { Name = phase, Data = chartData, Type = TimeSeriesDiplayType.Line };
             Series[Log.GetFileName()].Add(chartSeries);
         }
@@ -331,6 +338,7 @@
             {
                 foreach (var Player in Log.GetPlayers())
                 {
+                    if (!_showPlayersDict[Player]) continue;
                     var chartData = CreateChartData(Player, Log, maxStack);
                     _graphSpacing = TimeSpan.FromSeconds(Math.Round(chartData.Select(x => x.DateTime.Ticks).Max()/100000L * 1.0f)*10);
                     AddChartDataToGraph(chartData, Player, Log.GetFileName());
@@ -338,7 +346,7 @@
             }
             if(_showPhases && (_selectedPhase == "" || _selectedPhase == "Full Fight"))
             {
-                AddPhaseTimingToGraph(Log, maxStack * 2);
+                AddPhaseTimingToGraph(Log, maxStack);
             }
             Options.MaxNumYAxisTicks = maxStack;
             var endTime = Log.GetPhaseEnd(_selectedPhase);
@@ -353,13 +361,26 @@
             }
         }
 
+        if(Series.Count == 0)
+        {
+            return;
+        }
+
         graphTimespan = TimeSpan.FromMilliseconds((maxTime - minTime)/10);
         //Options.YAxisTicks = 5;
         Options.YAxisTicks = 1;
         Options.XAxisLines = true;
         Options.YAxisLines = true;
         Options.YAxisRequireZeroPoint = true;
-        Options.ChartPalette = _playerColours.Where(x => _showPlayersDict[x.Key]).Select(x => x.Value).ToArray();
+
+
+        var chartColours = _playerColours.Where(x => _showPlayersDict[x.Key]).Select(x => x.Value).ToList();
+
+        for(int i = chartColours.Count; i < Series.Values.MaxBy(x => x.Count).Count; i++)
+        {
+            chartColours.Add(Colours[i % Colours.Length]);
+        }
+        Options.ChartPalette = chartColours.ToArray();
 
         StateHasChanged();
     }
