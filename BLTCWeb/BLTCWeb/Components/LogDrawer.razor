@@ -1,5 +1,6 @@
 ﻿@using MudBlazor
 @using System.IO.Compression
+@using System.Diagnostics
 @rendermode InteractiveServer
 @inject ServerParser LogParser
 
@@ -161,6 +162,10 @@
         _isLoading = true;
         StateHasChanged();
 
+        Stopwatch sw = new Stopwatch();
+        Console.WriteLine($"Starting processing of {_newFiles.Count} files");
+        sw.Start();
+
         while (_newFiles.TryDequeue(out var file))
         {
             await UploadFileAsync(file);
@@ -169,20 +174,31 @@
             StateHasChanged();
         }
 
+        Console.WriteLine($"Finished processing of files, took {sw.ElapsedMilliseconds} ms in total");
+
         _isLoading = false;
         await OnUpload.InvokeAsync();
     }
 
     private async Task UploadFileAsync(IBrowserFile file)
     {
-        if(LogParser.HasLog(file.Name)){
+        if (LogParser.HasLog(file.Name))
+        {
+            Console.WriteLine($"{file.Name} already exists!");
             return;
         }
         using (MemoryStream ms = new())
         {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            var elapsed = 0L;
+            Console.WriteLine($"Starting upload of file: {file.Name}");
             await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
+            Console.WriteLine($"Upload of file: {file.Name} took {sw.ElapsedMilliseconds} ms");
             ms.Position = 0;
 
+            Console.WriteLine($"Starting unpacking of file: {file.Name}");
+            elapsed = sw.ElapsedMilliseconds;
             using (MemoryStream unpackedMemoryStream_ = new MemoryStream())
             {
                 using (ZipArchive val = new ZipArchive(ms, ZipArchiveMode.Read))
@@ -195,9 +211,17 @@
                     using Stream stream = val.Entries[0].Open();
                     await stream.CopyToAsync(unpackedMemoryStream_);
                     unpackedMemoryStream_.Position = 0;
+
+                    Console.WriteLine($"Finished unpacking of file: {file.Name} took {sw.ElapsedMilliseconds - elapsed} ms");
                 }
+
+                Console.WriteLine($"Starting parsing of file: {file.Name}");
+                elapsed = sw.ElapsedMilliseconds;
                 LogParser.AddLog(unpackedMemoryStream_, file.Name);
+                Console.WriteLine($"Parsing of file: {file.Name} took {sw.ElapsedMilliseconds - elapsed} ms");
             }
+
+            Console.WriteLine($"Finished with file {file.Name}, total time was {sw.ElapsedMilliseconds} ms");
         }
         var uploadedFile = _fileNames.FirstOrDefault(f => f.Name == file.Name);
         if (uploadedFile != null)

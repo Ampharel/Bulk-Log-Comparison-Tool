@@ -14,6 +14,7 @@ namespace Bulk_Log_Comparison_Tool
     {
         static void Main(string[] args)
         {
+            Console.SetOut(new StreamWriter($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\\OutputLog.txt"));
             var Parser = new LogParser(new LibraryParser(false));
             CsvBuilder csvBuilder = new();
             csvBuilder.CsvString(Parser.BulkLog, $"CSV/{DateTime.Now.ToString("yyyyMMdd-HHmmss")}");
