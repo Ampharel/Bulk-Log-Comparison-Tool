@@ -96,12 +96,17 @@
                     }
                     else
                     {
-                         var data = Series[context.GetFileName()];
-                         foreach(var dat in data){
-                             Console.WriteLine(dat);
-                         }
-                    <MudTd>@context.GetFileName()</MudTd>
-                     <MudTimeSeriesChart ChartType="ChartType.Line"  TimeLabelFormat="mm:ss" ChartSeries="@data" @bind-SelectedIndex="Index" TimeLabelSpacing="@graphTimespan" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+                        if (Series.ContainsKey(context.GetFileName()))
+                        {
+                            var data = Series[context.GetFileName()];
+                            foreach (var dat in data)
+                            {
+                                Console.WriteLine(dat);
+                            }
+                            <MudTd>@context.GetFileName()</MudTd>
+                            <MudTimeSeriesChart ChartType="ChartType.Line"  TimeLabelFormat="mm:ss" ChartSeries="@data" @bind-SelectedIndex="Index" TimeLabelSpacing="@graphTimespan"       
+                        CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+                        }
                     }
                 }
              </RowTemplate>
@@ -226,10 +231,10 @@
         }
         foreach(var phase in LogParser.BulkLog.GetPhases())
         {
-            if (!_showPlayersDict.ContainsKey(phase))
-                _showPlayersDict.Add(phase, true);
-            if (!_playerColours.ContainsKey(phase))
-                _playerColours.Add(phase, Colours[_playerColours.Count % Colours.Length]);
+            // if (!_showPlayersDict.ContainsKey(phase))
+            //     _showPlayersDict.Add(phase, true);
+            // if (!_playerColours.ContainsKey(phase))
+            //     _playerColours.Add(phase, Colours[_playerColours.Count % Colours.Length]);
         }
     }
 
@@ -301,7 +306,7 @@
         }
     }
 
-    private void AddPhaseTimingToGraph(IParsedEvtcLog Log, float maxValue)
+    private void AddPhaseTimingToGraph(IParsedEvtcLog Log, float maxValue, long time)
     {
         foreach (var phase in Log.GetPhases())
         {
@@ -310,10 +315,11 @@
             {
                 continue;
             }
+            var width = (time / 200) * 10000L;
             var phaseStart = Log.GetPhaseStart(phase);
-            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L), 0));
             chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L), maxValue));
-            var chartSeries = new TimeSeriesChartSeries() { Name = phase, Data = chartData, Type = TimeSeriesDiplayType.Line };
+            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L + width), maxValue));
+            var chartSeries = new TimeSeriesChartSeries() { Name = phase, Data = chartData, FillOpacity = 0.7 ,Type = TimeSeriesDiplayType.Area };
             Series[Log.GetFileName()].Add(chartSeries);
         }
     }
@@ -333,6 +339,16 @@
 
         foreach (var Log in LogParser.BulkLog.Logs)
         {
+            var endTime = Log.GetPhaseEnd(_selectedPhase);
+            if (endTime > maxTime)
+            {
+                maxTime = endTime;
+            }
+            var startTime = Log.GetPhaseStart(_selectedPhase);
+            if (startTime < minTime)
+            {
+                minTime = startTime;
+            }
             AddLogToDictionaries(Log);
             if (_showPlayers)
             {
@@ -346,19 +362,9 @@
             }
             if(_showPhases && (_selectedPhase == "" || _selectedPhase == "Full Fight"))
             {
-                AddPhaseTimingToGraph(Log, maxStack);
+                AddPhaseTimingToGraph(Log, maxStack,endTime - startTime);
             }
             Options.MaxNumYAxisTicks = maxStack;
-            var endTime = Log.GetPhaseEnd(_selectedPhase);
-            if (endTime > maxTime)
-            {
-                maxTime = endTime;
-            }
-            var startTime = Log.GetPhaseStart(_selectedPhase);
-            if (startTime < minTime)
-            {
-                minTime = startTime;
-            }
         }
 
         if(Series.Count == 0)
@@ -369,7 +375,7 @@
         graphTimespan = TimeSpan.FromMilliseconds((maxTime - minTime)/10);
         //Options.YAxisTicks = 5;
         Options.YAxisTicks = 1;
-        Options.XAxisLines = true;
+        Options.XAxisLines = false;
         Options.YAxisLines = true;
         Options.YAxisRequireZeroPoint = true;
 
@@ -378,7 +384,7 @@
 
         for(int i = chartColours.Count; i < Series.Values.MaxBy(x => x.Count).Count; i++)
         {
-            chartColours.Add(Colours[i % Colours.Length]);
+            chartColours.Add(Colors.Gray.Default);
         }
         Options.ChartPalette = chartColours.ToArray();
 

@@ -171,10 +171,10 @@
             await UploadFileAsync(file);
             _fileNames.RemoveAll(f => f.Name.Equals(file.Name));
             _processingCount--;
+            InvokeAsync(() => LogParser.FinishMultiload());
+            InvokeAsync(StateHasChanged);
         });
 
-        LogParser.FinishMultiload();
-        StateHasChanged();
         // while (_newFiles.TryDequeue(out var file))
         // {
         //     await UploadFileAsync(file);
@@ -207,9 +207,11 @@
             await fileLockObject.WaitAsync();
             try
             {
+                Console.WriteLine($"Awaited lock for {sw.ElapsedMilliseconds} ms");
+                elapsed = sw.ElapsedMilliseconds;
                 Console.WriteLine($"Starting upload of file: {file.Name}");
                 await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
-                Console.WriteLine($"Upload of file: {file.Name} took {sw.ElapsedMilliseconds} ms");
+                Console.WriteLine($"Upload of file: {file.Name} took {sw.ElapsedMilliseconds - elapsed} ms");
             }
             finally
             {
