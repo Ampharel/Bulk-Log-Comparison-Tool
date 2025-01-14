@@ -1,6 +1,7 @@
 ﻿using Bulk_Log_Comparison_Tool.DataClasses;
 using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool.LibraryClasses;
+using Bulk_Log_Comparison_Tool.Util;
 using System.Diagnostics;
 
 namespace BLCTWeb
@@ -15,6 +16,33 @@ namespace BLCTWeb
 
         public event Action NewDataEvent;
         private LibraryParser parser = new LibraryParser(false);
+
+        private SettingsFile CustomPhaseSettings;
+
+        public ServerParser()
+        {
+            LoadCustomPhases();
+        }
+
+        private void LoadCustomPhases()
+        {
+            CustomPhaseSettings = new SettingsFile("CustomPhase.txt", [],
+                            ["# Adding custom phases can be done using the following syntax:",
+                                "# 1={PhaseName}:{Description}|StartTimeInPhase|Duration",
+                                "# Example:",
+                                "# 1=Primordus:before first chomp|0|25",
+                                "# Lines starting with a # will be ignored"]);
+            foreach (var setting in CustomPhaseSettings.GetSettings())
+            {
+                var settingValue = setting.Item2;
+                var splitPhase = settingValue.Split('|');
+                if (splitPhase.Length != 3)
+                {
+                    continue;
+                }
+                AddCustomPhase(splitPhase[0], long.Parse(splitPhase[1]), long.Parse(splitPhase[2]));
+            }
+        }
 
         public void AddCustomPhase(string name, long start, long duration)
         {
