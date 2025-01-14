@@ -51,7 +51,7 @@ namespace BLCTWeb
             {
                 log.AddPhase(name, start, duration);
             }
-            NewDataEvent();
+            NewDataEvent?.Invoke();
         }
 
         public bool HasLog(string file)

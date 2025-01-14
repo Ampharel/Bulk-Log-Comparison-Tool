@@ -55,6 +55,10 @@ namespace Bulk_Log_Comparison_Tool.Util
             string[] lines = System.IO.File.ReadAllLines(SettingsPath);
             foreach (string line in lines)
             {
+                if (line.StartsWith(prefix))
+                {
+                    continue;
+                }
                 string[] parts = line.Split(equalSign);
                 if (parts.Length != 2)
                 {
