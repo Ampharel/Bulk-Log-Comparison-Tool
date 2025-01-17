@@ -51,8 +51,13 @@
                     {
                     if (LogParser.IsPlayerInGroup(player.Key, group))
                     {
-                        <MudItem>
-                            <MudCheckBox T="bool" Value="@player.Value" ValueChanged="(isChecked) => UpdateShowPlayer(player.Key, isChecked)" Color="Color.Primary">@player.Key</MudCheckBox>
+                            foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, player.Key)){
+                                <MudItem>
+                                        <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                                </MudItem>
+                            }
+                            <MudItem>
+                                <MudCheckBox T="bool" Value="@player.Value" ValueChanged="(isChecked) => UpdateShowPlayer(player.Key, isChecked)" Color="Color.Primary">@player.Key</MudCheckBox>
                             </MudItem>
                     }
                 }
@@ -163,6 +168,7 @@
 
 @code {
 
+    private WebImageGenerator imageGenerator = new WebImageGenerator();
     private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
     public ChartOptions Options = new ChartOptions();
 

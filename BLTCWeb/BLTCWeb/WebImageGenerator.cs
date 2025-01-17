@@ -12,6 +12,10 @@ namespace BLCTWeb
     internal class WebImageGenerator
     {
 
+        public static Image BlankImage = new Image<Rgba32>(1, 1);
+        private readonly Dictionary<string, Image> _specIcons = new();
+
+
         public byte[] GetImageBytes(IParsedEvtcLog Log, string Player, List<(long, int)> shockwaves)
         {
             var images = GetImage(Log, Player, null, shockwaves);
@@ -31,6 +35,25 @@ namespace BLCTWeb
             }
         }
 
+        public Image[] GetSpecializationImages(ServerParser parser, string player)
+        {
+            var specs = parser.GetPlayerSpecs(player);
+            List<Image> images = new List<Image>();
+            foreach(var spec in specs)
+            {
+                if (spec == null) 
+                    continue;
+                var icon = GetIcon(spec);
+                if(icon != null)
+                    images.Add(icon);
+            }
+            return images.ToArray();
+        }
+        public Image GetSpecializationImage(IParsedEvtcLog Log, string player)
+        {
+            var spec = Log.GetSpec(player);
+            return GetIcon(spec);
+        }
 
         private List<Image> GetImage(IParsedEvtcLog Log, string Player, Image? image, List<(long, int)> shockwaves)
         {
@@ -148,8 +171,6 @@ namespace BLCTWeb
             }
             return 0f;
         }
-
-        private readonly Dictionary<string, Image> _specIcons = new();
 
         public Image? GetIcon(string iconName)
         {

@@ -36,6 +36,7 @@
               Class="flex-table">
                 <HeaderContent>
                     <MudTh>Player</MudTh>
+                    <MudTh>Specialization</MudTh>
                     @foreach (var log in LogParser.BulkLog.Logs)
                     {
                         <MudTh>@log.GetFileName()</MudTh>
@@ -43,6 +44,12 @@
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd>@context</MudTd>
+                    <MudTd>
+                            @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                        {
+                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                        }
+                    </MudTd>
                     @foreach (var log in LogParser.BulkLog.Logs)
                     {
                         <MudTd>@log.GetStealthResult(@context, Bulk_Log_Comparison_Tool.Enums.StealthAlgoritmns.OutlierFiltering).FirstOrDefault(x => x.Item1.Equals(_selectedPhase)).Item2</MudTd>
@@ -174,6 +181,7 @@
 </div>
 
 @code {
+    private WebImageGenerator imageGenerator = new();
     private bool _hidePosition;
     private bool _loading;
     private string _selectedPhase = "Choose a phase";

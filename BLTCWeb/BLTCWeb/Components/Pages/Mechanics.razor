@@ -38,6 +38,7 @@
               Class="flex-table">
         <HeaderContent>
             <MudTh>Player</MudTh>
+            <MudTh>Specializations</MudTh>
             @foreach (var log in LogParser.BulkLog.Logs)
             {
                 <MudTh>@log.GetFileName()</MudTh>
@@ -45,6 +46,12 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context</MudTd>
+                <MudTd>
+                    @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                {
+                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                }
+            </MudTd>
                 @foreach (var log in LogParser.BulkLog.Logs)
             {
                 var mechanics = log.GetMechanicLogs(_selectedMechanic, _selectedPhase).Where(x => x.Item1.Equals(context)).Select(x => (x.Item2 / 1000f).ToString("0.#"));
@@ -68,6 +75,7 @@
 </div>
 
 @code {
+    private WebImageGenerator imageGenerator = new();
     public EventCallback<bool> UpdateCountEvent;
     private string _selectedPhase = "";
     private string _selectedMechanic = "";

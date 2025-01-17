@@ -68,7 +68,7 @@ namespace BLCTWeb
             }
             _bulklog.AddLog(log);
 
-            if(!multiload)
+            if (!multiload)
                 NewDataEvent?.Invoke();
         }
 
@@ -107,6 +107,10 @@ namespace BLCTWeb
         public bool IsPlayerInGroup(string player, int group)
         {
             return _bulklog.IsPlayerInGroup(player, group);
+        }
+        public string[] GetPlayerSpecs(string player)
+        {
+            return _bulklog.Logs.Select(x => x.GetSpec(player)).Distinct().ToArray();
         }
     }
 }

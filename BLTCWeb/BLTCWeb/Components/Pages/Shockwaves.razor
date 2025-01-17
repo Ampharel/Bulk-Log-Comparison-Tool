@@ -60,6 +60,7 @@
               Class="flex-table">
         <HeaderContent>
             <MudTh>Player</MudTh>
+            <MudTh>Specializations</MudTh>
             @foreach (var log in LogParser.BulkLog.Logs)
             {
                 if(log.GetShockwaves(0).Count() > 0){
@@ -69,6 +70,12 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context</MudTd>
+                <MudTd>
+                    @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                {
+                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                }
+            </MudTd>
             @foreach(var log in LogParser.BulkLog.Logs){
                 if(log.GetShockwaves(0).Count() > 0){
                     var data = GetImageForPlayer(log, @context);
