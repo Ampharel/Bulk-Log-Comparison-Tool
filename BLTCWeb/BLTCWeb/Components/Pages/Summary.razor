@@ -1,0 +1,421 @@
+﻿@page "/summary"
+@page "/"
+@using System.Net.Http.Json
+@using Bulk_Log_Comparison_Tool.DataClasses
+@using MudBlazor
+@using System.Globalization
+@rendermode InteractiveServer
+
+
+<h3>Summary</h3>
+@inject ServerParser LogParser
+<LogDrawer OnUpload="StateHasChanged" />
+<div style="overflow-x: auto;">
+
+
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudButton>@GetCurrentLogName()</MudButton>
+        <MudMenu Value=@GetCurrentLogName() Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+            @foreach (var log in LogParser.BulkLog.Logs)
+            {
+                <MudMenuItem OnClick="() => UpdateSelectedLog(log.GetFileName())">@log.GetFileName()</MudMenuItem>
+            }
+        </MudMenu>
+    </MudButtonGroup>
+
+    <MudCard>
+        <MudCardContent>
+            <MudGrid>
+                <MudCheckBox Value="@stealth" ValueChanged="UpdateStealthEvent" Color="Color.Primary">Stealth</MudCheckBox>
+                <MudCheckBox Value="@mechanics" ValueChanged="UpdateMechanicsEvent" Color="Color.Primary">Mechanics</MudCheckBox>
+                <MudCheckBox Value="@shockwaves" ValueChanged="UpdateShockwavesEvent" Color="Color.Primary">Shockwaves</MudCheckBox>
+                <MudCheckBox Value="@downs" ValueChanged="UpdateDownsEvent" Color="Color.Primary">Downs</MudCheckBox>
+                <MudCheckBox Value="@defiance" ValueChanged="UpdateDefianceEvent" Color="Color.Primary">Defiance</MudCheckBox>
+                <MudCheckBox Value="@burst" ValueChanged="UpdateBurstEvent" Color="Color.Primary">Burst</MudCheckBox>
+                <MudCheckBox Value="@boons" ValueChanged="UpdateBoonsEvent" Color="Color.Primary">Boons</MudCheckBox>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+
+    @if (latestLog != null)
+    {
+        if (stealth)
+        {
+            <MudCard><MudCardContent>
+                    <MudTable Items="@latestLog.GetPlayers()"
+                    Hover="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
+                        <HeaderContent>
+                            <MudTh>Player</MudTh>
+                            <MudTh>Specialization</MudTh>
+                            @foreach (var phase in latestLog?.GetStealthPhases() ?? [])
+                            {
+                                <MudTh>@phase</MudTh>
+                            }
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context</MudTd>
+                            <MudTd>
+                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                {
+                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                                }
+                            </MudTd>
+                            @foreach (var phase in latestLog?.GetStealthPhases() ?? [])
+                            {
+                                <MudTd>@latestLog?.GetStealthResult(@context, Bulk_Log_Comparison_Tool.Enums.StealthAlgoritmns.OutlierFiltering).FirstOrDefault(x => x.Item1.Equals(phase)).Item2</MudTd>
+                            }
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent></MudCard>
+        }
+        if (mechanics)
+        {
+            <MudCard><MudCardContent>
+                    <MudGrid>
+                        @foreach (var mechanic in selectedMechanics)
+                        {
+                            <MudItem>
+                                <MudCheckBox T="bool" Value="@mechanic.Value" ValueChanged="(isChecked) => UpdateSelectedMechanic(mechanic.Key, isChecked)" Color="Color.Primary">@mechanic.Key</MudCheckBox>
+                            </MudItem>
+                        }
+                    </MudGrid>
+                    <MudTable Items="@latestLog.GetPlayers()"
+                    Hover="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
+                        <HeaderContent>
+                            <MudTh>Player</MudTh>
+                            <MudTh>Specialization</MudTh>
+                            @foreach (var mechanic in selectedMechanics)
+                            {
+                                if (mechanic.Value)
+                                {
+                                    <MudTh>@mechanic.Key</MudTh>
+                                }
+                            }
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context</MudTd>
+                            <MudTd>
+                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                {
+                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                                }
+                            </MudTd>
+                            @foreach (var mechanic in selectedMechanics)
+                            {
+                                if (mechanic.Value)
+                                {
+                                    <MudTd>@latestLog.GetMechanicLogs(mechanic.Key, "Full Fight").Where(x => x.Item1.Equals(context)).Count()</MudTd>
+                                }
+                            }
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent></MudCard>
+        }
+        if (shockwaves)
+        {
+            <MudCard><MudCardContent>
+                    <MudTable Items="@latestLog.GetPlayers()"
+                    Hover="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="MudBlazor.Color.Info"
+                    Class="flex-table">
+                        <HeaderContent>
+                            <MudTh>Player</MudTh>
+                            <MudTh>Specializations</MudTh>
+                            <MudTh>Shockwaves</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context</MudTd>
+                            <MudTd>
+                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                {
+                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                                }
+                            </MudTd>
+                            @if (latestLog.GetShockwaves(0).Count() > 0)
+                            {
+                                var data = GetImageForPlayer(latestLog, @context);
+                                if (data.Length > 0)
+                                {
+                                    <MudTd>
+                                        <MudImage src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(GetImageForPlayer(latestLog, @context)))" />
+                                    </MudTd>
+                                }
+                                else
+                                {
+                                    <MudTd />
+
+                                }
+                            }
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent></MudCard>
+        }
+        if (downs)
+        {
+            <MudCard><MudCardContent>
+                    <MudTable Items="@latestLog.GetPlayers()"
+                    Hover="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
+                        <HeaderContent>
+                            <MudTh>Player</MudTh>
+                            <MudTh>Specializations</MudTh>
+                            <MudTh>Downs</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context</MudTd>
+                            <MudTd>
+                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                {
+                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                                }
+                            </MudTd>
+                            @foreach (var downReason in latestLog.GetDownReasons(context)){
+                                <MudTd>@downReason</MudTd>
+                            }
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent></MudCard>
+        }
+        if (defiance)
+        {
+            <MudCard><MudCardContent>
+                    <MudTable Items="@latestLog.GetPlayers()"
+                    Hover="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
+                        <HeaderContent>
+                            <MudTh>Player</MudTh>
+                            <MudTh>Specializations</MudTh>
+                            <MudTh>Defiance damage</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context</MudTd>
+                            <MudTd>
+                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                {
+                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                                }
+                            </MudTd>
+                            <MudTd>@latestLog.GetPlayerDps(@context, "Full Fight", true, true, true).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent></MudCard>
+        }
+        if (burst)
+        {
+            <MudCard><MudCardContent>
+                    <MudTable Items="@latestLog.GetPlayers()"
+                    Hover="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
+                        <HeaderContent>
+                            <MudTh>Player</MudTh>
+                            <MudTh>Specializations</MudTh>
+                            <MudTh>Giants</MudTh>
+                            <MudTh>Goliath</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context</MudTd>
+                            <MudTd>
+                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                {
+                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                                }
+                            </MudTd>
+                            <MudTd>@latestLog.GetPlayerDps(@context, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@latestLog.GetPlayerDps(@context, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent></MudCard>
+        }
+        if (boons)
+        {
+            <MudCard><MudCardContent>
+                    <MudTable Items="@latestLog.GetPlayers()"
+                    Hover="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
+                        <HeaderContent>
+                            <MudTh>Player</MudTh>
+                            <MudTh>Specializations</MudTh>
+                            @foreach (var boon in latestLog.GetBoonNames())
+                            {
+
+                                <MudTh>@boon</MudTh>
+                            }
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context</MudTd>
+                            <MudTd>
+                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                {
+                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                                }
+                            </MudTd>
+                            @foreach(var boon in latestLog.GetBoonNames())
+                            {
+                                var boonStackType = latestLog.GetBoonStackType(boon);
+                                if (boonStackType == Bulk_Log_Comparison_Tool.Util.BuffStackTyping.Queue || boonStackType == Bulk_Log_Comparison_Tool.Util.BuffStackTyping.Regeneration)
+                                {
+                                    <MudTd>@latestLog.GetBoon(@context, boon).ToString("P1")</MudTd>
+                                }
+                                else
+                                {
+                                    <MudTd>@latestLog.GetBoon(@context, boon).ToString("N0")</MudTd>
+                                }
+                            }
+                        </RowTemplate>
+                    </MudTable>
+                </MudCardContent></MudCard>
+        }
+    }
+</div>
+
+@code {
+    private WebImageGenerator imageGenerator = new();
+
+    private bool stealth = false;
+    public EventCallback<bool> UpdateStealthEvent;
+
+    private bool mechanics = false;
+    public EventCallback<bool> UpdateMechanicsEvent;
+    private Dictionary<string, bool> selectedMechanics = new();
+
+    private bool shockwaves = false;
+    public EventCallback<bool> UpdateShockwavesEvent;
+
+    private bool downs = false;
+    public EventCallback<bool> UpdateDownsEvent;
+
+    private bool defiance = false;
+    public EventCallback<bool> UpdateDefianceEvent;
+
+    private bool burst = false;
+    public EventCallback<bool> UpdateBurstEvent;
+
+    private bool boons = false;
+    public EventCallback<bool> UpdateBoonsEvent;
+
+    private IParsedEvtcLog? latestLog = null;
+
+    private int _logCount = 0;
+
+    private void OnNewData()
+    {
+        if(LogParser.BulkLog.Logs.Count() > _logCount){
+            latestLog = LogParser.BulkLog.Logs.Last();
+            _logCount = LogParser.BulkLog.Logs.Count();
+        }
+
+        if (latestLog == null)
+        {
+            return;
+        }
+        foreach(var mechanic in latestLog.GetMechanicNames("Full Fight"))
+        {
+            if (!selectedMechanics.ContainsKey(mechanic))
+            {
+                selectedMechanics.Add(mechanic, false);
+            }
+        }
+        StateHasChanged();
+    }
+
+    private void UpdateSelectedLog(string log)
+    {
+        latestLog = LogParser.BulkLog.GetLog(log);
+        OnNewData();
+    }
+
+    private void UpdateStealth(bool value)
+    {
+        stealth = value;
+        OnNewData();
+    }
+
+    private void UpdateMechanics(bool value)
+    {
+        mechanics = value;
+        OnNewData();
+    }
+
+    private void UpdateShockwaves(bool value)
+    {
+        shockwaves = value;
+        OnNewData();
+    }
+
+    private void UpdateDowns(bool value)
+    {
+        downs = value;
+        OnNewData();
+    }
+
+    private void UpdateDefiance(bool value)
+    {
+        defiance = value;
+        OnNewData();
+    }
+
+    private void UpdateBurst(bool value)
+    {
+        burst = value;
+        OnNewData();
+    }
+
+    private void UpdateBoons(bool value)
+    {
+        boons = value;
+        OnNewData();
+    }
+
+    protected override void OnInitialized()
+    {
+        UpdateStealthEvent = EventCallback.Factory.Create<bool>(this, UpdateStealth);
+        UpdateMechanicsEvent = EventCallback.Factory.Create<bool>(this, UpdateMechanics);
+        UpdateShockwavesEvent = EventCallback.Factory.Create<bool>(this, UpdateShockwaves);
+        UpdateDownsEvent = EventCallback.Factory.Create<bool>(this, UpdateDowns);
+        UpdateDefianceEvent = EventCallback.Factory.Create<bool>(this, UpdateDefiance);
+        UpdateBurstEvent = EventCallback.Factory.Create<bool>(this, UpdateBurst);
+        UpdateBoonsEvent = EventCallback.Factory.Create<bool>(this, UpdateBoons);
+        LogParser.NewDataEvent += OnNewData;
+    }
+
+    private void UpdateSelectedMechanic(string mechanic, bool show)
+    {
+        selectedMechanics[mechanic] = show;
+        OnNewData();
+    }
+
+    private byte[] GetImageForPlayer(IParsedEvtcLog Log, string Player)
+    {
+        var shockwaves = GetShockwaves(Log, 0);
+        shockwaves = shockwaves.Concat(GetShockwaves(Log, 1)).ToList();
+        shockwaves = shockwaves.Concat(GetShockwaves(Log, 2)).ToList();
+        return imageGenerator.GetImageBytes(Log, Player, shockwaves); ;
+    }
+
+    private string GetCurrentLogName() => latestLog?.GetFileName() ?? "";
+
+    private List<(long, int)> GetShockwaves(IParsedEvtcLog Log, int shockwaveType)
+    {
+        List<(long, int)> shockwaves = new();
+        foreach (var shockwave in Log.GetShockwaves(shockwaveType))
+        {
+            shockwaves.Add((shockwave, shockwaveType));
+        }
+        return shockwaves;
+    }
+}

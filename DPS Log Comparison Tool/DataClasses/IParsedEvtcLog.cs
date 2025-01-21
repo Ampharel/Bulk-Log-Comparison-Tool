@@ -37,5 +37,6 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public (string, long)[] GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0);
         public long GetPhaseStart(string phase);
         public long GetPhaseEnd(string phase);
+        public string[] GetStealthPhases();
     }
 }
