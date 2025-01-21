@@ -23,6 +23,8 @@
         </MudMenu>
     </MudButtonGroup>
 
+    @if (latestLog != null)
+    {
     <MudCard>
         <MudCardContent>
             <MudGrid>
@@ -37,8 +39,6 @@
         </MudCardContent>
     </MudCard>
 
-    @if (latestLog != null)
-    {
         if (stealth)
         {
             <MudCard><MudCardContent>
@@ -58,7 +58,7 @@
                         <RowTemplate>
                             <MudTd>@context</MudTd>
                             <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
                                 {
                                     <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
                                 }
@@ -101,7 +101,7 @@
                         <RowTemplate>
                             <MudTd>@context</MudTd>
                             <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
                                 {
                                     <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
                                 }
@@ -133,7 +133,7 @@
                         <RowTemplate>
                             <MudTd>@context</MudTd>
                             <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
                                 {
                                     <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
                                 }
@@ -173,7 +173,7 @@
                         <RowTemplate>
                             <MudTd>@context</MudTd>
                             <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
                                 {
                                     <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
                                 }
@@ -201,7 +201,7 @@
                         <RowTemplate>
                             <MudTd>@context</MudTd>
                             <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
                                 {
                                     <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
                                 }
@@ -228,7 +228,7 @@
                         <RowTemplate>
                             <MudTd>@context</MudTd>
                             <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
                                 {
                                     <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
                                 }
@@ -259,7 +259,7 @@
                         <RowTemplate>
                             <MudTd>@context</MudTd>
                             <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
                                 {
                                     <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
                                 }

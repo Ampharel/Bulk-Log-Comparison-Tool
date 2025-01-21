@@ -38,6 +38,10 @@ namespace BLCTWeb
         public Image[] GetSpecializationImages(ServerParser parser, string player)
         {
             var specs = parser.GetPlayerSpecs(player);
+            return GetSpecializationImages(specs);
+        }
+        public Image[] GetSpecializationImages(string[] specs)
+        {
             List<Image> images = new List<Image>();
             foreach(var spec in specs)
             {
