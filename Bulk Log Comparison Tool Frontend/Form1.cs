@@ -84,7 +84,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend
                             ["# Adding custom phases can be done using the following syntax:",
                                 "# 1={PhaseName}:{Description}|StartTimeInPhase|Duration",
                                 "# Example:",
-                                "# 1=Primordus:before first chomp|0|14",
+                                "# 1=Primordus:before first chomp|0|25",
                                 "# Lines starting with a # will be ignored"]);
             foreach (var setting in CustomPhaseSettings.GetSettings())
             {

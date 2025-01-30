@@ -1,0 +1,206 @@
+﻿@page "/stealth"
+@using System.Net.Http.Json
+@using MudBlazor
+@using Bulk_Log_Comparison_Tool.LibraryClasses
+@rendermode InteractiveServer
+
+@inject ServerParser LogParser
+<LogDrawer OnUpload="StateHasChanged" />
+
+
+<div style="overflow-x: auto;">
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudButton>@_showType.ToString()</MudButton>
+        <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+            <MudMenuItem OnClick="() => SetShowType(ShowType.Graph)">Graph</MudMenuItem>
+            <MudMenuItem OnClick="() => SetShowType(ShowType.Table)">Table</MudMenuItem>
+        </MudMenu>
+    </MudButtonGroup>
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudButton>@_selectedPhase</MudButton>
+        <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+            @foreach (var log in LogParser.BulkLog.GetStealthPhases())
+            {
+                <MudMenuItem OnClick="() => SetButtonText(log)">@log</MudMenuItem>
+            }
+        </MudMenu>
+    </MudButtonGroup>
+    
+    @{
+        if (!_selectedPhase.Equals("Choose a phase") && _showType == ShowType.Table)
+        {
+            <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+              Hover="true"
+              Breakpoint="Breakpoint.Sm"
+              LoadingProgressColor="Color.Info"
+              Class="flex-table">
+                <HeaderContent>
+                    <MudTh>Player</MudTh>
+                    <MudTh>Specialization</MudTh>
+                    @foreach (var log in LogParser.BulkLog.Logs)
+                    {
+                        <MudTh>@log.GetFileName()</MudTh>
+                    }
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context</MudTd>
+                    <MudTd>
+                            @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                        {
+                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                        }
+                    </MudTd>
+                    @foreach (var log in LogParser.BulkLog.Logs)
+                    {
+                        <MudTd>@log.GetStealthResult(@context, Bulk_Log_Comparison_Tool.Enums.StealthAlgoritmns.OutlierFiltering).FirstOrDefault(x => x.Item1.Equals(_selectedPhase)).Item2</MudTd>
+                    }
+                </RowTemplate>
+            </MudTable>            
+        }
+        else if (!_selectedPhase.Equals("Choose a phase"))
+        {
+    <MudTable Items="@LogParser.BulkLog.Logs"
+              Hover="true"
+              Breakpoint="Breakpoint.Sm"
+              Loading="@_loading"
+              LoadingProgressColor="Color.Info"
+              Class="flex-table">
+        <HeaderContent>
+            <MudTh>@_selectedPhase</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+
+            <MudTd>@context.GetFileName()</MudTd>
+                <MudTd Style="align-content:start">
+                    @{
+                        var right = true;
+                        var rightStyle = "text-align:right";
+                        var leftStyle = "text-align:left";
+                        var stealthTimeline = context.GetStealthTimeline().GetStealthResults(_selectedPhase);
+                        if (stealthTimeline.Phase.Equals(_selectedPhase))
+                        {
+                            var phaseTime = stealthTimeline.PhaseEnd / 1000f;
+                            var miTime = stealthTimeline.MassInvisTime / 1000f;
+                            var stealthTime = stealthTimeline.StealthEventTime / 1000f;
+
+                            var StealthColour = Color.Success;
+                            if(stealthTime - phaseTime > 3.0)
+                            {
+                                StealthColour = Color.Error;
+                            }
+                            else if(stealthTime - phaseTime > 2.0){
+                                StealthColour = Color.Warning;
+                            }
+                            else if(stealthTime - phaseTime < 0.0)
+                            {
+                                StealthColour = Color.Error;
+                            }
+                            <MudTimeline TimelineAlign="TimelineAlign.Start">
+                                <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                                    <ItemContent>
+                                    <MudText Typo="Typo.h6">@phaseTime.ToString("0.##"): Phasing</MudText>
+                                    </ItemContent>
+                                </MudTimelineItem>
+                                <MudTimelineItem Color="@StealthColour" Size="Size.Small">
+                                    <ItemContent>
+                                    <MudText Typo="Typo.h6" Style="text-align:right">@miTime.ToString("0.##"): Mass Invis</MudText>
+                                    </ItemContent>
+                                        <ItemOpposite>
+                                    @if(!stealthTimeline.HadQuickness){
+                                            <MudText Typo="Typo.h6" Color="Color.Error">No quickness</MudText>
+                                        }
+                                        </ItemOpposite>
+                                </MudTimelineItem>
+                                <MudTimelineItem Color="@StealthColour" Size="Size.Small">
+                                    <ItemContent>
+                                    <MudText Typo="Typo.h6">@stealthTime.ToString("0.##"): Stealth</MudText>
+                                    </ItemContent>
+                                </MudTimelineItem>
+
+                            @for (double i = stealthTime; i < stealthTime + 6.0f; i++)
+                            {
+                                var currentStyle = leftStyle;
+                                if (right)
+                                {
+                                    currentStyle = rightStyle;
+                                }
+                                right = !right;
+                                var currTime = i;
+                                    var timedResults = stealthTimeline.Results.Where(x => (x.Time / 1000f) >= currTime && (x.Time / 1000f) <= currTime + 1);
+                                    var hide = timedResults.Count() == 0;
+                                    var bold = false;
+                                    var fontweight = "font-weight:normal";
+                                    <MudTimelineItem Color="Color.Info" Size="Size.Small" HideDot="@hide">
+                                        <ItemDot>@currTime.ToString("0.##")</ItemDot>
+                                    <ItemContent>
+                                        @foreach (var result in timedResults.Where(x => !x.Reason.Equals("Stealth timeout")).Select(result => $"{result.Player} : {result.Reason} @ {(result.Time/1000f).ToString("0.##")}"))
+                                        {
+                                            var style = $"{fontweight};{currentStyle}";
+                                            <MudText Style=@style Typo="Typo.h6">@result</MudText>
+                                            if (bold)
+                                            {
+                                                bold = false;
+                                                fontweight = "font-weight:normal";
+                                            }
+                                            else
+                                            {
+                                                bold = true;
+                                                fontweight = "font-weight:bold";
+                                            }
+                                        }
+                                    </ItemContent>
+                                    <ItemOpposite>
+                                            <br /><br /><br />
+                                    </ItemOpposite>
+                                </MudTimelineItem>
+
+                            }
+                            @{
+
+                                var endStyle = leftStyle;
+                                var stealthEnd = stealthTime + 6.0f;
+                                if (right)
+                                {
+                                    endStyle = rightStyle;
+                                }
+                                right = !right;
+                            <MudTimelineItem Color="Color.Info" Size="Size.Small">
+                                <ItemContent>
+                                        <MudText Style=@endStyle Typo="Typo.h6">@stealthEnd.ToString("0.##"): Stealth Timeout</MudText>
+                                </ItemContent>
+                                </MudTimelineItem>
+                            }
+                    </MudTimeline>
+                    }
+                }
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+    }
+    }
+</div>
+
+@code {
+    private WebImageGenerator imageGenerator = new();
+    private bool _hidePosition;
+    private bool _loading;
+    private string _selectedPhase = "Choose a phase";
+    private List<string> _stealthResults = new List<string>();
+    private ShowType _showType = ShowType.Graph;
+
+    private void SetButtonText(string text)
+    {
+        _selectedPhase = text;
+    }
+
+    private void SetShowType(ShowType type)
+    {
+        _showType = type;
+    }
+
+    private enum ShowType
+    {
+        Graph,
+        Table
+    }
+}

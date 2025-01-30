@@ -1,0 +1,115 @@
+﻿@page "/dps"
+@using System.Net.Http.Json
+@using MudBlazor
+@using System.Globalization
+@rendermode InteractiveServer
+
+@inject ServerParser LogParser
+<LogDrawer OnUpload="StateHasChanged" />
+<div style="overflow-x: auto;">
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudButton>@_selectedPhase</MudButton>
+            <MudMenu Value=@_selectedPhase Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                @foreach (var log in LogParser.BulkLog.GetPhases())
+            {
+                <MudMenuItem OnClick="() => UpdatePhase(log)">@log</MudMenuItem>
+            }
+        </MudMenu>
+    </MudButtonGroup>
+
+    <MudRadioGroup Value="@_cumulative" ValueChanged="UpdateCumulativeEvent">
+        <MudRadio Value="false" Color="Color.Primary">Per Second</MudRadio>
+        <MudRadio Value="true" Color="Color.Primary">Cumulative</MudRadio>
+    </MudRadioGroup>
+
+    <MudRadioGroup Value="@_defiance" ValueChanged="UpdateDefianceEvent">
+        <MudRadio Value="false" Color="Color.Primary">Damage</MudRadio>
+        <MudRadio Value="true" Color="Color.Primary">Defiance</MudRadio>
+    </MudRadioGroup>
+
+    <MudRadioGroup Value="@_allTargets" ValueChanged="UpdateAllTargetsEvent">
+        <MudRadio Value="false" Color="Color.Primary">SingleTarget</MudRadio>
+        <MudRadio Value="true" Color="Color.Primary">AllTargets</MudRadio>
+    </MudRadioGroup>
+
+    <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+              Hover="true"
+              Breakpoint="Breakpoint.Sm"
+              LoadingProgressColor="Color.Info"
+              Class="flex-table">
+        <HeaderContent>
+            <MudTh>Player</MudTh>
+            <MudTh>Specializations</MudTh>
+            @foreach (var log in LogParser.BulkLog.Logs)
+            {
+                <MudTh>@log.GetFileName()</MudTh>
+            }
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context</MudTd>
+            <MudTd>
+                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                {
+                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                }
+             </MudTd>
+            @foreach (var log in LogParser.BulkLog.Logs)
+            {
+                <MudTd>@log.GetPlayerDps(@context, _selectedPhase, _allTargets, _cumulative, _defiance).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+            }
+        </RowTemplate>
+    </MudTable>
+</div>
+
+@code {
+    private bool _cumulative = false;
+    private bool _defiance = false;
+    private bool _allTargets = false;
+    private string _selectedPhase = "";
+
+    private WebImageGenerator imageGenerator = new();
+    public EventCallback<bool> UpdateCumulativeEvent;
+    public EventCallback<bool> UpdateDefianceEvent;
+    public EventCallback<bool> UpdateAllTargetsEvent;
+    public EventCallback<string> UpdatePhaseEvent;
+
+    private void UpdatePhase(string phase)
+    {
+        _selectedPhase = phase;
+        OnNewData();
+    }
+
+    private void OnNewData()
+    {
+        StateHasChanged();
+    }
+
+    private void UpdateCumulative(bool value)
+    {
+        _cumulative = value;
+        OnNewData();
+    }
+
+    private void UpdateDefiance(bool value)
+    {
+        _defiance = value;
+        OnNewData();
+    }
+
+    private void UpdateAllTargets(bool value)
+    {
+        _allTargets = value;
+        OnNewData();
+    }
+
+
+    protected override void OnInitialized()
+    {
+        UpdateCumulativeEvent = EventCallback.Factory.Create<bool>(this, UpdateCumulative);
+        UpdateDefianceEvent = EventCallback.Factory.Create<bool>(this, UpdateDefiance);
+        UpdateAllTargetsEvent = EventCallback.Factory.Create<bool>(this, UpdateAllTargets);
+        UpdatePhaseEvent = EventCallback.Factory.Create<string>(this, UpdatePhase);
+        LogParser.NewDataEvent += OnNewData;
+    }
+
+}

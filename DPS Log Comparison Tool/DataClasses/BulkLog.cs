@@ -76,6 +76,10 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             return Logs.SelectMany(x => x.GetPhases()).Distinct().ToArray();
         }
 
+        public bool IsPlayerInGroup(string player, int group)
+        {
+            return Logs.Any(x => x.IsPlayerInGroup(player, group));
+        }
 
         public string[] GetStealthPhases()
         {

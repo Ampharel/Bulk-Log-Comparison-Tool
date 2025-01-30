@@ -1,0 +1,111 @@
+﻿@page "/mechanics"
+@using System.Net.Http.Json
+@using MudBlazor
+@rendermode InteractiveServer
+
+@inject ServerParser LogParser
+<LogDrawer OnUpload="StateHasChanged" />
+<div style="overflow-x: auto;">
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudButton>@_selectedPhase</MudButton>
+            <MudMenu Value=@_selectedPhase Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                @foreach (var log in LogParser.BulkLog.GetPhases())
+            {
+                <MudMenuItem OnClick="() => UpdatePhase(log)">@log</MudMenuItem>
+            }
+        </MudMenu>
+    </MudButtonGroup>
+
+    <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+        <MudButton>@_selectedMechanic</MudButton>
+            <MudMenu Value=@_selectedMechanic Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                @foreach (var mechanic in LogParser.BulkLog.GetMechanicNames(_selectedPhase))
+            {
+                <MudMenuItem OnClick="() => UpdateMechanics(mechanic)">@mechanic</MudMenuItem>
+            }
+        </MudMenu>
+    </MudButtonGroup>
+
+    <MudRadioGroup Value="@_count" ValueChanged="UpdateCountEvent">
+        <MudRadio Value="false" Color="Color.Primary">Time</MudRadio>
+        <MudRadio Value="true" Color="Color.Primary">Count</MudRadio>
+    </MudRadioGroup>
+
+    <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+              Hover="true"
+              Breakpoint="Breakpoint.Sm"
+              LoadingProgressColor="Color.Info"
+              Class="flex-table">
+        <HeaderContent>
+            <MudTh>Player</MudTh>
+            <MudTh>Specializations</MudTh>
+            @foreach (var log in LogParser.BulkLog.Logs)
+            {
+                <MudTh>@log.GetFileName()</MudTh>
+            }
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context</MudTd>
+                <MudTd>
+                    @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
+                {
+                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                }
+            </MudTd>
+                @foreach (var log in LogParser.BulkLog.Logs)
+            {
+                var mechanics = log.GetMechanicLogs(_selectedMechanic, _selectedPhase).Where(x => x.Item1.Equals(context)).Select(x => (x.Item2 / 1000f).ToString("0.#"));
+                if(mechanics.Count() == 0)
+                {
+                    <MudTd></MudTd>
+                }
+                else{
+                    if (_count)
+                    {
+                        <MudTd>@mechanics.Count()</MudTd>
+                    }
+                    else
+                    {
+                        <MudTd>@mechanics.Aggregate((current, next) => $"{current}, {next}")</MudTd>
+                    }
+                }
+            }
+        </RowTemplate>
+    </MudTable>
+</div>
+
+@code {
+    private WebImageGenerator imageGenerator = new();
+    public EventCallback<bool> UpdateCountEvent;
+    private string _selectedPhase = "";
+    private string _selectedMechanic = "";
+    private bool _count = false;
+
+    private void UpdatePhase(string phase)
+    {
+        _selectedPhase = phase;
+        OnNewData();
+    }
+    private void UpdateMechanics(string mechanic)
+    {
+        _selectedMechanic = mechanic;
+        OnNewData();
+    }
+
+   private void UpdateCount(bool count)
+    {
+        _count = count;
+        OnNewData();
+    }
+
+    private void OnNewData()
+    {
+        StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        UpdateCountEvent = EventCallback.Factory.Create<bool>(this, UpdateCount);
+        LogParser.NewDataEvent += OnNewData;
+    }
+}

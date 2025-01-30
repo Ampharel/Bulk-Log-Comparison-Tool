@@ -1,0 +1,468 @@
+﻿@page "/boons"
+@using System.Net.Http.Json
+@using Bulk_Log_Comparison_Tool.DataClasses
+@using MudBlazor
+@using MudBlazor.Components.Chart.Models
+@using Bulk_Log_Comparison_Tool.Util;
+@rendermode InteractiveServer
+
+<h3>Boons</h3>
+
+@inject ServerParser LogParser
+<LogDrawer OnUpload="StateHasChanged" />
+
+
+<div style="overflow-x: auto;">
+
+    <div>
+        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+            @if(_selectedPhase== "")
+            {
+                <MudButton>Phase</MudButton>
+            }
+            else
+            {
+                <MudButton>@_selectedPhase</MudButton>
+            }
+                <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                    @foreach (var log in LogParser.BulkLog.GetPhases())
+                {
+                    <MudMenuItem OnClick="() => SetPhase(log)">@log</MudMenuItem>
+                }
+            </MudMenu>
+        </MudButtonGroup>
+        <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
+            <MudButton>@CDMToString(_chartDisplayMode)</MudButton>
+                <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                    <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerLog)">Graph Per Log</MudMenuItem>
+                    <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerPlayer )">Graph Per Player</MudMenuItem>
+                    <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.LostTimings)">Boon lost timings</MudMenuItem>
+            </MudMenu>
+            </MudButtonGroup>
+            <MudCheckBox Value="@_showPhases" ValueChanged="ShowPhasesChanged" Color="Color.Primary">Phases</MudCheckBox>
+            @* <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox> *@
+            @foreach (var group in LogParser.BulkLog.GetGroups())
+            {
+            <MudCheckBox T="bool" Value="@IsFullGroupSelected(group)" ValueChanged="(isChecked) => UpdateShowGroupPlayers(group, isChecked)" Color="Color.Primary"> Group @group</MudCheckBox>
+            <MudCard>
+                <MudCardContent>
+                <MudGrid>
+                    @foreach (var player in _showPlayersDict)
+                    {
+                    if (LogParser.IsPlayerInGroup(player.Key, group))
+                    {
+                            foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, player.Key)){
+                                <MudItem>
+                                        <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                                </MudItem>
+                            }
+                            <MudItem>
+                                <MudCheckBox T="bool" Value="@player.Value" ValueChanged="(isChecked) => UpdateShowPlayer(player.Key, isChecked)" Color="Color.Primary">@player.Key</MudCheckBox>
+                            </MudItem>
+                    }
+                }
+                </MudGrid>
+                </MudCardContent>
+            </MudCard>
+        }
+
+        @* <MudCheckBox Value="@_showGroups" ValueChanged="ShowGroupsChanged" Color="Color.Primary">Groups</MudCheckBox>            
+        <MudGrid>
+            @foreach (var group in _showGroupsDict)
+            {
+                <MudItem>
+                    <MudCheckBox T="bool" Value="@group.Value" ValueChanged="(isChecked) => UpdateShowGroup(group.Key, isChecked)" Color="Color.Primary">@group.Key</MudCheckBox>
+                </MudItem>
+            }
+        </MudGrid> *@
+            <MudRadioGroup Value="@_selectedBoon" ValueChanged="SelectedBoonChanged">
+            @foreach (var boonName in LogParser.BulkLog.GetBoonNames())
+            {
+                <MudRadio Value="@boonName" Color="Color.Primary">@boonName</MudRadio>
+            }
+        </MudRadioGroup>
+    </div>
+    @if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
+    {
+        <MudTable Items="@LogParser.BulkLog.Logs"
+                  Hover="true"
+                  Breakpoint="Breakpoint.Sm"
+                  LoadingProgressColor="Color.Info"
+                  Class="flex-table">
+            <HeaderContent>
+                <MudTh>File</MudTh>
+                <MudTh>Graph</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                @{
+                    if (Series.Count() == 0)
+                    {
+                        OnNewData();
+                    }
+                    else
+                    {
+                        if (Series.ContainsKey(context.GetFileName()))
+                        {
+                            var data = Series[context.GetFileName()];
+                            foreach (var dat in data)
+                            {
+                                Console.WriteLine(dat);
+                            }
+                            <MudTd>@context.GetFileName()</MudTd>
+                            <MudTimeSeriesChart ChartType="ChartType.Line"  TimeLabelFormat="mm:ss" ChartSeries="@data" @bind-SelectedIndex="Index" TimeLabelSpacing="@graphTimespan"       
+                        CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+                        }
+                    }
+                }
+             </RowTemplate>
+         </MudTable>
+    }
+    else if(_chartDisplayMode == ChartDisplayMode.GraphPerPlayer)
+    {
+        <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+                  Hover="true"
+                  Breakpoint="Breakpoint.Sm"
+                  LoadingProgressColor="Color.Info"
+                  Class="flex-table">
+            <HeaderContent>
+                <MudTh>File</MudTh>
+                <MudTh>Graph</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                @{
+                    var data = Series[context];
+                }
+                <MudTd>@context</MudTd>
+                    <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="mm:ss" TimeLabelSpacing="@graphTimespan" ChartSeries="@data" @bind-SelectedIndex="Index" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+             </RowTemplate>
+         </MudTable>
+    }
+    else if(_chartDisplayMode == ChartDisplayMode.LostTimings)
+    {
+        <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+                  Hover="true"
+                  Breakpoint="Breakpoint.Sm"
+                  LoadingProgressColor="Color.Info"
+                  Class="flex-table">
+            <HeaderContent>
+                @foreach(var log in @LogParser.BulkLog.Logs)
+                {
+                    <MudTh>@log.GetFileName()</MudTh>
+                }
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context</MudTd>
+
+                @foreach(var log in @LogParser.BulkLog.Logs)
+                {
+                    if (_buffLostTimings.ContainsKey(log.GetFileName()) && _buffLostTimings[log.GetFileName()].ContainsKey(context))
+                    {
+                        <MudTd>@_buffLostTimings[log.GetFileName()][context]
+                        </MudTd>
+                    }
+                }
+             </RowTemplate>
+         </MudTable>
+    }
+</div>
+
+@code {
+
+    private WebImageGenerator imageGenerator = new WebImageGenerator();
+    private int Index = -1; //default value cannot be 0 -> first selectedindex is 0.
+    public ChartOptions Options = new ChartOptions();
+
+    private enum ChartDisplayMode
+    {
+        GraphPerLog,
+        GraphPerPlayer,
+        LostTimings
+    }
+    private ChartDisplayMode _chartDisplayMode = ChartDisplayMode.GraphPerLog;
+    public Dictionary<string, List<TimeSeriesChartSeries>> Series = new();
+    private Dictionary<string, Dictionary<string, string>> _buffLostTimings = new Dictionary<string, Dictionary<string, string>>();
+    public string[] XAxisLabels = {};
+    private string _selectedBoon = "Might";
+    private string _selectedPhase = "";
+    private bool _showPlayers = true;
+    private bool _showPhases = true;
+    private bool _showGraphPerPhase = false;
+    private bool _showGroups = false;
+    public EventCallback<string> SelectedBoonChanged;
+    public EventCallback<bool> ShowPlayersChanged;
+    public EventCallback<bool> ShowGroupsChanged;
+    public EventCallback<bool> ShowPhasesChanged;
+    public EventCallback<string> GroupSelectionChanged;
+
+    private TimeSpan graphTimespan;
+
+    private Dictionary<string, bool> _showPlayersDict = new();
+    private Dictionary<string, bool> _showGroupsDict = new();
+
+    private Dictionary<string, string> _playerColours = new();
+    private string[] Colours = 
+    {
+            Colors.Blue.Accent3, Colors.Teal.Accent3, Colors.Amber.Accent3, Colors.Orange.Accent3, Colors.Red.Accent3,
+            Colors.DeepPurple.Accent3, Colors.Green.Accent3, Colors.LightBlue.Accent3, Colors.Teal.Lighten1, Colors.Amber.Lighten1,
+            Colors.Orange.Lighten1, Colors.Red.Lighten1, Colors.DeepPurple.Lighten1, Colors.Green.Lighten1, Colors.LightBlue.Lighten1,
+            Colors.Amber.Darken2, Colors.Orange.Darken2, Colors.Red.Darken2, Colors.DeepPurple.Darken2, Colors.Gray.Darken2
+    };
+
+    private TimeSpan _graphSpacing = TimeSpan.FromSeconds(30);
+
+    private string CDMToString(ChartDisplayMode cdm)
+    {
+        return cdm switch
+        {
+            ChartDisplayMode.GraphPerLog => "Graph Per Log",
+            ChartDisplayMode.GraphPerPlayer => "Graph Per Player",
+            ChartDisplayMode.LostTimings => "Lost Timings",
+            _ => "Unknown"
+        };
+    }
+
+    private void UpdatePlayerData()
+    {
+        foreach (var player in LogParser.BulkLog.GetPlayers())
+        {
+            if (!_showPlayersDict.ContainsKey(player))
+                _showPlayersDict.Add(player, true);
+            if (!_playerColours.ContainsKey(player))
+                _playerColours.Add(player, Colours[_playerColours.Count % Colours.Length]);
+        }
+        foreach (var group in LogParser.BulkLog.GetGroups())
+        {
+            if (!_showGroupsDict.ContainsKey(group.ToString()))
+                _showGroupsDict.Add(group.ToString(), false);
+        }
+        foreach(var phase in LogParser.BulkLog.GetPhases())
+        {
+            // if (!_showPlayersDict.ContainsKey(phase))
+            //     _showPlayersDict.Add(phase, true);
+            // if (!_playerColours.ContainsKey(phase))
+            //     _playerColours.Add(phase, Colours[_playerColours.Count % Colours.Length]);
+        }
+    }
+
+    private bool IsDurationBuff(BuffStackTyping boonStackType)
+    {
+        if (boonStackType == BuffStackTyping.Queue || boonStackType == BuffStackTyping.Regeneration)
+        {
+            return true;
+        }
+        return false;
+
+    }
+
+    private void SetupDictionaries()
+    {
+        Series = new();
+        _buffLostTimings = new();
+    }
+
+    private void AddLogToDictionaries(IParsedEvtcLog Log){
+        if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
+        {
+            Series.Add(Log.GetFileName(), new List<TimeSeriesChartSeries>());
+        }
+        _buffLostTimings.Add(Log.GetFileName(), new Dictionary<string, string>());
+        foreach (var Player in LogParser.BulkLog.GetPlayers())
+        {
+            if (!_buffLostTimings[Log.GetFileName()].ContainsKey(Player))
+            {
+                _buffLostTimings[Log.GetFileName()].Add(Player, "");
+            }
+            if (_chartDisplayMode == ChartDisplayMode.GraphPerPlayer && (_showPlayersDict.ContainsKey(Player) && !_showPlayersDict[Player]))
+            {
+                Series.Add(Player, new List<TimeSeriesChartSeries>());
+            }
+        }
+    }
+
+    private List<TimeSeriesChartSeries.TimeValue> CreateChartData(string Player, IParsedEvtcLog Log, int maxValue)
+    {
+        List<TimeSeriesChartSeries.TimeValue> chartData = new List<TimeSeriesChartSeries.TimeValue>();
+        var boonEvents = Log.GetBoonTimedEvents(Player, _selectedBoon, _selectedPhase);
+        foreach (var boonEvent in boonEvents)
+        {
+            if (boonEvent.Item1 < 0)
+            {
+                continue;
+            }
+            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)boonEvent.Item1 * 10000L), boonEvent.Item2 > maxValue ? maxValue : boonEvent.Item2));
+            if (boonEvent.Item2 == 0)
+            {
+                _buffLostTimings[Log.GetFileName()][Player] += ("" + (boonEvent.Item1).ToString("0.##") + " ");
+            }
+        }
+        return chartData;
+    }
+
+    private void AddChartDataToGraph(List<TimeSeriesChartSeries.TimeValue> chartData, string Player, string LogName)
+    {
+        if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
+        {
+            var chartSeries = new TimeSeriesChartSeries() { Name = Player, Data = chartData, Type = TimeSeriesDiplayType.Line };
+            Series[LogName].Add(chartSeries);
+        }
+        else
+        {
+            var chartSeries = new TimeSeriesChartSeries() { Name = LogName, Data = chartData, Type = TimeSeriesDiplayType.Line };
+            Series[Player].Add(chartSeries);
+        }
+    }
+
+    private void AddPhaseTimingToGraph(IParsedEvtcLog Log, float maxValue, long time)
+    {
+        foreach (var phase in Log.GetPhases())
+        {
+            var chartData = new List<TimeSeriesChartSeries.TimeValue>();
+            if (phase == "Full Fight" || phase.Contains("Breakbar"))
+            {
+                continue;
+            }
+            var width = (time / 200) * 10000L;
+            var phaseStart = Log.GetPhaseStart(phase);
+            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L), maxValue));
+            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L + width), maxValue));
+            var chartSeries = new TimeSeriesChartSeries() { Name = phase, Data = chartData, FillOpacity = 0.7 ,Type = TimeSeriesDiplayType.Area };
+            Series[Log.GetFileName()].Add(chartSeries);
+        }
+    }
+
+    private void OnNewData()
+    {
+        UpdatePlayerData();
+        SetupDictionaries();
+        var maxTime = 0L;
+        var minTime = long.MaxValue;
+        var duration = IsDurationBuff(LogParser.BulkLog.Logs.First().GetBoonStackType(_selectedBoon));
+        var maxStack = duration ? 30 : 25;
+        if (_selectedBoon == "Swiftness")
+        {
+            maxStack = 60;
+        }
+
+        foreach (var Log in LogParser.BulkLog.Logs)
+        {
+            var endTime = Log.GetPhaseEnd(_selectedPhase);
+            if (endTime > maxTime)
+            {
+                maxTime = endTime;
+            }
+            var startTime = Log.GetPhaseStart(_selectedPhase);
+            if (startTime < minTime)
+            {
+                minTime = startTime;
+            }
+            AddLogToDictionaries(Log);
+            if (_showPlayers)
+            {
+                foreach (var Player in Log.GetPlayers())
+                {
+                    if (!_showPlayersDict[Player]) continue;
+                    var chartData = CreateChartData(Player, Log, maxStack);
+                    _graphSpacing = TimeSpan.FromSeconds(Math.Round(chartData.Select(x => x.DateTime.Ticks).Max()/100000L * 1.0f)*10);
+                    AddChartDataToGraph(chartData, Player, Log.GetFileName());
+                }
+            }
+            if(_showPhases && (_selectedPhase == "" || _selectedPhase == "Full Fight"))
+            {
+                AddPhaseTimingToGraph(Log, maxStack,endTime - startTime);
+            }
+            Options.MaxNumYAxisTicks = maxStack;
+        }
+
+        if(Series.Count == 0)
+        {
+            return;
+        }
+
+        graphTimespan = TimeSpan.FromMilliseconds((maxTime - minTime)/10);
+        //Options.YAxisTicks = 5;
+        Options.YAxisTicks = 1;
+        Options.XAxisLines = false;
+        Options.YAxisLines = true;
+        Options.YAxisRequireZeroPoint = true;
+
+
+        var chartColours = _playerColours.Where(x => _showPlayersDict[x.Key]).Select(x => x.Value).ToList();
+
+        for(int i = chartColours.Count; i < Series.Values.MaxBy(x => x.Count).Count; i++)
+        {
+            chartColours.Add(Colors.Gray.Default);
+        }
+        Options.ChartPalette = chartColours.ToArray();
+
+        StateHasChanged();
+    }
+
+    private void OnBoonSelectionChanged(string boon){
+        _selectedBoon = boon;
+        OnNewData();
+    }
+
+    protected override void OnInitialized()
+    {
+        SelectedBoonChanged = EventCallback.Factory.Create<string>(this, OnBoonSelectionChanged);
+        ShowPlayersChanged = EventCallback.Factory.Create<bool>(this, UpdateShowPlayers);
+        ShowGroupsChanged = EventCallback.Factory.Create<bool>(this, UpdateShowGroups);
+        ShowPhasesChanged = EventCallback.Factory.Create<bool>(this, UpdateShowPhases);
+        LogParser.NewDataEvent += OnNewData;
+
+    }
+
+    private bool IsFullGroupSelected(int group)
+    {
+        var playersInGroup = _showPlayersDict.Select(x => x.Key).Where(x => LogParser.IsPlayerInGroup(x, group));
+        return _showPlayersDict.Where(x => playersInGroup.Contains(x.Key)).All(x => x.Value);
+    }
+
+    private void UpdateShowPlayer(string player, bool isChecked){
+        _showPlayersDict[player] = isChecked;
+        OnNewData();
+    }
+
+    private void UpdateShowGroupPlayers(int group, bool isChecked)
+    {
+        foreach (var player in _showPlayersDict)
+        {
+            if (LogParser.IsPlayerInGroup(player.Key, group))
+            {
+                _showPlayersDict[player.Key] = isChecked;
+            }
+        }
+        OnNewData();
+    }
+
+    private void UpdateShowGroup(string group, bool isChecked){
+        _showGroupsDict[group] = isChecked;
+        OnNewData();
+    }
+
+    private void UpdateShowPhases(bool show){
+        _showPhases = show;
+        OnNewData();
+    }
+    private void UpdateShowPlayers(bool show){
+        _showPlayers = show;
+        OnNewData();
+    }
+
+    private void UpdateShowGroups(bool show){
+        _showGroups = show;
+        OnNewData();
+    }
+
+    private void SetMode(ChartDisplayMode mode)
+    {
+        _chartDisplayMode = mode;
+        OnNewData();
+    }
+
+    private void SetPhase(string text)
+    {
+        _selectedPhase = text;
+        OnNewData();
+    }
+}

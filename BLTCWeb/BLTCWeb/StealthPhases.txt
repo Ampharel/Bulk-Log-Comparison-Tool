@@ -1,0 +1,5 @@
+#This file should contain all expected stealth phases in the PhaseName|DescriptiveName format
+Primordus|Primordus
+Kralkatorrik|Kralkatorrik
+Giants|Giants
+Soo-Won 2|Champions

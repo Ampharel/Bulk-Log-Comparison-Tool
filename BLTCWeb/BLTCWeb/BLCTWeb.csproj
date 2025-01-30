@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\icons\Berserker.png" />
+    <None Include="wwwroot\icons\Bladesworn.png" />
+    <None Include="wwwroot\icons\blank.png" />
+    <None Include="wwwroot\icons\Catalyst.png" />
+    <None Include="wwwroot\icons\chronomancer.png" />
+    <None Include="wwwroot\icons\Daredevil.png" />
+    <None Include="wwwroot\icons\Deadeye.png" />
+    <None Include="wwwroot\icons\death.png" />
+    <None Include="wwwroot\icons\Down.png" />
+    <None Include="wwwroot\icons\Dragonhunter.png" />
+    <None Include="wwwroot\icons\Druid.png" />
+    <None Include="wwwroot\icons\Engineer.png" />
+    <None Include="wwwroot\icons\Firebrand.png" />
+    <None Include="wwwroot\icons\Guardian.png" />
+    <None Include="wwwroot\icons\harbinger.png" />
+    <None Include="wwwroot\icons\Herald.png" />
+    <None Include="wwwroot\icons\Holosmith.png" />
+    <None Include="wwwroot\icons\Jumped.png" />
+    <None Include="wwwroot\icons\Mechanist.png" />
+    <None Include="wwwroot\icons\Mesmer.png" />
+    <None Include="wwwroot\icons\Mirage.png" />
+    <None Include="wwwroot\icons\Necromancer.png" />
+    <None Include="wwwroot\icons\Ranger.png" />
+    <None Include="wwwroot\icons\Reaper.png" />
+    <None Include="wwwroot\icons\Renegade.png" />
+    <None Include="wwwroot\icons\Revenant.png" />
+    <None Include="wwwroot\icons\Scourge.png" />
+    <None Include="wwwroot\icons\Scrapper.png" />
+    <None Include="wwwroot\icons\shield.png" />
+    <None Include="wwwroot\icons\Soulbeast.png" />
+    <None Include="wwwroot\icons\specter.png" />
+    <None Include="wwwroot\icons\Spellbreaker.png" />
+    <None Include="wwwroot\icons\Tempest.png" />
+    <None Include="wwwroot\icons\Thief.png" />
+    <None Include="wwwroot\icons\Untamed.png" />
+    <None Include="wwwroot\icons\vindicator.png" />
+    <None Include="wwwroot\icons\Virtuoso.png" />
+    <None Include="wwwroot\icons\warning.png" />
+    <None Include="wwwroot\icons\Warrior.png" />
+    <None Include="wwwroot\icons\Weaver.png" />
+    <None Include="wwwroot\icons\Willbender.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BLTCWeb.Client\BLCTWeb.Client.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.0.0" />
+    <PackageReference Include="MudBlazor" Version="7.15.0" />
+    <PackageReference Include="SixLabors.ImageSharp" Version="3.1.5" />
+  </ItemGroup>
+
+</Project>
