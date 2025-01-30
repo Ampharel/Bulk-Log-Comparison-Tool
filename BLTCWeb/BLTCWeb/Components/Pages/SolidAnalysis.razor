@@ -9,6 +9,7 @@
 <h3>Solid Analysis</h3>
 @inject ServerParser LogParser
 <LogDrawer OnUpload="StateHasChanged" />
+
 <div style="overflow-x: auto;">
     <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
         <MudButton>@selectedRole.ToString()</MudButton>
@@ -74,18 +75,18 @@
             Class="flex-table">
                 <HeaderContent>
                     <MudTh>Log</MudTh>
-                    <MudTh>Primordus</MudTh>
-                    <MudTh>Kralkatorrik</MudTh>
-                    <MudTh>Giants</MudTh>
-                    <MudTh>Champions</MudTh>
+                    @foreach(var StealthPhase in LogParser.BulkLog.GetStealthPhases())
+                    {
+                        <MudTh>@StealthPhase</MudTh>
+                    }
                 </HeaderContent>
                 <RowTemplate>
                     @{
                         var stealths = context.GetStealthResult(selectedPlayer, Bulk_Log_Comparison_Tool.Enums.StealthAlgoritmns.OutlierFiltering);
                         <MudTd>@context.GetFileName()</MudTd>
-                        foreach(var StealthPhase in context.GetStealthPhases())
+                        foreach(var StealthPhase in LogParser.BulkLog.GetStealthPhases())
                         {
-                            <MudTd>@stealths.Where(x => x.Item1 == StealthPhase).FirstOrDefault().Item2</MudTd>
+                            <MudTd>@stealths.FirstOrDefault(x => x.Item1.Equals(StealthPhase)).Item2</MudTd>
                         }
                     }
                 </RowTemplate>
@@ -418,7 +419,7 @@
                                     <RowTemplate Context="player">
                                         <MudTd>@player</MudTd>
                                         <MudTd>@context.GetBoon(player, "Chilled", "Jormag").ToString("P2")</MudTd>
-                                        <MudTd>@context.GetBoon(player, "Resistance", "Jormag")</MudTd>
+                                        <MudTd>@context.GetBoon(player, "Resistance", "Jormag").ToString("P2")</MudTd>
                                     </RowTemplate>
                                 </MudTable>
                             </MudTd>
@@ -466,8 +467,8 @@
                                             </HeaderContent>
                                             <RowTemplate Context="player">
                                                 <MudTd>@player</MudTd>
-                                                <MudTd>@context.GetBoon(player, "Protection", "", fearTiming, true)</MudTd>
-                                                <MudTd>@context.GetBoon(player, "Resistance", "", fearTiming, true)</MudTd>
+                                                <MudTd>@context.GetBoon(player, "Protection", "", fearTiming, true)s</MudTd>
+                                                <MudTd>@context.GetBoon(player, "Resistance", "", fearTiming, true)s</MudTd>
                                                 <MudTd>@GetCleanseTime(@context, player, fearTiming)</MudTd>
                                                 <MudTd>@GetDamageReduction(@context, player, fearTiming)</MudTd>
                                             </RowTemplate>
@@ -486,6 +487,7 @@
                     <MudCardHeader>
                         <MudText Typo="Typo.h6">Mordemoth waves</MudText>
                     </MudCardHeader>
+                    <MudLink Href="https://htcm-log-analyser.glitch.me/">Use Mimi's tool to look at individual stability</MudLink>
                     <MudTable Items="@LogParser.BulkLog.Logs"
                     Hover="true"
                     Dense="true"
@@ -508,7 +510,7 @@
                                     Class="flex-table">
                                         <HeaderContent>
                                             <MudTh>Player</MudTh>
-                                            @for (int i = 0; i < context.GetShockwaves(0).Count(); i++)
+                                            @for (int i = 1; i < context.GetShockwaves(0).Count()+1; i++)
                                             {
                                                 var waveIndex = i;
                                                 <MudTh>Wave @waveIndex</MudTh>
@@ -518,7 +520,7 @@
                                             <MudTd>@player</MudTd>
                                             @foreach (var shockwaveTiming in context.GetShockwaves(0))
                                             {
-                                                <MudTd>@context.GetBoonAtTime(player, "Stability", shockwaveTiming)</MudTd>
+                                                <MudTd>@context.GetBoonAtTime(player, "Stability", shockwaveTiming) stacks</MudTd>
                                             }
                                         </RowTemplate>
                                     </MudTable>
@@ -538,11 +540,11 @@
                         <MudText Typo="Typo.h6">Damage per Second</MudText>
                     </MudCardHeader>
                     <MudTable Items="@LogParser.BulkLog.Logs"
-                              Hover="true"
-                              Dense="true"
-                              Breakpoint="Breakpoint.Sm"
-                              LoadingProgressColor="Color.Info"
-                              Class="flex-table">
+                    Hover="true"
+                    Dense="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
                             @foreach (var phase in LogParser.BulkLog.GetPhases())
@@ -555,7 +557,7 @@
                             @{
                                 @foreach (var phase in context.GetPhases())
                                 {
-                                    <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false)</MudTh>
+                                    <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
                                 }
                             }
                         </RowTemplate>
@@ -570,24 +572,26 @@
                         <MudText Typo="Typo.h6">Burst</MudText>
                     </MudCardHeader>
                     <MudTable Items="@LogParser.BulkLog.Logs"
-                              Hover="true"
-                              Dense="true"
-                              Breakpoint="Breakpoint.Sm"
-                              LoadingProgressColor="Color.Info"
-                              Class="flex-table">
+                    Hover="true"
+                    Dense="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
                             <MudTh>Timecaster</MudTh>
+                            <MudTh>Saltspray Dragon</MudTh>
                             <MudTh>Giants</MudTh>
                             <MudTh>Goliath (Target: 350k+)</MudTh>
                             <MudTh>Obliterator</MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false)</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                         </RowTemplate>
                     </MudTable>
                 </MudCard>
@@ -602,11 +606,11 @@
                         <MudText Typo="Typo.h6">Damage per Second</MudText>
                     </MudCardHeader>
                     <MudTable Items="@LogParser.BulkLog.Logs"
-                              Hover="true"
-                              Dense="true"
-                              Breakpoint="Breakpoint.Sm"
-                              LoadingProgressColor="Color.Info"
-                              Class="flex-table">
+                    Hover="true"
+                    Dense="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
                             @foreach (var phase in LogParser.BulkLog.GetPhases())
@@ -619,7 +623,7 @@
                             @{
                                 @foreach (var phase in context.GetPhases())
                                 {
-                                    <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false)</MudTh>
+                                    <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
                                 }
                             }
                         </RowTemplate>
@@ -634,24 +638,26 @@
                         <MudText Typo="Typo.h6">Burst</MudText>
                     </MudCardHeader>
                     <MudTable Items="@LogParser.BulkLog.Logs"
-                              Hover="true"
-                              Dense="true"
-                              Breakpoint="Breakpoint.Sm"
-                              LoadingProgressColor="Color.Info"
-                              Class="flex-table">
+                    Hover="true"
+                    Dense="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
                             <MudTh>Timecaster</MudTh>
+                            <MudTh>Saltspray dragon</MudTh>
                             <MudTh>Giants</MudTh>
                             <MudTh>Goliath (Target: 350k+)</MudTh>
                             <MudTh>Obliterator</MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false)</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                         </RowTemplate>
                     </MudTable>
                 </MudCard>
@@ -889,8 +895,8 @@
                                             </HeaderContent>
                                             <RowTemplate Context="player">
                                                 <MudTd>@player</MudTd>
-                                                <MudTd>@context.GetBoon(player, "Protection", "", fearTiming, true)</MudTd>
-                                                <MudTd>@context.GetBoon(player, "Resistance", "", fearTiming, true)</MudTd>
+                                                <MudTd>@context.GetBoon(player, "Protection", "", fearTiming, true)s</MudTd>
+                                                <MudTd>@context.GetBoon(player, "Resistance", "", fearTiming, true)s</MudTd>
                                                 <MudTd>@GetDamageReduction(@context, player, fearTiming)</MudTd>
                                                 <MudTd>@GetCleanseTime(@context, player, fearTiming)</MudTd>
                                             </RowTemplate>
@@ -918,16 +924,18 @@
                         <HeaderContent>
                             <MudTh>Log</MudTh>
                             <MudTh>Timecaster</MudTh>
+                            <MudTh>Saltspray Dragon</MudTh>
                             <MudTh>Giants</MudTh>
                             <MudTh>Goliath (Target: 200k+)</MudTh>
                             <MudTh>Obliterator</MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false)</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                         </RowTemplate>
                     </MudTable>
                 </MudCard>
@@ -980,16 +988,18 @@
                         <HeaderContent>
                             <MudTh>Log</MudTh>
                             <MudTh>Timecaster</MudTh>
+                            <MudTh>Saltspray Dragon</MudTh>
                             <MudTh>Giants</MudTh>
                             <MudTh>Goliath (Target: 275k+)</MudTh>
                             <MudTh>Obliterator</MudTh>
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false)</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false)</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                         </RowTemplate>
                     </MudTable>
                 </MudCard>
@@ -1035,11 +1045,11 @@
                         <MudText Typo="Typo.h6">Damage per Second</MudText>
                     </MudCardHeader>
                     <MudTable Items="@LogParser.BulkLog.Logs"
-                              Hover="true"
-                              Dense="true"
-                              Breakpoint="Breakpoint.Sm"
-                              LoadingProgressColor="Color.Info"
-                              Class="flex-table">
+                    Hover="true"
+                    Dense="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
                             @foreach (var phase in LogParser.BulkLog.GetPhases())
@@ -1052,7 +1062,7 @@
                             @{
                                 @foreach (var phase in context.GetPhases())
                                 {
-                                    <MudTh>@context.GetPlayerDps(selectedPlayer,phase,false,false,false)</MudTh>
+                                    <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
                                 }
                             }
                         </RowTemplate>
@@ -1086,7 +1096,7 @@
 
     private string GetMassInvisString(StealthTimeline Timeline)
     {
-        return $"Mass Invis took {Timeline.MassInvisTime - Timeline.PhaseEnd} seconds";
+        return $"Mass Invis took {(Timeline.MassInvisTime - Timeline.PhaseEnd)/1000f} seconds";
     }
 
     private string GetCleanseTime(IParsedEvtcLog log, string player, long time)

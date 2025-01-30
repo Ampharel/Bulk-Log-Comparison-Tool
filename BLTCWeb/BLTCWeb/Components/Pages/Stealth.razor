@@ -19,9 +19,9 @@
     <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
         <MudButton>@_selectedPhase</MudButton>
         <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
-            @foreach (var log in LogParser.BulkLog.GetStealthPhases())
+            @foreach (var stealthPhase in LogParser.BulkLog.GetStealthPhases())
             {
-                <MudMenuItem OnClick="() => SetButtonText(log)">@log</MudMenuItem>
+                <MudMenuItem OnClick="() => SetButtonText(stealthPhase)">@stealthPhase</MudMenuItem>
             }
         </MudMenu>
     </MudButtonGroup>
