@@ -24,8 +24,8 @@
             {
                 <MudButton>@_selectedPhase</MudButton>
             }
-                <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
-                    @foreach (var log in LogParser.BulkLog.GetPhases())
+            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                @foreach (var log in LogParser.BulkLog.GetPhases())
                 {
                     <MudMenuItem OnClick="() => SetPhase(log)">@log</MudMenuItem>
                 }
@@ -33,35 +33,36 @@
         </MudButtonGroup>
         <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
             <MudButton>@CDMToString(_chartDisplayMode)</MudButton>
-                <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
-                    <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerLog)">Graph Per Log</MudMenuItem>
-                    <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerPlayer )">Graph Per Player</MudMenuItem>
-                    <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.LostTimings)">Boon lost timings</MudMenuItem>
+            <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+                <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.Table)">Table</MudMenuItem>
+                <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerLog)">Graph Per Log</MudMenuItem>
+                <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.GraphPerPlayer )">Graph Per Player</MudMenuItem>
+                <MudMenuItem OnClick="() => SetMode(ChartDisplayMode.LostTimings)">Boon lost timings</MudMenuItem>
             </MudMenu>
-            </MudButtonGroup>
-            <MudCheckBox Value="@_showPhases" ValueChanged="ShowPhasesChanged" Color="Color.Primary">Phases</MudCheckBox>
-            @* <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox> *@
-            @foreach (var group in LogParser.BulkLog.GetGroups())
-            {
+        </MudButtonGroup>
+        <MudCheckBox Value="@_showPhases" ValueChanged="ShowPhasesChanged" Color="Color.Primary">Phases</MudCheckBox>
+        @* <MudCheckBox Value="@_showPlayers" ValueChanged="ShowPlayersChanged" Color="Color.Primary">Players</MudCheckBox> *@
+        @foreach (var group in LogParser.BulkLog.GetGroups())
+        {
             <MudCheckBox T="bool" Value="@IsFullGroupSelected(group)" ValueChanged="(isChecked) => UpdateShowGroupPlayers(group, isChecked)" Color="Color.Primary"> Group @group</MudCheckBox>
             <MudCard>
                 <MudCardContent>
-                <MudGrid>
-                    @foreach (var player in _showPlayersDict)
-                    {
-                    if (LogParser.IsPlayerInGroup(player.Key, group))
-                    {
-                            foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, player.Key)){
-                                <MudItem>
+                    <MudGrid>
+                        @foreach (var player in _showPlayersDict)
+                        {
+                            if (LogParser.IsPlayerInGroup(player.Key, group))
+                            {
+                                foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, player.Key)){
+                                    <MudItem>
                                         <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                                    </MudItem>
+                                }
+                                <MudItem>
+                                    <MudCheckBox T="bool" Value="@player.Value" ValueChanged="(isChecked) => UpdateShowPlayer(player.Key, isChecked)" Color="Color.Primary">@player.Key</MudCheckBox>
                                 </MudItem>
                             }
-                            <MudItem>
-                                <MudCheckBox T="bool" Value="@player.Value" ValueChanged="(isChecked) => UpdateShowPlayer(player.Key, isChecked)" Color="Color.Primary">@player.Key</MudCheckBox>
-                            </MudItem>
-                    }
-                }
-                </MudGrid>
+                        }
+                    </MudGrid>
                 </MudCardContent>
             </MudCard>
         }
@@ -75,7 +76,7 @@
                 </MudItem>
             }
         </MudGrid> *@
-            <MudRadioGroup Value="@_selectedBoon" ValueChanged="SelectedBoonChanged">
+        <MudRadioGroup Value="@_selectedBoon" ValueChanged="SelectedBoonChanged">
             @foreach (var boonName in LogParser.BulkLog.GetBoonNames())
             {
                 <MudRadio Value="@boonName" Color="Color.Primary">@boonName</MudRadio>
@@ -85,10 +86,11 @@
     @if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
     {
         <MudTable Items="@LogParser.BulkLog.Logs"
-                  Hover="true"
-                  Breakpoint="Breakpoint.Sm"
-                  LoadingProgressColor="Color.Info"
-                  Class="flex-table">
+        Hover="true"
+        Dense="true"
+        Breakpoint="Breakpoint.Sm"
+        LoadingProgressColor="Color.Info"
+        Class="flex-table">
             <HeaderContent>
                 <MudTh>File</MudTh>
                 <MudTh>Graph</MudTh>
@@ -110,20 +112,21 @@
                             }
                             <MudTd>@context.GetFileName()</MudTd>
                             <MudTimeSeriesChart ChartType="ChartType.Line"  TimeLabelFormat="mm:ss" ChartSeries="@data" @bind-SelectedIndex="Index" TimeLabelSpacing="@graphTimespan"       
-                        CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+                            CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
                         }
                     }
                 }
-             </RowTemplate>
-         </MudTable>
+            </RowTemplate>
+        </MudTable>
     }
     else if(_chartDisplayMode == ChartDisplayMode.GraphPerPlayer)
     {
         <MudTable Items="@LogParser.BulkLog.GetPlayers()"
-                  Hover="true"
-                  Breakpoint="Breakpoint.Sm"
-                  LoadingProgressColor="Color.Info"
-                  Class="flex-table">
+        Hover="true"
+        Dense="true"
+        Breakpoint="Breakpoint.Sm"
+        LoadingProgressColor="Color.Info"
+        Class="flex-table">
             <HeaderContent>
                 <MudTh>File</MudTh>
                 <MudTh>Graph</MudTh>
@@ -133,17 +136,18 @@
                     var data = Series[context];
                 }
                 <MudTd>@context</MudTd>
-                    <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="mm:ss" TimeLabelSpacing="@graphTimespan" ChartSeries="@data" @bind-SelectedIndex="Index" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
-             </RowTemplate>
-         </MudTable>
+                <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="mm:ss" TimeLabelSpacing="@graphTimespan" ChartSeries="@data" @bind-SelectedIndex="Index" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
+            </RowTemplate>
+        </MudTable>
     }
     else if(_chartDisplayMode == ChartDisplayMode.LostTimings)
     {
         <MudTable Items="@LogParser.BulkLog.GetPlayers()"
-                  Hover="true"
-                  Breakpoint="Breakpoint.Sm"
-                  LoadingProgressColor="Color.Info"
-                  Class="flex-table">
+        Hover="true"
+        Dense="true"
+        Breakpoint="Breakpoint.Sm"
+        LoadingProgressColor="Color.Info"
+        Class="flex-table">
             <HeaderContent>
                 @foreach(var log in @LogParser.BulkLog.Logs)
                 {
@@ -161,8 +165,73 @@
                         </MudTd>
                     }
                 }
-             </RowTemplate>
-         </MudTable>
+            </RowTemplate>
+        </MudTable>
+    }
+    else{
+        <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+        Hover="true"
+        Dense="true"
+        Breakpoint="Breakpoint.Sm"
+        LoadingProgressColor="Color.Info"
+        Class="flex-table">
+            <HeaderContent>
+                <MudTh>Player</MudTh>
+                <MudTh>Specializations</MudTh>
+                @foreach (var log in LogParser.BulkLog.Logs)
+                {
+                    <MudTh>@log.GetFileName()</MudTh>
+                }
+                <MudTh>Average</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                @if (_showPlayersDict.ContainsKey(context) && _showPlayersDict[context])
+                {
+
+                <MudTd>@context</MudTd>
+                <MudTd>
+                    @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, context))
+                    {
+                        <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                    }
+                </MudTd>
+                    var TotalBoon = 0d;
+                    var TotalLogs = 0;
+                    var boonStackType = BuffStackTyping.Queue;
+                    foreach (var log in LogParser.BulkLog.Logs)
+                    {
+
+                        boonStackType = log.GetBoonStackType(_selectedBoon);
+                        var boon = log.GetBoon(@context, _selectedBoon, _selectedPhase);
+                        if (boon > 0)
+                        {
+                            TotalBoon += boon;
+                            TotalLogs++;
+                        }
+                        if (boonStackType == Bulk_Log_Comparison_Tool.Util.BuffStackTyping.Queue || boonStackType == Bulk_Log_Comparison_Tool.Util.BuffStackTyping.Regeneration)
+                        {
+                            <MudTd>@boon.ToString("P1")</MudTd>
+                        }
+                        else
+                        {
+                            <MudTd>@boon.ToString("N0")</MudTd>
+                        }
+                    }
+                    if(TotalLogs > 0)
+                    {
+                        var averageBoon = (TotalBoon / TotalLogs);
+                        if (boonStackType == Bulk_Log_Comparison_Tool.Util.BuffStackTyping.Queue || boonStackType == Bulk_Log_Comparison_Tool.Util.BuffStackTyping.Regeneration)
+                        {
+                            <MudTd>@averageBoon.ToString("P1")</MudTd>
+                        }
+                        else
+                        {
+                            <MudTd>@averageBoon.ToString("N0")</MudTd>
+                        }
+                    }
+                }
+            </RowTemplate>
+        </MudTable>
     }
 </div>
 
@@ -174,11 +243,12 @@
 
     private enum ChartDisplayMode
     {
+        Table,
         GraphPerLog,
         GraphPerPlayer,
         LostTimings
     }
-    private ChartDisplayMode _chartDisplayMode = ChartDisplayMode.GraphPerLog;
+    private ChartDisplayMode _chartDisplayMode = ChartDisplayMode.Table;
     public Dictionary<string, List<TimeSeriesChartSeries>> Series = new();
     private Dictionary<string, Dictionary<string, string>> _buffLostTimings = new Dictionary<string, Dictionary<string, string>>();
     public string[] XAxisLabels = {};
@@ -214,6 +284,7 @@
     {
         return cdm switch
         {
+            ChartDisplayMode.Table => "Table",
             ChartDisplayMode.GraphPerLog => "Graph Per Log",
             ChartDisplayMode.GraphPerPlayer => "Graph Per Player",
             ChartDisplayMode.LostTimings => "Lost Timings",
@@ -334,6 +405,9 @@
     {
         UpdatePlayerData();
         SetupDictionaries();
+        if(ChartDisplayMode.Table == _chartDisplayMode){
+            return;
+        }
         var maxTime = 0L;
         var minTime = long.MaxValue;
         var duration = IsDurationBuff(LogParser.BulkLog.Logs.First().GetBoonStackType(_selectedBoon));
@@ -404,6 +478,7 @@
 
     protected override void OnInitialized()
     {
+        OnNewData();
         SelectedBoonChanged = EventCallback.Factory.Create<string>(this, OnBoonSelectionChanged);
         ShowPlayersChanged = EventCallback.Factory.Create<bool>(this, UpdateShowPlayers);
         ShowGroupsChanged = EventCallback.Factory.Create<bool>(this, UpdateShowGroups);

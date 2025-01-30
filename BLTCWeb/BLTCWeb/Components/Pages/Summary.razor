@@ -22,7 +22,7 @@
             }
         </MudMenu>
     </MudButtonGroup>
-
+    
     @if (latestLog != null)
     {
     <MudCard>
@@ -37,13 +37,26 @@
                 <MudCheckBox Value="@boons" ValueChanged="UpdateBoonsEvent" Color="Color.Primary">Boons</MudCheckBox>
             </MudGrid>
         </MudCardContent>
-    </MudCard>
-
-        if (stealth)
+                </MudCard>
+        @if (mechanics)
         {
+            <MudGrid>
+                @foreach (var mechanic in selectedMechanics)
+                {
+                    <MudItem>
+                        <MudCheckBox T="bool" Value="@mechanic.Value" ValueChanged="(isChecked) => UpdateSelectedMechanic(mechanic.Key, isChecked)" Color="Color.Primary">@mechanic.Key</MudCheckBox>
+                    </MudItem>
+                }
+            </MudGrid>
+        }
+        <MudGrid>
+        @if (stealth)
+        {
+        <MudItem xs="6">
             <MudCard><MudCardContent>
                     <MudTable Items="@latestLog.GetPlayers()"
                     Hover="true"
+                    Dense="true"
                     Breakpoint="Breakpoint.Sm"
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
@@ -69,21 +82,17 @@
                             }
                         </RowTemplate>
                     </MudTable>
-                </MudCardContent></MudCard>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
         }
-        if (mechanics)
+        @if (mechanics)
         {
+        <MudItem xs="6">
             <MudCard><MudCardContent>
-                    <MudGrid>
-                        @foreach (var mechanic in selectedMechanics)
-                        {
-                            <MudItem>
-                                <MudCheckBox T="bool" Value="@mechanic.Value" ValueChanged="(isChecked) => UpdateSelectedMechanic(mechanic.Key, isChecked)" Color="Color.Primary">@mechanic.Key</MudCheckBox>
-                            </MudItem>
-                        }
-                    </MudGrid>
                     <MudTable Items="@latestLog.GetPlayers()"
-                    Hover="true"
+                                      Hover="true"
+                                      Dense="true"
                     Breakpoint="Breakpoint.Sm"
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
@@ -115,13 +124,17 @@
                             }
                         </RowTemplate>
                     </MudTable>
-                </MudCardContent></MudCard>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
         }
-        if (shockwaves)
+        @if (shockwaves)
         {
+        <MudItem xs="6">
             <MudCard><MudCardContent>
                     <MudTable Items="@latestLog.GetPlayers()"
-                    Hover="true"
+                                      Hover="true"
+                                      Dense="true"
                     Breakpoint="Breakpoint.Sm"
                     LoadingProgressColor="MudBlazor.Color.Info"
                     Class="flex-table">
@@ -155,13 +168,17 @@
                             }
                         </RowTemplate>
                     </MudTable>
-                </MudCardContent></MudCard>
+                            </MudCardContent>
+                        </MudCard>
+                    </MudItem>
         }
-        if (downs)
+        @if (downs)
         {
+        <MudItem xs="6">
             <MudCard><MudCardContent>
                     <MudTable Items="@latestLog.GetPlayers()"
-                    Hover="true"
+                                      Hover="true"
+                                      Dense="true"
                     Breakpoint="Breakpoint.Sm"
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
@@ -183,13 +200,17 @@
                             }
                         </RowTemplate>
                     </MudTable>
-                </MudCardContent></MudCard>
+                                </MudCardContent>
+                            </MudCard>
+                        </MudItem>
         }
-        if (defiance)
+        @if (defiance)
         {
+        <MudItem xs="6">
             <MudCard><MudCardContent>
                     <MudTable Items="@latestLog.GetPlayers()"
-                    Hover="true"
+                                      Hover="true"
+                                      Dense="true"
                     Breakpoint="Breakpoint.Sm"
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
@@ -209,13 +230,17 @@
                             <MudTd>@latestLog.GetPlayerDps(@context, "Full Fight", true, true, true).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                         </RowTemplate>
                     </MudTable>
-                </MudCardContent></MudCard>
+                                    </MudCardContent>
+                                </MudCard>
+                            </MudItem>
         }
-        if (burst)
+        @if (burst)
         {
+        <MudItem xs="6">
             <MudCard><MudCardContent>
                     <MudTable Items="@latestLog.GetPlayers()"
-                    Hover="true"
+                                      Hover="true"
+                                      Dense="true"
                     Breakpoint="Breakpoint.Sm"
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
@@ -237,13 +262,17 @@
                             <MudTd>@latestLog.GetPlayerDps(@context, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                         </RowTemplate>
                     </MudTable>
-                </MudCardContent></MudCard>
+                                        </MudCardContent>
+                                    </MudCard>
+                                </MudItem>
         }
-        if (boons)
+        @if (boons)
         {
+        <MudItem xs="6">
             <MudCard><MudCardContent>
                     <MudTable Items="@latestLog.GetPlayers()"
-                    Hover="true"
+                                      Hover="true"
+                                      Dense="true"
                     Breakpoint="Breakpoint.Sm"
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
@@ -278,9 +307,12 @@
                             }
                         </RowTemplate>
                     </MudTable>
-                </MudCardContent></MudCard>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+            }
+        </MudGrid>
         }
-    }
 </div>
 
 @code {

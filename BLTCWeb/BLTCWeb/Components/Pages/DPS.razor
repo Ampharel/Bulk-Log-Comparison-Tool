@@ -9,8 +9,8 @@
 <div style="overflow-x: auto;">
     <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
         <MudButton>@_selectedPhase</MudButton>
-            <MudMenu Value=@_selectedPhase Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
-                @foreach (var log in LogParser.BulkLog.GetPhases())
+        <MudMenu Value=@_selectedPhase Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
+            @foreach (var log in LogParser.BulkLog.GetPhases())
             {
                 <MudMenuItem OnClick="() => UpdatePhase(log)">@log</MudMenuItem>
             }
@@ -33,10 +33,11 @@
     </MudRadioGroup>
 
     <MudTable Items="@LogParser.BulkLog.GetPlayers()"
-              Hover="true"
-              Breakpoint="Breakpoint.Sm"
-              LoadingProgressColor="Color.Info"
-              Class="flex-table">
+    Hover="true"
+    Dense="true"
+    Breakpoint="Breakpoint.Sm"
+    LoadingProgressColor="Color.Info"
+    Class="flex-table">
         <HeaderContent>
             <MudTh>Player</MudTh>
             <MudTh>Specializations</MudTh>
@@ -44,6 +45,8 @@
             {
                 <MudTh>@log.GetFileName()</MudTh>
             }
+            <MudTh>Average</MudTh>
+
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context</MudTd>
@@ -52,10 +55,24 @@
                 {
                     <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
                 }
-             </MudTd>
-            @foreach (var log in LogParser.BulkLog.Logs)
-            {
-                <MudTd>@log.GetPlayerDps(@context, _selectedPhase, _allTargets, _cumulative, _defiance).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+            </MudTd>
+            @{
+                var TotalDps = 0.0;
+                var TotalLogs = 0;
+                foreach (var log in LogParser.BulkLog.Logs)
+                {
+                    var dps = log.GetPlayerDps(@context, _selectedPhase, _allTargets, _cumulative, _defiance);
+                    <MudTd>@dps.ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                    if(dps > 0){
+                        TotalDps += dps;
+                        TotalLogs++;
+                    }
+                }
+                if (TotalLogs > 0)
+                {
+                    var averageDps = TotalDps / TotalLogs;
+                    <MudTd>@averageDps.ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                }
             }
         </RowTemplate>
     </MudTable>
