@@ -30,7 +30,8 @@
         if (!_selectedPhase.Equals("Choose a phase") && _showType == ShowType.Table)
         {
             <MudTable Items="@LogParser.BulkLog.GetPlayers()"
-              Hover="true"
+            Hover="true"
+            Dense="true"
               Breakpoint="Breakpoint.Sm"
               LoadingProgressColor="Color.Info"
               Class="flex-table">
@@ -60,7 +61,8 @@
         else if (!_selectedPhase.Equals("Choose a phase"))
         {
     <MudTable Items="@LogParser.BulkLog.Logs"
-              Hover="true"
+                      Hover="true"
+                      Dense="true"
               Breakpoint="Breakpoint.Sm"
               Loading="@_loading"
               LoadingProgressColor="Color.Info"

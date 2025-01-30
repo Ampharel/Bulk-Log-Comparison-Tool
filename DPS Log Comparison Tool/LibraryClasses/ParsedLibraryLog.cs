@@ -19,7 +19,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         private ParsedEvtcLog _log;
         private string _path;
         private Dictionary<string, (long, long)> _customPhases = new();
-        private static Dictionary<string, string>? _expectedStealthPhases = new();
+        private Dictionary<string, string>? _expectedStealthPhases = new();
 
 
 
@@ -44,7 +44,13 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var stealthPhases = File.ReadAllLines("StealthPhases.txt").Where(x => !x.StartsWith("#") && x.Contains('|')).ToList();
             foreach (var phase in stealthPhases)
             {
-                _expectedStealthPhases.Add(phase.Split('|').First(), phase.Split('|').Last());
+                var splitPhase = phase.Split('|');
+                var bossPhase = splitPhase.First();
+                var description = splitPhase.Last();
+                if (!_expectedStealthPhases.ContainsKey(bossPhase))
+                {
+                    _expectedStealthPhases.Add(bossPhase, description);
+                }
             }
         }
 
@@ -164,10 +170,33 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return dps;
         }
 
+
+        public double GetPlayerDps(string accountName, long time = 0, string phaseName = "",  bool allTarget = false, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All)
+        {
+            var phase = GetPhaseFromName(phaseName);
+            if (phase.Item1 == null)
+                return 0;
+
+            IReadOnlyList<AbstractSingleActor>? target = null;
+            if (phaseName == "Full Fight" && allTarget)
+            {
+                target = _log.FightData.GetPhases(_log).SelectMany(x => x.Targets).DistinctBy(x => x.Character).ToArray();
+            }
+            else
+            {
+                target = phase.Item1.Targets;
+            }
+            if (target == null)
+                return 0;
+            var phaseStart = GetPhaseStart(phaseName);
+            return GetPlayerDps(accountName, phaseStart, phaseStart+time, target.ToArray(), cumulative, defiance, damageType);
+        }
+
         public BuffStackTyping GetBoonStackType(string boonName)
         {
             return ConvertStackTypeEnum(_log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)).Select(x => x.StackType).FirstOrDefault());
         }
+
 
         public double GetBoon(string target, string boonName, string phaseName = "", long time = 0, bool duration = false)
         {
@@ -184,7 +213,13 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 return GetBoon(target, boonName, GetPhaseStart(phaseName), endTime);
             }
         }
-        public List<(double, double)> GetBoonTimedEvents(string target, string boonName, string phaseName = "")
+
+        public double GetBoonAtTime(string target, string boonName, long time)
+        {
+            return GetBoon(target, boonName, time, time+1);
+        }
+
+        public List<(double, double)> GetBoonTimedEvents(string target, string boonName, string phaseName = "", string source = "")
         {
             AbstractSingleActor? Target = _log.PlayerList.FirstOrDefault(x => x.Account == target);
             if (Target == null)
@@ -202,16 +237,16 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 case BuffStackTyping.Stacking:
                 case BuffStackTyping.StackingConditionalLoss:
                 case BuffStackTyping.StackingTargetUniqueSrc:
-                    return GetBoonStackingEvents([target], boonName, phaseName);
+                    return GetBoonStackingEvents([target], boonName, phaseName, source);
                 case BuffStackTyping.Queue:
                 case BuffStackTyping.Regeneration:
-                    return GetBoonDurationEvents([target], boonName, phaseName);
+                    return GetBoonDurationEvents([target], boonName, phaseName, source);
                 default:
                     return new();
             }
         }
 
-        private List<(double, double)> GetBoonStackingEvents(string[] targets, string boonName, string phaseName)
+        private List<(double, double)> GetBoonStackingEvents(string[] targets, string boonName, string phaseName, string source)
         {
             var startTime = GetPhaseStart(phaseName);
             var endTime = GetPhaseEnd(phaseName);
@@ -288,7 +323,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return _log.CombatData.GetBuffDataByIDByDst(ID, Target.AgentItem).ToList();
         }
 
-        private List<(double, double)> GetBoonDurationEvents(string[] targets, string boonName, string phaseName)
+        private List<(double, double)> GetBoonDurationEvents(string[] targets, string boonName, string phaseName, string source)
         {
             var startTime = GetPhaseStart(phaseName);
             var endTime = GetPhaseEnd(phaseName);
@@ -304,7 +339,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 var _buffEvents = new List<AbstractBuffEvent>();
                 foreach(var target in targets)
                 {
-                    _buffEvents.AddRange(GetBuffEventsForTarget(Boon.ID, target));
+                    _buffEvents.AddRange(GetBuffEventsForTarget(Boon.ID, target).Where(x => x.By.Name == source || source == ""));
                 }
                 foreach (var buff in _buffEvents)
                 {
@@ -366,13 +401,15 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
             var Buffs = Target.GetBuffs(BuffEnum.Self, _log, start, end);
             var targetBuffs = new List<Buff>();
-            foreach (var Boon in _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)))
+            foreach (var buff in 
+                _log.StatisticsHelper.PresentBoons.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase)).Concat(
+                    _log.StatisticsHelper.PresentConditions.Where(x => x.Name.Equals(boonName, StringComparison.OrdinalIgnoreCase))))
             {
-                Buffs.TryGetValue(Boon.ID, out var value);
+                Buffs.TryGetValue(buff.ID, out var value);
                 if (value != null)
                 {
                     var uptime = value.Uptime;
-                    if (Boon.StackType == BuffStackType.Queue || Boon.StackType == BuffStackType.Regeneration)
+                    if (buff.StackType == BuffStackType.Queue || buff.StackType == BuffStackType.Regeneration)
                     {
                         uptime /= 100f;
                     }
@@ -443,6 +480,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return _log.MechanicData.GetPresentMechanics(_log, start, end).FirstOrDefault(x => x.FullName.Equals(mechanicName));
         }
 
+        public (string, long)[] GetMechanicLogsForPlayer(string accountName, string mechanicName, string phaseName = "", long start = 0, long end = 0)
+        {
+            return GetMechanicLogs(mechanicName, phaseName, start, end).Where(x => x.Item1 == accountName).ToArray();
+        }
+
         public (string, long)[] GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0)
         {
             if (phaseName != "")
@@ -458,6 +500,8 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var result = _log.MechanicData.GetMechanicLogs(_log, mech, start, end).ToList();
             return result.Select(x => (x.Actor.Account, x.Time - start)).ToArray();
         }
+
+
 
         private BuffStackTyping ConvertStackTypeEnum(BuffStackType type)
         {
@@ -927,6 +971,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         {
             return _log.PlayerList.Select(x => x.Group).Distinct().ToArray();
         }
+
+        public int GetPlayerGroup(string accountName)
+        {
+            return _log.PlayerList.FirstOrDefault(x => x.Account == accountName)?.Group ?? -1;
+        }
+
         public bool IsPlayerInGroup(string accountName, int group)
         {
             return _log.PlayerList.Any(x => x.Account == accountName && x.Group == group);
@@ -1140,6 +1190,150 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     return null;
             }
 
+        }
+
+        public string[] GetFood(string accountName)
+        {
+            var foods = _log.StatisticsHelper.PresentNourishements;
+            var foodsByPlayer = foods.Where(x => _log.PlayerList.FirstOrDefault(x => x.Account == accountName)?.HasBuff(_log, x.ID, 0) ?? false);
+            return foodsByPlayer.Select(x => x.Name).ToArray();
+        }
+
+        public string[] GetEnhancements(string account)
+        {
+            var enhancements = _log.StatisticsHelper.PresentEnhancements;
+            var enhancementsByPlayer = enhancements.Where(x => _log.PlayerList.FirstOrDefault(x => x.Account == account)?.HasBuff(_log, x.ID, 0) ?? false);
+            return enhancementsByPlayer.Select(x => x.Name).ToArray();
+        }
+
+        public bool HasReinforcedArmor(string accountName)
+        {
+            var player = _log.PlayerList.FirstOrDefault(x => x.Account == accountName);
+            if (player == null)
+            {
+                return false;
+            }
+            var hasBuff = player.HasBuff(_log, 9283, player.FirstAware, player.LastAware - player.FirstAware); ;
+            return hasBuff;
+        }
+
+        public long GetPlayerHealth(string accountName)
+        {
+            //Removed from use due to inaccuracy and possible ToC violation
+            var player = _log.PlayerList.FirstOrDefault(x => x.Account == accountName);
+            if (player == null)
+            {
+                return -1;
+            }
+
+            var currentHealthEvents = player.GetHealthUpdates(_log);
+            var damageEvents = _log.CombatData.GetDamageTakenData(player.AgentItem);
+
+            var damageEvent = damageEvents.Where(x => x.HealthDamage > 0).First();
+            var time = damageEvent.Time;
+            var firstHealthUpdate = currentHealthEvents.Skip(1).First();
+            var dmgSum = damageEvents.Where(x => x.Time < firstHealthUpdate.Start).Sum(x => x.HealthDamage);
+
+            var currentHealth = player.GetCurrentHealthPercent(_log, damageEvent.Time);
+            var healthAfterHit = firstHealthUpdate?.Value ?? 1;
+
+            return (long)Math.Round(dmgSum / ((currentHealth - healthAfterHit)/100f));
+        }
+
+        private List<LastLaugh> GetLastLaughs(string accountName, string phaseName, long[] skillIds)
+        {
+            var player = _log.PlayerList.FirstOrDefault(x => x.Account == accountName);
+            if (player == null)
+            {
+                return [];
+            }
+            var damageEvents = _log.CombatData.GetDamageTakenData(player.AgentItem);
+            var lastLaughEvents = damageEvents.Where(x => skillIds.Contains(x.SkillId)).ToList();
+
+            List<LastLaugh> lastLaughs = new();
+            foreach (var lastLaugh in lastLaughEvents.DistinctBy(x => x.Time))
+            {
+                lastLaughs.Add(new LastLaugh(lastLaugh.SkillId, lastLaugh.From.Name, accountName, lastLaugh.Time, lastLaugh.HealthDamage, lastLaugh.ShieldDamage));
+            }
+            return lastLaughs;
+        }   
+
+        public List<LastLaugh> GetLastLaughs(string accountName, string phaseName)
+        {
+            return GetLastLaughs(accountName, phaseName, [64557, 65595, 64585]);
+        }
+
+        public List<LastLaugh> GetChampionLastLaugh(string accountName, string phaseName)
+        {
+            return GetLastLaughs(accountName, phaseName, [64585]);
+        }
+
+        public long[] GetZhaitanFearTimings()
+        {
+            var start = GetPhaseStart("Full Fight");
+            var end = GetPhaseEnd("Full Fight");
+            var mech = GetMechanic("Zhaitan Scream", start, end);
+            if (mech == null)
+            {
+                return [];
+            }
+            var result = _log.MechanicData.GetMechanicLogs(_log, mech, start, end).ToList();
+            return result.Select(x => x.Time).Distinct().ToArray();
+        }
+
+        public (string,long) GetCleanseReactionTime(string player, long fearTime)
+        {
+            var buffRemovedEvents = _log.CombatData.GetBuffRemoveAllData(791).Where(x => x.To.Name.Contains(player));
+            var firstEventAfterFear = buffRemovedEvents.FirstOrDefault(x => x.Time > fearTime-50 && x.Time < fearTime + 6000);
+            var name = firstEventAfterFear?.By.GetFinalMaster().Name.Split(':').Last();
+            if(name == "UNKNOWN")
+            {
+                
+            }
+            return (firstEventAfterFear?.By.GetFinalMaster().Name.Split(':').Last() ?? "", firstEventAfterFear?.Time - fearTime ?? 0);
+        }
+
+        public string[] GetDamageReductionsAtTime(string player, long fearTime)
+        {
+            var playerAgent = _log.PlayerList.FirstOrDefault(x => x.Account == player);
+            var dmgReducts = playerAgent?.GetPresentIncomingDamageModifier(_log);
+            var buffs = playerAgent?.GetBuffs(BuffEnum.Self, _log, fearTime, fearTime + 1);
+            List<string> activeBuffs = new();
+
+            var presentBuffs = _log.StatisticsHelper.PresentBoons.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false)
+                .Concat(_log.StatisticsHelper.PresentSupbuffs.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false))
+                .Concat(_log.StatisticsHelper.PresentOffbuffs.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false))
+                .Concat(_log.StatisticsHelper.PresentNourishements.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false))
+                .Concat(_log.StatisticsHelper.PresentEnhancements.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false))
+                .Concat(_log.StatisticsHelper.PresentGearbuffs.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false))
+                .Concat(_log.StatisticsHelper.PresentDefbuffs.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false)).ToList();
+
+
+            foreach (var buff in presentBuffs)
+            {
+                if(buffs?.TryGetValue(buff.ID, out var value) ?? false)
+                {
+                    activeBuffs.Add(buff.Name);
+                }
+            }
+
+            var barrier = playerAgent.GetCurrentBarrierPercent(_log, fearTime);
+            if (barrier > 0)
+            {
+                activeBuffs.Add($"Barrier {barrier}%");
+            }
+
+            return activeBuffs.ToArray();
+        }
+
+
+        public long GetBoonStripDuringPhase(string player, string phase)
+        {
+            var playerAgent = _log.PlayerList.FirstOrDefault(x => x.Account == player);
+            var start = GetPhaseStart("Full Fight");
+            var end = GetPhaseEnd("Full Fight");
+            var support = playerAgent?.GetToPlayerSupportStats(_log, start, end);
+            return support?.BoonStrips ?? 0;
         }
     }
 }
