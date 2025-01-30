@@ -109,7 +109,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.Compare
             return bmp;
         }
 
-        private SettingsFile _colorFile = new SettingsFile("ColorSettings", new (string, string)[] { ("Mordemoth", "#274e13"), ("Soo-Won", "#0b5394"), ("Obliterator", "#674ea7")});
+        private SettingsFile _colorFile = new SettingsFile("ColorSettings.txt", new (string, string)[] { ("Mordemoth", "#274e13"), ("Soo-Won", "#0b5394"), ("Obliterator", "#674ea7")});
         private Color GetBrushColour(int shockwaveType)
         {
             string hex = "";
