@@ -11,6 +11,7 @@ using Bulk_Log_Comparison_Tool.Enums;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Reflection;
 using System.Xml.Linq;
+using System.Globalization;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
@@ -1031,12 +1032,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             }
             _fileLoaded = true;
 
-            double.TryParse(_shockwaveFile.GetSetting("MordemothSpeed"), out _mordemWaveSpeed);
-            double.TryParse(_shockwaveFile.GetSetting("Soo-WonSpeed"), out _sooWonSpeed);
-            double.TryParse(_shockwaveFile.GetSetting("VoidObliteratorSpeed"), out _obliteratorSpeed);
-            double.TryParse(_shockwaveFile.GetSetting("MordemothDuration"), out _mordemWaveDuration);
-            double.TryParse(_shockwaveFile.GetSetting("Soo-WonDuration"), out _sooWonWaveDuration);
-            double.TryParse(_shockwaveFile.GetSetting("VoidObliteratorDuration"), out _obliteratorWaveDuration);
+            double.TryParse(_shockwaveFile.GetSetting("MordemothSpeed"), new CultureInfo("en-US"), out _mordemWaveSpeed);
+            double.TryParse(_shockwaveFile.GetSetting("Soo-WonSpeed"), new CultureInfo("en-US"), out _sooWonSpeed);
+            double.TryParse(_shockwaveFile.GetSetting("VoidObliteratorSpeed"), new CultureInfo("en-US"), out _obliteratorSpeed);
+            double.TryParse(_shockwaveFile.GetSetting("MordemothDuration"), new CultureInfo("en-US"), out _mordemWaveDuration);
+            double.TryParse(_shockwaveFile.GetSetting("Soo-WonDuration"), new CultureInfo("en-US"), out _sooWonWaveDuration);
+            double.TryParse(_shockwaveFile.GetSetting("VoidObliteratorDuration"), new CultureInfo("en-US"), out _obliteratorWaveDuration);
         }
 
         private double GetShockwaveDuration(ShockwaveType type)
@@ -1074,6 +1075,9 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         {
             var currentTime = shockwaveTime;
             var waveEnd = shockwaveTime + GetShockwaveDuration(type)*1000;
+            Console.WriteLine($"Determining shockwave intersection time for type {type}");
+            Console.WriteLine($"Shockwave duration: {GetShockwaveDuration(type)*1000}");
+            Console.WriteLine($"Shockwave speed: {GetShockwaveSpeed(type)}");
             while (currentTime < waveEnd)
             {
                 var Player = _log.PlayerList.FirstOrDefault(x => x.Account == player);
@@ -1082,10 +1086,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 var shockwaveDistance = Convert.ToInt64((currentTime - shockwaveTime) * GetShockwaveSpeed(type));
                 if (shockwaveDistance > playerDistanceToShockwaveOrigin)
                 {
+                    Console.WriteLine($"Shockwave intersection for player {player} of type {type} happened at {currentTime}");
                     return currentTime;
                 }
                 currentTime += 1;
             }
+            Console.WriteLine($"Player {player} never intersected shockwave of type {type}");
             return 0;//Player never intersected the shockwave
         }
 
@@ -1300,7 +1306,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var buffs = playerAgent?.GetBuffs(BuffEnum.Self, _log, fearTime, fearTime + 1);
             List<string> activeBuffs = new();
 
-            var presentBuffs = _log.StatisticsHelper.PresentBoons.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false)
+            var presentBuffs = _log.StatisticsHelper.PresentBoons.Where(x => x.Name != "Resistance" && x.Name != "Resolution" && (dmgReducts?.Any(y => y.Contains(x.Name)) ?? false))
                 .Concat(_log.StatisticsHelper.PresentSupbuffs.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false))
                 .Concat(_log.StatisticsHelper.PresentOffbuffs.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false))
                 .Concat(_log.StatisticsHelper.PresentNourishements.Where(x => dmgReducts?.Any(y => y.Contains(x.Name)) ?? false))

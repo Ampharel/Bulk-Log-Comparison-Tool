@@ -2,6 +2,7 @@ using BLCTWeb.Client;
 using BLCTWeb.Client.Pages;
 using BLCTWeb.Components;
 using MudBlazor.Services;
+using System.Globalization;
 
 namespace BLCTWeb
 {
@@ -12,6 +13,7 @@ namespace BLCTWeb
             //var sw = new StreamWriter($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\\OutputLog.txt", true);
             //sw.AutoFlush = true;
             //Console.SetOut(sw);
+            CultureInfo.CurrentCulture = new CultureInfo("en-US");
             var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
