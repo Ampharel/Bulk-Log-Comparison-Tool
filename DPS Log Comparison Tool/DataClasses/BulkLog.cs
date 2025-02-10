@@ -71,9 +71,9 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             return Logs.SelectMany(x => x.GetPlayers()).Distinct().ToArray();
         }
 
-        public string[] GetPhases()
+        public string[] GetPhases(string[] filter, bool exclusion = true)
         {
-            return Logs.SelectMany(x => x.GetPhases()).Distinct().ToArray();
+            return Logs.SelectMany(x => x.GetPhases(filter,exclusion)).Distinct().ToArray();
         }
 
         public bool IsPlayerInGroup(string player, int group)
@@ -92,20 +92,14 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
             return Logs.SelectMany(x => x.GetMechanicNames(phaseName, start, end)).Distinct().ToArray();
         }
 
-        public List<string> GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0)
-        {
-            var result = Logs.SelectMany(x => x.GetMechanicLogs(mechanicName, phaseName, start, end)).ToList();
-            return [""];
-        }
+        //public List<string> GetMechanicLogs(string mechanicName, string phaseName = "", long start = 0, long end = 0)
+        //{
+        //    var result = Logs.SelectMany(x => x.GetMechanicLogs(mechanicName, phaseName, start, end)).ToList();
+        //    return [""];
+        //}
 
         public string[] GetBoonNames()
         {
-            var names = GetMechanicNames("Full Fight");
-            if(names.Length == 0)
-            {
-                return [""];
-            }
-            var mechs = GetMechanicLogs(names.First(), "Full Fight", 0, 0);
             return Logs.SelectMany(x => x.GetBoonNames()).Distinct().ToArray();
         }
 

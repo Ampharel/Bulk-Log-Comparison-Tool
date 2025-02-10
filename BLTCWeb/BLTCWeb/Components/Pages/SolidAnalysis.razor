@@ -4,6 +4,7 @@
 @using Bulk_Log_Comparison_Tool.LibraryClasses
 @using MudBlazor
 @using System.Globalization
+@using Bulk_Log_Comparison_Tool.Util
 @rendermode InteractiveServer
 
 <h3>Solid Analysis</h3>
@@ -56,8 +57,14 @@
                 <RowTemplate>
                     <MudTd>@context.GetFileName()</MudTd>
                     <MudTd><MudCheckBox T="bool" Value="@context.HasReinforcedArmor(selectedPlayer)" Disabled="true">Reinforced Armor</MudCheckBox></MudTd>
-                    <MudTd>@context.GetFood(selectedPlayer).Aggregate("", (current, next) => current + "\n" + next)</MudTd>
-                    <MudTd>@context.GetEnhancements(selectedPlayer).Aggregate("", (current, next) => current + "\n" + next)</MudTd>
+                    @{
+                        var food = context.GetFood(selectedPlayer).Aggregate("", (current, next) => current + " | " + next);
+                        food = food.TrimStart(' ', '|');
+                        var enchancements = context.GetEnhancements(selectedPlayer).Aggregate("", (current, next) => current + " | " + next);
+                        enchancements = enchancements.TrimStart(' ', '|');
+                        <MudTd>@food</MudTd>
+                            <MudTd>@enchancements</MudTd>
+                    }
                 </RowTemplate>
             </MudTable>
         </MudCard>
@@ -130,8 +137,8 @@
                         <MudTd>@context.GetFileName()</MudTd>                        
                         <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Void Explosion", "Full Fight").Count()</MudTd>
                         <MudTd>@context.GetChampionLastLaugh(selectedPlayer, "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Red Bait", "Full Fight").Count() / @context.GetMechanicLogs("Red Bait", "Full Fight").DistinctBy(x => x.Item2).Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Spread Bait", "Full Fight").Count() / @context.GetMechanicLogs("Spread Bait", "Full Fight").DistinctBy(x => x.Item2).Count()</MudTd>
+                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Red Bait", "Full Fight").Count() / @context.GetMechanicLogs("Red Bait", "Full Fight").Select(x => x.Item2).GetUniqueElementsWithinTolerance(1000).Count()</MudTd>
+                                <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Spread Bait", "Full Fight").Count() / @context.GetMechanicLogs("Spread Bait", "Full Fight").Select(x => x.Item2).GetUniqueElementsWithinTolerance(1000).Count()</MudTd>
                         <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Targeted Expulsion", "Full Fight").Count()</MudTd>                        
                         <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Void Pool", "Full Fight").Count()</MudTd>
                         <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Mordemoth Shockwave", "Full Fight").Count()</MudTd>
@@ -195,14 +202,14 @@
             Class="flex-table">
                 <HeaderContent>
                     <MudTh>Log</MudTh>
-                    @foreach (var phase in LogParser.BulkLog.GetPhases())
+                    @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar","Giants"], false))
                     {
                         <MudTh>@phase</MudTh>
                     }
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd>@context.GetFileName()</MudTd>
-                    @foreach (var phase in LogParser.BulkLog.GetPhases())
+                    @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar", "Giants"], false))
                     {
                         <MudTh>@context.GetPlayerDps(selectedPlayer, phase, true, true, true)</MudTh>
                     }
@@ -231,14 +238,14 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Alacrity", phase).ToString("P2")</MudTh>
                             }
@@ -258,14 +265,14 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Protection", phase).ToString("P2")</MudTh>
                             }
@@ -286,14 +293,14 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Swiftness", phase).ToString("P2")</MudTh>
                             }
@@ -314,14 +321,14 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Regen", phase).ToString("P2")</MudTh>
                             }
@@ -342,14 +349,14 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Might", phase).ToString("N1")</MudTh>
                             }
@@ -370,14 +377,14 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Fury", phase).ToString("P2")</MudTh>
                             }
@@ -548,7 +555,7 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar", "Purification"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
@@ -556,7 +563,7 @@
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
                             @{
-                                @foreach (var phase in context.GetPhases())
+                                @foreach (var phase in context.GetPhases(["Breakbar", "Purification"]))
                                 {
                                     <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
                                 }
@@ -614,7 +621,7 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar","Purification"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
@@ -622,7 +629,7 @@
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
                             @{
-                                @foreach (var phase in context.GetPhases())
+                                @foreach (var phase in context.GetPhases(["Breakbar", "Purification"]))
                                 {
                                     <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
                                 }
@@ -656,9 +663,9 @@
                             <MudTd>@context.GetFileName()</MudTd>
                             <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                             <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 15000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 15000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 15000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                         </RowTemplate>
                     </MudTable>
                 </MudCard>
@@ -668,6 +675,7 @@
             <MudButton OnClick="OnBoonsExpandCollapseClick">@(_boonsExpanded ? "Boons" : "Boons")</MudButton>
             <MudDivider />
             <MudCollapse Expanded="_boonsExpanded">
+                <MudText>For these boons the kite is not taken into account. This should still be checked manually that it's not extermely low, but depending on the kite some drops are expected</MudText>
                 <MudCard>
                     <MudCardHeader>
                         <MudText Typo="Typo.h6">Quickness</MudText>
@@ -680,16 +688,16 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Quickness", phase).ToString("P2")</MudTh>
+                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Quickness", phase, ignoreKite:true).ToString("P2")</MudTh>
                             }
                         </RowTemplate>
                     </MudTable>
@@ -707,16 +715,16 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Protection", phase).ToString("P2")</MudTh>
+                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Protection", phase, ignoreKite:true).ToString("P2")</MudTh>
                             }
                         </RowTemplate>
                     </MudTable>
@@ -735,16 +743,16 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Swiftness", phase).ToString("P2")</MudTh>
+                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Swiftness", phase, ignoreKite: true).ToString("P2")</MudTh>
                             }
                         </RowTemplate>
                     </MudTable>
@@ -763,16 +771,16 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Might", phase).ToString("N1")</MudTh>
+                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Might", phase, ignoreKite: true).ToString("N1")</MudTh>
                             }
                         </RowTemplate>
                     </MudTable>
@@ -791,16 +799,16 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Fury", phase).ToString("P2")</MudTh>
+                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Fury", phase, ignoreKite: true).ToString("P2")</MudTh>
                             }
                         </RowTemplate>
                     </MudTable>
@@ -958,14 +966,14 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                             {
                                 <MudTh>@context.GetBoonStripDuringPhase(selectedPlayer, phase)</MudTh>
                             }
@@ -1053,7 +1061,7 @@
                     Class="flex-table">
                         <HeaderContent>
                             <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases())
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar","Purification"]))
                             {
                                 <MudTh>@phase</MudTh>
                             }
@@ -1061,7 +1069,7 @@
                         <RowTemplate>
                             <MudTd>@context.GetFileName()</MudTd>
                             @{
-                                @foreach (var phase in context.GetPhases())
+                                @foreach (var phase in context.GetPhases(["Breakbar", "Purification"]))
                                 {
                                     <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
                                 }
@@ -1227,4 +1235,5 @@
         DPS,
         Venticator
     }
+    
 }

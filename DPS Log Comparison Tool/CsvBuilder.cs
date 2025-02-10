@@ -59,7 +59,7 @@ namespace Bulk_Log_Comparison_Tool
 
             var Players = logs.GetPlayers();
 
-            foreach (var phaseName in logs.GetPhases())
+            foreach (var phaseName in logs.GetPhases([]))
             {
                 if (FilteredPhases.Contains(phaseName))
                 {

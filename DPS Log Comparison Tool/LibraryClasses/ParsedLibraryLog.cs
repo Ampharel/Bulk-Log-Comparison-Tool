@@ -12,6 +12,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Reflection;
 using System.Xml.Linq;
 using System.Globalization;
+using System.Diagnostics.Metrics;
 
 namespace Bulk_Log_Comparison_Tool.LibraryClasses
 {
@@ -73,9 +74,14 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return _log.LogData.LogStart;
         }
 
-        public string[] GetPhases()
+        public string[] GetPhases(string[] filter, bool exclusion = true)
         {
-            return _log.FightData.GetPhases(_log).Select(x => x.Name).Concat(_customPhases.Select(x => $"{x.Key}|{x.Value.Item1}|{x.Value.Item2}")).ToArray();
+            var allPhases = _log.FightData.GetPhases(_log).Select(x => x.Name).Concat(_customPhases.Select(x => $"{x.Key}|{x.Value.Item1}|{x.Value.Item2}"));
+            if (exclusion)
+            {
+                return allPhases.Where(x => filter.All(y => !x.Contains(y))).ToArray();
+            }
+            return allPhases.Where(x => filter.Any(y => x.Contains(y))).ToArray();
         }
 
         public string[] GetTargets(string phaseName = "")
@@ -381,6 +387,19 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     boonEvents.Add((buff.Time, prevDuration / 1000f));
                     prevTime = buff.Time;
                 }
+                if(prevTime < endTime)
+                {
+                    var leftoverDuration = prevDuration - (endTime - prevTime);
+                    if (leftoverDuration < 0)
+                    {
+                        boonEvents.Add((endTime + leftoverDuration, 0));
+                        boonEvents.Add((endTime, 0));
+                    }
+                    else
+                    {
+                        boonEvents.Add((endTime - 1, leftoverDuration / 1000f));
+                    }
+                }
             }
 
             return boonEvents;
@@ -425,12 +444,21 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return _log.PlayerList.Any(x => x.Account == accountName);
         }
 
-        public double GetBoon(int group, string boonName, string phaseName = "", long time = 0, bool duration = false)
+        public double GetBoon(int group, string boonName, string phaseName = "", long time = 0, bool duration = false, bool ignoreKite = false)
         {
             var groupMembers = _log.PlayerList.Where(x => x.Group == group);
             List<double> boonUptimes = new();
+            if(groupMembers.Count() == 0)
+            {
+                return 0;
+            }
+            var highestToughness = groupMembers.Max(x => x.Toughness);
             foreach (var player in groupMembers)
             {
+                if(ignoreKite && player.Toughness == highestToughness)
+                {
+                    continue;
+                }
                 boonUptimes.Add(GetBoon(player.Account, boonName, phaseName, time, duration));
             }
             if (boonUptimes.Count == 0)
@@ -1201,14 +1229,14 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         public string[] GetFood(string accountName)
         {
             var foods = _log.StatisticsHelper.PresentNourishements;
-            var foodsByPlayer = foods.Where(x => _log.PlayerList.FirstOrDefault(x => x.Account == accountName)?.HasBuff(_log, x.ID, 0) ?? false);
+            var foodsByPlayer = foods.Where(x => _log.PlayerList.FirstOrDefault(x => x.Account == accountName)?.HasBuff(_log, x.ID, 0, _log.FightData.FightDuration) ?? false);
             return foodsByPlayer.Select(x => x.Name).ToArray();
         }
 
         public string[] GetEnhancements(string account)
         {
             var enhancements = _log.StatisticsHelper.PresentEnhancements;
-            var enhancementsByPlayer = enhancements.Where(x => _log.PlayerList.FirstOrDefault(x => x.Account == account)?.HasBuff(_log, x.ID, 0) ?? false);
+            var enhancementsByPlayer = enhancements.Where(x => _log.PlayerList.FirstOrDefault(x => x.Account == account)?.HasBuff(_log, x.ID, 0, _log.FightData.FightDuration) ?? false);
             return enhancementsByPlayer.Select(x => x.Name).ToArray();
         }
 
@@ -1336,8 +1364,8 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         public long GetBoonStripDuringPhase(string player, string phase)
         {
             var playerAgent = _log.PlayerList.FirstOrDefault(x => x.Account == player);
-            var start = GetPhaseStart("Full Fight");
-            var end = GetPhaseEnd("Full Fight");
+            var start = GetPhaseStart(phase);
+            var end = GetPhaseEnd(phase);
             var support = playerAgent?.GetToPlayerSupportStats(_log, start, end);
             return support?.BoonStrips ?? 0;
         }

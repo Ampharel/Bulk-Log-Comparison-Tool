@@ -34,6 +34,25 @@ namespace Bulk_Log_Comparison_Tool.Util
             return sortedDoubles.Where(x => x >= Max * 0.6).ToList();
         }
 
+
+        public static List<long> GetUniqueElementsWithinTolerance(this IEnumerable<long> list, long tolerance)
+        {
+            // Initialize the result list
+            var uniqueList = new List<long>();
+
+            // Iterate through the sorted list
+            foreach (var element in list)
+            {
+                // If the list is empty or the current element is not within the tolerance of the last added element, add it
+                if (!uniqueList.Any() || uniqueList.Select(x => Math.Abs(x - element)).Min() > tolerance)
+                {
+                    uniqueList.Add(element);
+                }
+            }
+
+            return uniqueList;
+        }
+
     }
 
     public enum DamageTyping

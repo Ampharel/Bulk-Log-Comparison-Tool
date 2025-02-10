@@ -12,13 +12,13 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public double GetPlayerDps(string accountName, string phaseName = "", bool allTarget = false, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
         public double GetPlayerDps(string accountName, long time = 0, string phaseName = "",  bool allTarget = false, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
         protected double GetPlayerDps(string accountName, long start, long end, AbstractSingleActor[] targets, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
-        public string[] GetPhases();
+        public string[] GetPhases(string[] filter, bool exclusion = true);
         public void AddPhase(string name, long start, long duration);
         public string[] GetTargets(string phaseName = "");
         public double GetBoon(string target, string boonName, string phaseName = "", long time = 0, bool duration = false);
         public double GetBoonAtTime(string target, string boonName, long time);
         public List<(double,double)> GetBoonTimedEvents(string target, string boonName, string phaseName = "", string source = "");
-        public double GetBoon(int group, string boonName, string phaseName = "", long time = 0, bool duration = false);
+        public double GetBoon(int group, string boonName, string phaseName = "", long time = 0, bool duration = false, bool ignoreKite = false);
         public long[] GetShockwaves(int shockwaveType);
         public bool HasPlayer(string accountName);
         public bool HasStabDuringShockwave(string player, ShockwaveType type, long shockwaveTime, out long intersectionTime);

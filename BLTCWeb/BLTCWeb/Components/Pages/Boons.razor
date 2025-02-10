@@ -25,7 +25,7 @@
                 <MudButton>@_selectedPhase</MudButton>
             }
             <MudMenu Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
-                @foreach (var log in LogParser.BulkLog.GetPhases())
+                @foreach (var log in LogParser.BulkLog.GetPhases(["Breakbar"]))
                 {
                     <MudMenuItem OnClick="() => SetPhase(log)">@log</MudMenuItem>
                 }
@@ -306,13 +306,6 @@
             if (!_showGroupsDict.ContainsKey(group.ToString()))
                 _showGroupsDict.Add(group.ToString(), false);
         }
-        foreach(var phase in LogParser.BulkLog.GetPhases())
-        {
-            // if (!_showPlayersDict.ContainsKey(phase))
-            //     _showPlayersDict.Add(phase, true);
-            // if (!_playerColours.ContainsKey(phase))
-            //     _playerColours.Add(phase, Colours[_playerColours.Count % Colours.Length]);
-        }
     }
 
     private bool IsDurationBuff(BuffStackTyping boonStackType)
@@ -385,7 +378,7 @@
 
     private void AddPhaseTimingToGraph(IParsedEvtcLog Log, float maxValue, long time)
     {
-        foreach (var phase in Log.GetPhases())
+        foreach (var phase in Log.GetPhases(["Breakbar"]))
         {
             var chartData = new List<TimeSeriesChartSeries.TimeValue>();
             if (phase == "Full Fight" || phase.Contains("Breakbar"))

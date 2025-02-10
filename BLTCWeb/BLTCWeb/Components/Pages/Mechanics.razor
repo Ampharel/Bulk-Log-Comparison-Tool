@@ -9,7 +9,7 @@
     <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
         <MudButton>@_selectedPhase</MudButton>
             <MudMenu Value=@_selectedPhase Icon="@Icons.Material.Filled.ArrowDropDown" Style="align-self: auto;">
-                @foreach (var log in LogParser.BulkLog.GetPhases())
+            @foreach (var log in LogParser.BulkLog.GetPhases(["Breakbar"]))
             {
                 <MudMenuItem OnClick="() => UpdatePhase(log)">@log</MudMenuItem>
             }
