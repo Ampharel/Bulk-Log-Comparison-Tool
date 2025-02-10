@@ -63,7 +63,7 @@
                         var enchancements = context.GetEnhancements(selectedPlayer).Aggregate("", (current, next) => current + " | " + next);
                         enchancements = enchancements.TrimStart(' ', '|');
                         <MudTd>@food</MudTd>
-                            <MudTd>@enchancements</MudTd>
+                        <MudTd>@enchancements</MudTd>
                     }
                 </RowTemplate>
             </MudTable>
@@ -138,7 +138,7 @@
                         <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Void Explosion", "Full Fight").Count()</MudTd>
                         <MudTd>@context.GetChampionLastLaugh(selectedPlayer, "Full Fight").Count()</MudTd>
                         <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Red Bait", "Full Fight").Count() / @context.GetMechanicLogs("Red Bait", "Full Fight").Select(x => x.Item2).GetUniqueElementsWithinTolerance(1000).Count()</MudTd>
-                                <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Spread Bait", "Full Fight").Count() / @context.GetMechanicLogs("Spread Bait", "Full Fight").Select(x => x.Item2).GetUniqueElementsWithinTolerance(1000).Count()</MudTd>
+                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Spread Bait", "Full Fight").Count() / @context.GetMechanicLogs("Spread Bait", "Full Fight").Select(x => x.Item2).GetUniqueElementsWithinTolerance(1000).Count()</MudTd>
                         <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Targeted Expulsion", "Full Fight").Count()</MudTd>                        
                         <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Void Pool", "Full Fight").Count()</MudTd>
                         <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Mordemoth Shockwave", "Full Fight").Count()</MudTd>
@@ -220,181 +220,213 @@
 
     <MudDivider />
     <MudDivider />
-    @switch(selectedRole)
+    @if(selectedRole == Role.HealKite || selectedRole == Role.QuickDps)
     {
-        case Role.HealKite:
-            <MudButton OnClick="OnBoonsExpandCollapseClick">@(_boonsExpanded ? "Boons" : "Boons")</MudButton>
+        var heal = selectedRole == Role.HealKite;
+        <MudButton OnClick="OnBoonsExpandCollapseClick">@(_boonsExpanded ? "Boons" : "Boons")</MudButton>
+        <MudDivider />
+        <MudCollapse Expanded="_boonsExpanded">
+            @if(heal){
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Alacrity</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@phase</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Alacrity", phase).ToString("P2")</MudTh>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+            }
+            else{
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Quickness</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@phase</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Quickness", phase, ignoreKite:!heal).ToString("P2")</MudTh>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
             <MudDivider />
-            <MudCollapse Expanded="_boonsExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Alacrity</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Alacrity", phase).ToString("P2")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-                <MudDivider />
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Protection</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Protection", phase).ToString("P2")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-                <MudDivider />
-
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Swiftness</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Swiftness", phase).ToString("P2")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-                <MudDivider />
-
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Regen</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Regen", phase).ToString("P2")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-                <MudDivider />
-
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Might</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Might", phase).ToString("N1")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-                <MudDivider />
-
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Fury</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Fury", phase).ToString("P2")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-
-            <MudButton OnClick="OnChillExpandCollapseClick">@(_fearExpanded ? "Chill" : "Chill")</MudButton>
+            }
             <MudDivider />
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Protection</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@phase</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Protection", phase, ignoreKite:!heal).ToString("P2")</MudTh>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+            <MudDivider />
+
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Swiftness</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@phase</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Swiftness", phase, ignoreKite:!heal).ToString("P2")</MudTh>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+            <MudDivider />
+            @if(heal){
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Regen</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@phase</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Regen", phase).ToString("P2")</MudTh>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+            <MudDivider />
+            }
+
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Might</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@phase</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Might", phase, ignoreKite:!heal).ToString("N1")</MudTh>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+            <MudDivider />
+
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Fury</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@phase</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Fury", phase, ignoreKite: !heal).ToString("P2")</MudTh>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+        </MudCollapse>
+        if(heal){
+        <MudButton OnClick="OnChillExpandCollapseClick">@(_fearExpanded ? "Chill" : "Chill")</MudButton>
+                <MudDivider />
             <MudCollapse Expanded="_chillExpanded">
                 <MudCard>
                     <MudCardHeader>
@@ -435,650 +467,243 @@
                     </MudTable>
                 </MudCard>
             </MudCollapse>
-            <MudButton OnClick="OnFearExpandCollapseClick">@(_fearExpanded ? "Fear" : "Fear")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_fearExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Zhaitan Fear</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            <MudTh>Fear 1</MudTh>
-                            <MudTh>Fear 2</MudTh>
-                            <MudTh>Fear 3</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @{
-                                foreach (var fearTiming in context.GetZhaitanFearTimings())
-                                {
-                                    <MudTd>
-                                        <MudTable Items="@context.GetPlayers().Where(x => context.IsPlayerInGroup(x, context.GetPlayerGroup(selectedPlayer)))"
-                                        Hover="true"
-                                        Dense="true"
-                                        Breakpoint="Breakpoint.Sm"
-                                        LoadingProgressColor="Color.Info"
-                                        Class="flex-table">
-                                            <HeaderContent>
-                                                <MudTh>Player</MudTh>
-                                                <MudTh>Protection</MudTh>
-                                                <MudTh>Resistance</MudTh>
-                                                <MudTh>Cleanse Reactiontime</MudTh>
-                                                <MudTh>Damage Reduction</MudTh>
-                                            </HeaderContent>
-                                            <RowTemplate Context="player">
-                                                <MudTd>@player</MudTd>
-                                                <MudTd>@context.GetBoon(player, "Protection", "", fearTiming, true)s</MudTd>
-                                                <MudTd>@context.GetBoon(player, "Resistance", "", fearTiming, true)s</MudTd>
-                                                <MudTd>@GetCleanseTime(@context, player, fearTiming)</MudTd>
-                                                <MudTd>@GetDamageReduction(@context, player, fearTiming)</MudTd>
-                                            </RowTemplate>
-                                        </MudTable>
-                                    </MudTd>
-                                }
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            <MudButton OnClick="OnStabExpandCollapseClick">@(_stabExpanded ? "Mordremoth Stability" : "Mordremoth Stability")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_stabExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Mordemoth waves</MudText>
-                    </MudCardHeader>
-                    <MudLink Href="https://htcm-log-analyser.glitch.me/">Use Mimi's tool to look at individual stability</MudLink>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            <MudTh>Shockwaves</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @{
-                                <MudTd>
-                                    <MudTable Items="@context.GetPlayers().Where(x => context.IsPlayerInGroup(x, context.GetPlayerGroup(selectedPlayer)))"
-                                    Hover="true"
-                                    Dense="true"
-                                    Breakpoint="Breakpoint.Sm"
-                                    LoadingProgressColor="Color.Info"
-                                    Class="flex-table">
-                                        <HeaderContent>
-                                            <MudTh>Player</MudTh>
-                                            @for (int i = 1; i < context.GetShockwaves(0).Count()+1; i++)
-                                            {
-                                                var waveIndex = i;
-                                                <MudTh>Wave @waveIndex</MudTh>
-                                            }
-                                        </HeaderContent>
-                                        <RowTemplate Context="player">
-                                            <MudTd>@player</MudTd>
-                                            @foreach (var shockwaveTiming in context.GetShockwaves(0))
-                                            {
-                                                <MudTd>@context.GetBoonAtTime(player, "Stability", shockwaveTiming) stacks</MudTd>
-                                            }
-                                        </RowTemplate>
-                                    </MudTable>
-                                </MudTd>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            break;
-        case Role.DPS:
-            <MudButton OnClick="OnDpsExpandCollapseClick">@(_dpsExpanded ? "Dps" : "Dps")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_dpsExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Damage per Second</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar", "Purification"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @{
-                                @foreach (var phase in context.GetPhases(["Breakbar", "Purification"]))
-                                {
-                                    <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
-                                }
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            <MudButton OnClick="OnBurstExpandCollapseClick">@(_burstExpanded ? "Burst" : "Burst")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_burstExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Burst</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            <MudTh>Timecaster</MudTh>
-                            <MudTh>Saltspray Dragon</MudTh>
-                            <MudTh>Giants</MudTh>
-                            <MudTh>Goliath (Target: 350k+)</MudTh>
-                            <MudTh>Obliterator</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            break;
-        case Role.Venticator:
-            <MudButton OnClick="OnDpsExpandCollapseClick">@(_dpsExpanded ? "Dps" : "Dps")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_dpsExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Damage per Second</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar","Purification"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @{
-                                @foreach (var phase in context.GetPhases(["Breakbar", "Purification"]))
-                                {
-                                    <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
-                                }
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            <MudButton OnClick="OnBurstExpandCollapseClick">@(_burstExpanded ? "Burst" : "Burst")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_burstExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Burst</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            <MudTh>Timecaster</MudTh>
-                            <MudTh>Saltspray dragon</MudTh>
-                            <MudTh>Giants</MudTh>
-                            <MudTh>Goliath (Target: 350k+)</MudTh>
-                            <MudTh>Obliterator</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 15000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 15000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 15000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            break;
-        case Role.QuickDps:
-            <MudButton OnClick="OnBoonsExpandCollapseClick">@(_boonsExpanded ? "Boons" : "Boons")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_boonsExpanded">
-                <MudText>For these boons the kite is not taken into account. This should still be checked manually that it's not extermely low, but depending on the kite some drops are expected</MudText>
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Quickness</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Quickness", phase, ignoreKite:true).ToString("P2")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
+            }
+                <MudButton OnClick="OnFearExpandCollapseClick">@(_fearExpanded ? "Fear" : "Fear")</MudButton>
                 <MudDivider />
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Protection</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                <MudCollapse Expanded="_fearExpanded">
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h6">Zhaitan Fear</MudText>
+                        </MudCardHeader>
+                        <MudTable Items="@LogParser.BulkLog.Logs"
+                        Hover="true"
+                        Dense="true"
+                        Breakpoint="Breakpoint.Sm"
+                        LoadingProgressColor="Color.Info"
+                        Class="flex-table">
+                            <HeaderContent>
+                                <MudTh>Log</MudTh>
+                                <MudTh>Fear 1</MudTh>
+                                <MudTh>Fear 2</MudTh>
+                                <MudTh>Fear 3</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.GetFileName()</MudTd>
+                        @{
+                            foreach (var fearTiming in context.GetZhaitanFearTimings())
                             {
-                                <MudTh>@phase</MudTh>
+                                                <MudTd>
+                                                    <MudTable Items="@context.GetPlayers().Where(x => context.IsPlayerInGroup(x, context.GetPlayerGroup(selectedPlayer)))"
+                                                    Hover="true"
+                                                    Dense="true"
+                                                    Breakpoint="Breakpoint.Sm"
+                                                    LoadingProgressColor="Color.Info"
+                                                    Class="flex-table">
+                                                        <HeaderContent>
+                                                            <MudTh>Player</MudTh>
+                                                            <MudTh>Protection</MudTh>
+                                                            <MudTh>Resistance</MudTh>
+                                                            <MudTh>Cleanse Reactiontime</MudTh>
+                                                            <MudTh>Damage Reduction</MudTh>
+                                                        </HeaderContent>
+                                                        <RowTemplate Context="player">
+                                                            <MudTd>@player</MudTd>
+                                                            <MudTd>@context.GetBoon(player, "Protection", "", fearTiming, true)s</MudTd>
+                                                            <MudTd>@context.GetBoon(player, "Resistance", "", fearTiming, true)s</MudTd>
+                                                            <MudTd>@GetCleanseTime(@context, player, fearTiming)</MudTd>
+                                                            <MudTd>@GetDamageReduction(@context, player, fearTiming)</MudTd>
+                                                        </RowTemplate>
+                                                    </MudTable>
+                                                </MudTd>
                             }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Protection", phase, ignoreKite:true).ToString("P2")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
+                        }
+                            </RowTemplate>
+                        </MudTable>
+                    </MudCard>
+                </MudCollapse>
+                <MudButton OnClick="OnStabExpandCollapseClick">@(_stabExpanded ? "Mordremoth Stability" : "Mordremoth Stability")</MudButton>
                 <MudDivider />
-
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Swiftness</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                <MudCollapse Expanded="_stabExpanded">
+                    <MudCard>
+                        <MudCardHeader>
+                            <MudText Typo="Typo.h6">Mordemoth waves</MudText>
+                        </MudCardHeader>
+                        <MudLink target="_blank" Href="https://htcm-log-analyser.glitch.me/">Use Mimi's tool to look at individual stability</MudLink>
+                        <MudTable Items="@LogParser.BulkLog.Logs"
+                        Hover="true"
+                        Dense="true"
+                        Breakpoint="Breakpoint.Sm"
+                        LoadingProgressColor="Color.Info"
+                        Class="flex-table">
+                            <HeaderContent>
+                                <MudTh>Log</MudTh>
+                                <MudTh>Shockwaves</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.GetFileName()</MudTd>
+                        @{
+                                        <MudTd>
+                                            <MudTable Items="@context.GetPlayers().Where(x => context.IsPlayerInGroup(x, context.GetPlayerGroup(selectedPlayer)))"
+                                            Hover="true"
+                                            Dense="true"
+                                            Breakpoint="Breakpoint.Sm"
+                                            LoadingProgressColor="Color.Info"
+                                            Class="flex-table">
+                                                <HeaderContent>
+                                                    <MudTh>Player</MudTh>
+                                        @for (int i = 1; i < context.GetShockwaves(0).Count() + 1; i++)
+                                        {
+                                            var waveIndex = i;
+                                                            <MudTh>Wave @waveIndex</MudTh>
+                                        }
+                                                </HeaderContent>
+                                                <RowTemplate Context="player">
+                                                    <MudTd>@player</MudTd>
+                                        @foreach (var shockwaveTiming in context.GetShockwaves(0))
+                                        {
+                                                            <MudTd>@context.GetBoonAtTime(player, "Stability", shockwaveTiming) stacks</MudTd>
+                                        }
+                                                </RowTemplate>
+                                            </MudTable>
+                                        </MudTd>
+                        }
+                            </RowTemplate>
+                        </MudTable>
+                    </MudCard>
+                </MudCollapse>
+    }
+    @if(selectedRole == Role.DPS || selectedRole == Role.Venticator || selectedRole == Role.Portal || selectedRole == Role.QuickDps)
+    {
+        <MudButton OnClick="OnDpsExpandCollapseClick">@(_dpsExpanded ? "Dps" : "Dps")</MudButton>
+        <MudDivider />
+        <MudCollapse Expanded="_dpsExpanded">
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Damage per Second</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                          Hover="true"
+                          Dense="true"
+                          Breakpoint="Breakpoint.Sm"
+                          LoadingProgressColor="Color.Info"
+                          Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar", "Purification"]))
+                        {
+                            <MudTh>@phase</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @{
+                            @foreach (var phase in context.GetPhases(["Breakbar", "Purification"]))
                             {
-                                <MudTh>@phase</MudTh>
+                                <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
                             }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Swiftness", phase, ignoreKite: true).ToString("P2")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-                <MudDivider />
-
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Might</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Might", phase, ignoreKite: true).ToString("N1")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-                <MudDivider />
-
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Fury</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoon(context.GetPlayerGroup(selectedPlayer), "Fury", phase, ignoreKite: true).ToString("P2")</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            <MudButton OnClick="OnStabExpandCollapseClick">@(_stabExpanded ? "Stability" : "Stability")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_stabExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Mordemoth Shockwaves</MudText>
-                    </MudCardHeader>
-                    <MudLink Href="https://htcm-log-analyser.glitch.me/">Use Mimi's tool to look at individual stability</MudLink>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            <MudTh>Shockwaves</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @{
-                                <MudTd>
-                                    <MudTable Items="@context.GetPlayers().Where(x => context.IsPlayerInGroup(x, context.GetPlayerGroup(selectedPlayer)))"
-                                    Hover="true"
-                                    Dense="true"
-                                    Breakpoint="Breakpoint.Sm"
-                                    LoadingProgressColor="Color.Info"
-                                    Class="flex-table">
-                                        <HeaderContent>
-                                            <MudTh>Player</MudTh>
-                                            @for (int i = 0; i < context.GetShockwaves(0).Count(); i++)
-                                            {
-                                                var waveIndex = i;
-                                                <MudTh>Wave @waveIndex</MudTh>
-                                            }
-                                        </HeaderContent>
-                                        <RowTemplate Context="player">
-                                            <MudTd>@player</MudTd>
-                                            @foreach (var shockwaveTiming in context.GetShockwaves(0))
-                                            {
-                                                <MudTd>@context.GetBoonAtTime(player, "Stability", shockwaveTiming)</MudTd>
-                                            }
-                                        </RowTemplate>
-                                    </MudTable>
-                                </MudTd>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            <MudButton OnClick="OnFearExpandCollapseClick">@(_fearExpanded ? "Fear" : "Fear")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_fearExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Zhaitan Fear</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            <MudTh>Fear 1</MudTh>
-                            <MudTh>Fear 2</MudTh>
-                            <MudTh>Fear 3</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @{
-                                foreach (var fearTiming in context.GetZhaitanFearTimings())
-                                {
-                                    <MudTd>
-                                        <MudTable Items="@context.GetPlayers().Where(x => context.IsPlayerInGroup(x, context.GetPlayerGroup(selectedPlayer)))"
-                                        Hover="true"
-                                        Dense="true"
-                                        Breakpoint="Breakpoint.Sm"
-                                        LoadingProgressColor="Color.Info"
-                                        Class="flex-table">
-                                            <HeaderContent>
-                                                <MudTh>Player</MudTh>
-                                                <MudTh>Protection</MudTh>
-                                                <MudTh>Resistance</MudTh>
-                                                <MudTh>Damage Reduction</MudTh>
-                                                <MudTh>Cleanse Reactiontime</MudTh>
-                                            </HeaderContent>
-                                            <RowTemplate Context="player">
-                                                <MudTd>@player</MudTd>
-                                                <MudTd>@context.GetBoon(player, "Protection", "", fearTiming, true)s</MudTd>
-                                                <MudTd>@context.GetBoon(player, "Resistance", "", fearTiming, true)s</MudTd>
-                                                <MudTd>@GetDamageReduction(@context, player, fearTiming)</MudTd>
-                                                <MudTd>@GetCleanseTime(@context, player, fearTiming)</MudTd>
-                                            </RowTemplate>
-                                        </MudTable>
-                                    </MudTd>
-                                }
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            <MudButton OnClick="OnBurstExpandCollapseClick">@(_burstExpanded ? "Burst" : "Burst")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_burstExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Burst</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            <MudTh>Timecaster</MudTh>
-                            <MudTh>Saltspray Dragon</MudTh>
-                            <MudTh>Giants</MudTh>
-                            <MudTh>Goliath (Target: 200k+)</MudTh>
-                            <MudTh>Obliterator</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            break;
-        case Role.Portal:
-            <MudButton OnClick="OnBoonstripExpandCollapseClick">@(_boonstripExpanded ? "Boonstrip" : "Boonstrip")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_boonstripExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Boonstrip</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@context.GetBoonStripDuringPhase(selectedPlayer, phase)</MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            <MudButton OnClick="OnBurstExpandCollapseClick">@(_burstExpanded ? "Burst" : "Burst")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_burstExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Burst</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            <MudTh>Timecaster</MudTh>
-                            <MudTh>Saltspray Dragon</MudTh>
-                            <MudTh>Giants</MudTh>
-                            <MudTh>Goliath (Target: 275k+)</MudTh>
-                            <MudTh>Obliterator</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            <MudButton OnClick="OnMassInvisExpandCollapseClick">@(_massinvisExpanded ? "Mass Invis" : "Mass Invis")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_massinvisExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Mass Invisiblity</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach(var stealthPhase in LogParser.BulkLog.GetStealthPhases())
-                            {
-                                <MudTh>@stealthPhase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @{
-                                var stealthTimeline = context.GetStealthTimeline();
-                                foreach (var stealthPhase in LogParser.BulkLog.GetStealthPhases())
-                                {
-                                    <MudTh>@GetMassInvisString(stealthTimeline.GetStealthResults(stealthPhase))</MudTh>
-                                }
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            <MudButton OnClick="OnDpsExpandCollapseClick">@(_dpsExpanded ? "Dps" : "Dps")</MudButton>
-            <MudDivider />
-            <MudCollapse Expanded="_dpsExpanded">
-                <MudCard>
-                    <MudCardHeader>
-                        <MudText Typo="Typo.h6">Damage per Second</MudText>
-                    </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar","Purification"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @{
-                                @foreach (var phase in context.GetPhases(["Breakbar", "Purification"]))
-                                {
-                                    <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
-                                }
-                            }
-                        </RowTemplate>
-                    </MudTable>
-                </MudCard>
-            </MudCollapse>
-            break;
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+        </MudCollapse>
+        <MudButton OnClick="OnBurstExpandCollapseClick">@(_burstExpanded ? "Burst" : "Burst")</MudButton>
+        <MudDivider />
+        <MudCollapse Expanded="_burstExpanded">
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Burst</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                          Hover="true"
+                          Dense="true"
+                          Breakpoint="Breakpoint.Sm"
+                          LoadingProgressColor="Color.Info"
+                          Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        <MudTh>Timecaster</MudTh>
+                        <MudTh>Saltspray Dragon</MudTh>
+                        <MudTh>Giants</MudTh>
+                        <MudTh>Goliath (Target: 350k+)</MudTh>
+                        <MudTh>Obliterator</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                        <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                        <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                        <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                        <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+        </MudCollapse>
+    }
+    @if(selectedRole == Role.Portal)
+    {
+    <MudButton OnClick="OnBoonstripExpandCollapseClick">@(_boonstripExpanded ? "Boonstrip" : "Boonstrip")</MudButton>
+    <MudDivider />
+    <MudCollapse Expanded="_boonstripExpanded">
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">Boonstrip</MudText>
+            </MudCardHeader>
+            <MudTable Items="@LogParser.BulkLog.Logs"
+                      Hover="true"
+                      Dense="true"
+                      Breakpoint="Breakpoint.Sm"
+                      LoadingProgressColor="Color.Info"
+                      Class="flex-table">
+                <HeaderContent>
+                    <MudTh>Log</MudTh>
+                    @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                    {
+                        <MudTh>@phase</MudTh>
+                    }
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.GetFileName()</MudTd>
+                    @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                    {
+                        <MudTh>@context.GetBoonStripDuringPhase(selectedPlayer, phase)</MudTh>
+                    }
+                </RowTemplate>
+            </MudTable>
+        </MudCard>
+    </MudCollapse>
+    <MudButton OnClick="OnMassInvisExpandCollapseClick">@(_massinvisExpanded ? "Mass Invis" : "Mass Invis")</MudButton>
+    <MudDivider />
+    <MudCollapse Expanded="_massinvisExpanded">
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo="Typo.h6">Mass Invisiblity</MudText>
+            </MudCardHeader>
+            <MudTable Items="@LogParser.BulkLog.Logs"
+                      Hover="true"
+                      Dense="true"
+                      Breakpoint="Breakpoint.Sm"
+                      LoadingProgressColor="Color.Info"
+                      Class="flex-table">
+                <HeaderContent>
+                    <MudTh>Log</MudTh>
+                    @foreach (var stealthPhase in LogParser.BulkLog.GetStealthPhases())
+                    {
+                        <MudTh>@stealthPhase</MudTh>
+                    }
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd>@context.GetFileName()</MudTd>
+                    @{
+                        var stealthTimeline = context.GetStealthTimeline();
+                        foreach (var stealthPhase in LogParser.BulkLog.GetStealthPhases())
+                        {
+                            <MudTh>@GetMassInvisString(stealthTimeline.GetStealthResults(stealthPhase))</MudTh>
+                        }
+                    }
+                </RowTemplate>
+            </MudTable>
+        </MudCard>
+    </MudCollapse>
     }
 </div>
 
