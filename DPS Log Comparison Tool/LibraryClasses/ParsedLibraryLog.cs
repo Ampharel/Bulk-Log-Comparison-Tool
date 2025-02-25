@@ -1103,9 +1103,6 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
         {
             var currentTime = shockwaveTime;
             var waveEnd = shockwaveTime + GetShockwaveDuration(type)*1000;
-            Console.WriteLine($"Determining shockwave intersection time for type {type}");
-            Console.WriteLine($"Shockwave duration: {GetShockwaveDuration(type)*1000}");
-            Console.WriteLine($"Shockwave speed: {GetShockwaveSpeed(type)}");
             while (currentTime < waveEnd)
             {
                 var Player = _log.PlayerList.FirstOrDefault(x => x.Account == player);
@@ -1114,12 +1111,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 var shockwaveDistance = Convert.ToInt64((currentTime - shockwaveTime) * GetShockwaveSpeed(type));
                 if (shockwaveDistance > playerDistanceToShockwaveOrigin)
                 {
-                    Console.WriteLine($"Shockwave intersection for player {player} of type {type} happened at {currentTime}");
                     return currentTime;
                 }
                 currentTime += 1;
             }
-            Console.WriteLine($"Player {player} never intersected shockwave of type {type}");
             return 0;//Player never intersected the shockwave
         }
 

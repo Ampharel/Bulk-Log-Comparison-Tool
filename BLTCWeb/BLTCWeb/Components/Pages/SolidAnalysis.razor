@@ -107,6 +107,8 @@
     <MudDivider />
     <MudCollapse Expanded="_generalMechanicsExpanded">
         <MudCard>
+            <MudText>This are mechanical failures untill SW2. The colour indicates how problematic the failure is.</MudText>
+            <MudText>These mechanics could be caused by circumstances, so always doublecheck the log.</MudText>
             <MudTable Items="@LogParser.BulkLog.Logs"
             Hover="true"
             Dense="true"
@@ -121,6 +123,7 @@
                     <MudTh>Spread bait</MudTh>
                     <MudTh>Spread overlap</MudTh>
                     <MudTh>Void Debuff</MudTh>
+                    <MudTh>Gravity Crush</MudTh>
                     <MudTh>Mordemoth Shockwave</MudTh>
                     <MudTh>Mordemoth Poison</MudTh>
                     <MudTh>Giant's Puke</MudTh>
@@ -134,23 +137,50 @@
                 </HeaderContent>
                 <RowTemplate>
                     @{
-                        <MudTd>@context.GetFileName()</MudTd>                        
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Void Explosion", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetChampionLastLaugh(selectedPlayer, "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Red Bait", "Full Fight").Count() / @context.GetMechanicLogs("Red Bait", "Full Fight").Select(x => x.Item2).GetUniqueElementsWithinTolerance(1000).Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Spread Bait", "Full Fight").Count() / @context.GetMechanicLogs("Spread Bait", "Full Fight").Select(x => x.Item2).GetUniqueElementsWithinTolerance(1000).Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Targeted Expulsion", "Full Fight").Count()</MudTd>                        
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Void Pool", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Mordemoth Shockwave", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Mordemoth Poison", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Rotting Bile", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Death Scream", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Stomp", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Kralkatorrik Beam", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Kralkatorrik Void Pool", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Barrage", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Zhaitan Poison", "Full Fight").Count()</MudTd>
-                        <MudTd>@context.GetMechanicLogsForPlayer(selectedPlayer, "Tsunami Slam", "Full Fight").Count()</MudTd>
+                        var sw2Start = context.GetPhaseStart("Soo-Won 2");
+                        if(sw2Start == 0)
+                        {
+                            sw2Start = context.GetPhaseEnd("Full Fight");
+                        }
+                        var sw2End = context.GetPhaseEnd("Soo-Won 2");
+                        var voidExplosionCountPreSW2 = context.GetMechanicLogsForPlayer(selectedPlayer, "Void Explosion", "", 0, sw2Start).Count();
+                        var championLastLaughCount = context.GetChampionLastLaugh(selectedPlayer, "Full Fight").Count();
+                        var redBaitCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Red Bait", "", 0, sw2Start).Count();
+                        var totalReds = context.GetMechanicLogs("Red Bait", "", 0, sw2Start).Select(x => x.Item2).GetUniqueElementsWithinTolerance(1000).Count();
+                        var spreadBaitCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Spread Bait", "", 0, sw2Start).Count();
+                        var totalSpreads = context.GetMechanicLogs("Spread Bait", "", 0, sw2Start).Select(x => x.Item2).GetUniqueElementsWithinTolerance(1000).Count();
+                        var targetedExpulsionCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Targeted Expulsion (Spread)", "", 0, sw2Start).Count();
+                        var voidDebuffCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Void Debuff", "", 0, sw2Start).Count();
+                        var gravityCrushCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Gravity Crush", "", 0, sw2Start).Count();
+                        var mordemothShockwaveCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Mordremoth Shockwave", "", 0, sw2Start).Count();
+                        var mordemothPoisonCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Mordremoth Poison", "", 0, sw2Start).Count();
+                        var giantPukeCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Rotting Bile", "", 0, sw2Start).Count();
+                        var giantScreamCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Death Scream", "", 0, sw2Start).Count();
+                        var giantStompCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Stomp", "", 0, sw2Start).Count();
+                        var kralkatorrikBeamCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Kralkatorrik Beam", "", 0, sw2Start).Count();
+                        var kralkatorrikRiverCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Kralkatorrik Void Pool", "", 0, sw2Start).Count();
+                        var kralkatorrikMeteorCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Barrage", "", 0, sw2Start).Count();
+                        var zhaitanPoisonCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Zhaitan Poison", "", 0, sw2Start).Count();
+                        var tsunamiSlamCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Tsunami Slam", "", 0, sw2Start).Count();
+
+                        <MudTd>@context.GetFileName()</MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(voidExplosionCountPreSW2/5,true)};")">@voidExplosionCountPreSW2</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(championLastLaughCount/1,true)};")">@championLastLaughCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(totalReds > 0 ? redBaitCount/totalReds : 0, selectedRole != Role.HealKite) };")">@redBaitCount / @totalReds</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(totalSpreads > 0 ? spreadBaitCount/totalSpreads : 0, selectedRole == Role.DPS || selectedRole == Role.Venticator) };")">@spreadBaitCount / @totalSpreads</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(targetedExpulsionCount/1,true)};")">@targetedExpulsionCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(voidDebuffCount/1, true)};")">@voidDebuffCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(gravityCrushCount/20, true)};")">@gravityCrushCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(mordemothShockwaveCount/1, true)};")">@mordemothShockwaveCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(mordemothPoisonCount/1, true)};")">@mordemothPoisonCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(giantPukeCount/1, true)};")">@giantPukeCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(giantScreamCount/1, true)};")">@giantScreamCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(giantStompCount/1, true)};")">@giantStompCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(kralkatorrikBeamCount/1, true)};")">@kralkatorrikBeamCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(kralkatorrikRiverCount/1, true)};")">@kralkatorrikRiverCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(kralkatorrikMeteorCount/1, true)};")">@kralkatorrikMeteorCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(zhaitanPoisonCount/1, true)};")">@zhaitanPoisonCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(tsunamiSlamCount/1, true)};")">@tsunamiSlamCount</MudText></MudTd>
                     }
                 </RowTemplate>
             </MudTable>
@@ -459,6 +489,13 @@
                 <MudCardHeader>
                     <MudText Typo="Typo.h6">Burst</MudText>
                 </MudCardHeader>
+                @{
+                    var targetDamage = 300000;
+                    if(selectedRole == Role.QuickDps)
+                    {
+                        targetDamage = 200000;
+                    }
+
                 <MudTable Items="@LogParser.BulkLog.Logs"
                           Hover="true"
                           Dense="true"
@@ -470,7 +507,7 @@
                         <MudTh>Timecaster</MudTh>
                         <MudTh>Saltspray Dragon</MudTh>
                         <MudTh>Giants</MudTh>
-                        <MudTh>Goliath (Target: 350k+)</MudTh>
+                        <MudTh>Goliath</MudTh>
                         <MudTh>Obliterator</MudTh>
                     </HeaderContent>
                     <RowTemplate>
@@ -478,10 +515,11 @@
                         <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                         <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                         <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                        <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false)/targetDamage)};")">@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")) / @((targetDamage).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")))</MudText></MudTd>
                         <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                     </RowTemplate>
-                </MudTable>
+                    </MudTable>
+                }
             </MudCard>
         </MudCollapse>
     }
@@ -713,7 +751,7 @@
         {
             case BuffStackTyping.Queue:
             case BuffStackTyping.Regeneration:
-                return GetColorFromBoonPercentage(value);
+                return GetColorFromPercentage(value);
             default:
                 return GetColorFromBoonStacks(value);
         }
@@ -721,29 +759,52 @@
     
     private string GetColorFromBoonStacks(double stacks)
     {
-        return GetColorFromBoonPercentage(stacks / 25.0);
+        return GetColorFromPercentage(stacks / 25.0);
     }
-    private string GetColorFromBoonPercentage(double percentage)
+    private string GetColorFromPercentage(double percentage, bool reverse = false)
     {
-        if (percentage == 1.0)
+        if (percentage >= 1.0)
         {
+            if(reverse){
+                return Colors.Red.Darken4;
+            }
             return Colors.Green.Darken1;
         }
         if (percentage > 0.95)
         {
+            if (reverse)
+            {
+                return Colors.Orange.Darken1;
+            }
             return Colors.LightGreen.Darken1;
         }
         if (percentage > 0.9)
         {
+            if (reverse)
+            {
+                return Colors.Yellow.Darken1;
+            }
             return Colors.Lime.Darken1;
         }
         if (percentage > 0.8)
         {
+            if (reverse)
+            {
+                return Colors.Lime.Darken1;
+            }
             return Colors.Yellow.Darken1;
         }
         if (percentage > 0.5)
         {
+            if (reverse)
+            {
+                return Colors.LightGreen.Darken1;
+            }
             return Colors.Orange.Darken1;
+        }
+        if (reverse)
+        {
+            return Colors.Green.Darken1;
         }
         return Colors.Red.Darken4;
     }

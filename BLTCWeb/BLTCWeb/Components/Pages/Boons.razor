@@ -188,13 +188,13 @@
                 @if (_showPlayersDict.ContainsKey(context) && _showPlayersDict[context])
                 {
 
-                <MudTd>@context</MudTd>
-                <MudTd>
-                    @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, context))
-                    {
-                        <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
-                    }
-                </MudTd>
+                    <MudTd>@context</MudTd>
+                    <MudTd>
+                        @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, context))
+                        {
+                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                        }
+                    </MudTd>
                     var TotalBoon = 0d;
                     var TotalLogs = 0;
                     var boonStackType = BuffStackTyping.Queue;
@@ -336,7 +336,7 @@
             {
                 _buffLostTimings[Log.GetFileName()].Add(Player, "");
             }
-            if (_chartDisplayMode == ChartDisplayMode.GraphPerPlayer && (_showPlayersDict.ContainsKey(Player) && !_showPlayersDict[Player]))
+            if (_chartDisplayMode == ChartDisplayMode.GraphPerPlayer && _showPlayersDict.ContainsKey(Player) && _showPlayersDict[Player] && !Series.ContainsKey(Player))
             {
                 Series.Add(Player, new List<TimeSeriesChartSeries>());
             }
@@ -346,6 +346,7 @@
     private List<TimeSeriesChartSeries.TimeValue> CreateChartData(string Player, IParsedEvtcLog Log, int maxValue)
     {
         List<TimeSeriesChartSeries.TimeValue> chartData = new List<TimeSeriesChartSeries.TimeValue>();
+        var startTime = Log.GetPhaseStart(_selectedPhase);
         var boonEvents = Log.GetBoonTimedEvents(Player, _selectedBoon, _selectedPhase);
         foreach (var boonEvent in boonEvents)
         {
@@ -353,7 +354,7 @@
             {
                 continue;
             }
-            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)boonEvent.Item1 * 10000L), boonEvent.Item2 > maxValue ? maxValue : boonEvent.Item2));
+            chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime((long)(boonEvent.Item1 - startTime) * 10000L), boonEvent.Item2 > maxValue ? maxValue : boonEvent.Item2));
             if (boonEvent.Item2 == 0)
             {
                 _buffLostTimings[Log.GetFileName()][Player] += ("" + (boonEvent.Item1).ToString("0.##") + " ");
@@ -390,7 +391,18 @@
             chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L), maxValue));
             chartData.Add(new TimeSeriesChartSeries.TimeValue(new DateTime(phaseStart * 10000L + width), maxValue));
             var chartSeries = new TimeSeriesChartSeries() { Name = phase, Data = chartData, FillOpacity = 0.7 ,Type = TimeSeriesDiplayType.Area };
-            Series[Log.GetFileName()].Add(chartSeries);
+            if (_chartDisplayMode == ChartDisplayMode.GraphPerLog)
+            {
+                Series[Log.GetFileName()].Add(chartSeries);
+            }
+            else
+            {
+                foreach (var player in Log.GetPlayers())
+                {
+                    if (!_showPlayersDict[player]) continue;
+                    Series[player].Add(chartSeries);
+                }
+            }
         }
     }
 
@@ -433,7 +445,7 @@
                     AddChartDataToGraph(chartData, Player, Log.GetFileName());
                 }
             }
-            if(_showPhases && (_selectedPhase == "" || _selectedPhase == "Full Fight"))
+            if(_showPhases && _chartDisplayMode == ChartDisplayMode.GraphPerLog && (_selectedPhase == "" || _selectedPhase == "Full Fight"))
             {
                 AddPhaseTimingToGraph(Log, maxStack,endTime - startTime);
             }
