@@ -123,7 +123,7 @@
                     <MudTh>Spread bait</MudTh>
                     <MudTh>Spread overlap</MudTh>
                     <MudTh>Void Debuff</MudTh>
-                    <MudTh>Gravity Crush</MudTh>
+                    @* <MudTh>Gravity Crush</MudTh> *@
                     <MudTh>Mordemoth Shockwave</MudTh>
                     <MudTh>Mordemoth Poison</MudTh>
                     <MudTh>Giant's Puke</MudTh>
@@ -164,23 +164,23 @@
                         var tsunamiSlamCount = context.GetMechanicLogsForPlayer(selectedPlayer, "Tsunami Slam", "", 0, sw2Start).Count();
 
                         <MudTd>@context.GetFileName()</MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(voidExplosionCountPreSW2/5,true)};")">@voidExplosionCountPreSW2</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(championLastLaughCount/1,true)};")">@championLastLaughCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(totalReds > 0 ? redBaitCount/totalReds : 0, selectedRole != Role.HealKite) };")">@redBaitCount / @totalReds</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(totalSpreads > 0 ? spreadBaitCount/totalSpreads : 0, selectedRole == Role.DPS || selectedRole == Role.Venticator) };")">@spreadBaitCount / @totalSpreads</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(targetedExpulsionCount/1,true)};")">@targetedExpulsionCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(voidDebuffCount/1, true)};")">@voidDebuffCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(gravityCrushCount/20, true)};")">@gravityCrushCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(mordemothShockwaveCount/1, true)};")">@mordemothShockwaveCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(mordemothPoisonCount/1, true)};")">@mordemothPoisonCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(giantPukeCount/1, true)};")">@giantPukeCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(giantScreamCount/1, true)};")">@giantScreamCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(giantStompCount/1, true)};")">@giantStompCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(kralkatorrikBeamCount/1, true)};")">@kralkatorrikBeamCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(kralkatorrikRiverCount/1, true)};")">@kralkatorrikRiverCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(kralkatorrikMeteorCount/1, true)};")">@kralkatorrikMeteorCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(zhaitanPoisonCount/1, true)};")">@zhaitanPoisonCount</MudText></MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(tsunamiSlamCount/1, true)};")">@tsunamiSlamCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(voidExplosionCountPreSW2/5f,true)};")">@voidExplosionCountPreSW2</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(championLastLaughCount/1f,true)};")">@championLastLaughCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(totalReds > 0 ? redBaitCount/(float)totalReds : 0, selectedRole != Role.HealKite) };")">@redBaitCount / @totalReds</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(totalSpreads > 0 ? spreadBaitCount/(float)totalSpreads : 0, selectedRole == Role.DPS || selectedRole == Role.Venticator) };")">@spreadBaitCount / @totalSpreads</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(targetedExpulsionCount/1f,true)};")">@targetedExpulsionCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(voidDebuffCount/1f, true)};")">@voidDebuffCount</MudText></MudTd>
+                        // <MudTd><MudText Style="@($"color:{GetColorFromPercentage(gravityCrushCount/50f, [1.0, 0.8, 0.6, 0.4, 0.2] , true)};")">@gravityCrushCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(mordemothShockwaveCount/1f, true)};")">@mordemothShockwaveCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(mordemothPoisonCount/1f, true)};")">@mordemothPoisonCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(giantPukeCount/1f, true)};")">@giantPukeCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(giantScreamCount/1f, true)};")">@giantScreamCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(giantStompCount/1f, true)};")">@giantStompCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(kralkatorrikBeamCount/1f, true)};")">@kralkatorrikBeamCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(kralkatorrikRiverCount/1f, true)};")">@kralkatorrikRiverCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(kralkatorrikMeteorCount/1f, true)};")">@kralkatorrikMeteorCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(zhaitanPoisonCount/1f, true)};")">@zhaitanPoisonCount</MudText></MudTd>
+                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(tsunamiSlamCount/1f, true)};")">@tsunamiSlamCount</MudText></MudTd>
                     }
                 </RowTemplate>
             </MudTable>
@@ -267,8 +267,8 @@
         <MudButton OnClick="OnBoonsExpandCollapseClick">@(_boonsExpanded ? "Boons" : "Boons")</MudButton>
         <MudDivider />
         <MudCollapse Expanded="_boonsExpanded">
-        @foreach(var boon in boons)
-        {
+            @foreach(var boon in boons)
+            {
                 <MudCard>
                     <MudCardHeader>
                         <MudText Typo="Typo.h6">@boon</MudText>
@@ -301,8 +301,8 @@
             }
         </MudCollapse>
         if(heal){
-        <MudButton OnClick="OnChillExpandCollapseClick">@(_fearExpanded ? "Chill" : "Chill")</MudButton>
-                <MudDivider />
+            <MudButton OnClick="OnChillExpandCollapseClick">@(_fearExpanded ? "Chill" : "Chill")</MudButton>
+            <MudDivider />
             <MudCollapse Expanded="_chillExpanded">
                 <MudCard>
                     <MudCardHeader>
@@ -343,110 +343,110 @@
                     </MudTable>
                 </MudCard>
             </MudCollapse>
-            }
-                <MudButton OnClick="OnFearExpandCollapseClick">@(_fearExpanded ? "Fear" : "Fear")</MudButton>
-                <MudDivider />
-                <MudCollapse Expanded="_fearExpanded">
-                    <MudCard>
-                        <MudCardHeader>
-                            <MudText Typo="Typo.h6">Zhaitan Fear</MudText>
-                        </MudCardHeader>
-                        <MudTable Items="@LogParser.BulkLog.Logs"
-                        Hover="true"
-                        Dense="true"
-                        Breakpoint="Breakpoint.Sm"
-                        LoadingProgressColor="Color.Info"
-                        Class="flex-table">
-                            <HeaderContent>
-                                <MudTh>Log</MudTh>
-                                <MudTh>Fear 1</MudTh>
-                                <MudTh>Fear 2</MudTh>
-                                <MudTh>Fear 3</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd>@context.GetFileName()</MudTd>
+        }
+        <MudButton OnClick="OnFearExpandCollapseClick">@(_fearExpanded ? "Fear" : "Fear")</MudButton>
+        <MudDivider />
+        <MudCollapse Expanded="_fearExpanded">
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Zhaitan Fear</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        <MudTh>Fear 1</MudTh>
+                        <MudTh>Fear 2</MudTh>
+                        <MudTh>Fear 3</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
                         @{
                             foreach (var fearTiming in context.GetZhaitanFearTimings())
                             {
-                                                <MudTd>
-                                                    <MudTable Items="@context.GetPlayers().Where(x => context.IsPlayerInGroup(x, context.GetPlayerGroup(selectedPlayer)))"
-                                                    Hover="true"
-                                                    Dense="true"
-                                                    Breakpoint="Breakpoint.Sm"
-                                                    LoadingProgressColor="Color.Info"
-                                                    Class="flex-table">
-                                                        <HeaderContent>
-                                                            <MudTh>Player</MudTh>
-                                                            <MudTh>Protection</MudTh>
-                                                            <MudTh>Resistance</MudTh>
-                                                            <MudTh>Cleanse Reactiontime</MudTh>
-                                                            <MudTh>Damage Reduction</MudTh>
-                                                        </HeaderContent>
-                                                        <RowTemplate Context="player">
-                                                            <MudTd>@player</MudTd>
-                                                            <MudTd>@context.GetBoon(player, "Protection", "", fearTiming, true)s</MudTd>
-                                                            <MudTd>@context.GetBoon(player, "Resistance", "", fearTiming, true)s</MudTd>
-                                                            <MudTd>@GetCleanseTime(@context, player, fearTiming)</MudTd>
-                                                            <MudTd>@GetDamageReduction(@context, player, fearTiming)</MudTd>
-                                                        </RowTemplate>
-                                                    </MudTable>
-                                                </MudTd>
+                                <MudTd>
+                                    <MudTable Items="@context.GetPlayers().Where(x => context.IsPlayerInGroup(x, context.GetPlayerGroup(selectedPlayer)))"
+                                    Hover="true"
+                                    Dense="true"
+                                    Breakpoint="Breakpoint.Sm"
+                                    LoadingProgressColor="Color.Info"
+                                    Class="flex-table">
+                                        <HeaderContent>
+                                            <MudTh>Player</MudTh>
+                                            <MudTh>Protection</MudTh>
+                                            <MudTh>Resistance</MudTh>
+                                            <MudTh>Cleanse Reactiontime</MudTh>
+                                            <MudTh>Damage Reduction</MudTh>
+                                        </HeaderContent>
+                                        <RowTemplate Context="player">
+                                            <MudTd>@player</MudTd>
+                                            <MudTd>@context.GetBoon(player, "Protection", "", fearTiming, true)s</MudTd>
+                                            <MudTd>@context.GetBoon(player, "Resistance", "", fearTiming, true)s</MudTd>
+                                            <MudTd>@GetCleanseTime(@context, player, fearTiming)</MudTd>
+                                            <MudTd>@GetDamageReduction(@context, player, fearTiming)</MudTd>
+                                        </RowTemplate>
+                                    </MudTable>
+                                </MudTd>
                             }
                         }
-                            </RowTemplate>
-                        </MudTable>
-                    </MudCard>
-                </MudCollapse>
-                <MudButton OnClick="OnStabExpandCollapseClick">@(_stabExpanded ? "Mordremoth Stability" : "Mordremoth Stability")</MudButton>
-                <MudDivider />
-                <MudCollapse Expanded="_stabExpanded">
-                    <MudCard>
-                        <MudCardHeader>
-                            <MudText Typo="Typo.h6">Mordemoth waves</MudText>
-                        </MudCardHeader>
-                        <MudLink target="_blank" Href="https://htcm-log-analyser.glitch.me/">Use Mimi's tool to look at individual stability</MudLink>
-                        <MudTable Items="@LogParser.BulkLog.Logs"
-                        Hover="true"
-                        Dense="true"
-                        Breakpoint="Breakpoint.Sm"
-                        LoadingProgressColor="Color.Info"
-                        Class="flex-table">
-                            <HeaderContent>
-                                <MudTh>Log</MudTh>
-                                <MudTh>Shockwaves</MudTh>
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd>@context.GetFileName()</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+        </MudCollapse>
+        <MudButton OnClick="OnStabExpandCollapseClick">@(_stabExpanded ? "Mordremoth Stability" : "Mordremoth Stability")</MudButton>
+        <MudDivider />
+        <MudCollapse Expanded="_stabExpanded">
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Mordemoth waves</MudText>
+                </MudCardHeader>
+                <MudLink target="_blank" Href="https://htcm-log-analyser.glitch.me/">Use Mimi's tool to look at individual stability</MudLink>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        <MudTh>Shockwaves</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
                         @{
-                                        <MudTd>
-                                            <MudTable Items="@context.GetPlayers().Where(x => context.IsPlayerInGroup(x, context.GetPlayerGroup(selectedPlayer)))"
-                                            Hover="true"
-                                            Dense="true"
-                                            Breakpoint="Breakpoint.Sm"
-                                            LoadingProgressColor="Color.Info"
-                                            Class="flex-table">
-                                                <HeaderContent>
-                                                    <MudTh>Player</MudTh>
+                            <MudTd>
+                                <MudTable Items="@context.GetPlayers().Where(x => context.IsPlayerInGroup(x, context.GetPlayerGroup(selectedPlayer)))"
+                                Hover="true"
+                                Dense="true"
+                                Breakpoint="Breakpoint.Sm"
+                                LoadingProgressColor="Color.Info"
+                                Class="flex-table">
+                                    <HeaderContent>
+                                        <MudTh>Player</MudTh>
                                         @for (int i = 1; i < context.GetShockwaves(0).Count() + 1; i++)
                                         {
                                             var waveIndex = i;
-                                                            <MudTh>Wave @waveIndex</MudTh>
+                                            <MudTh>Wave @waveIndex</MudTh>
                                         }
-                                                </HeaderContent>
-                                                <RowTemplate Context="player">
-                                                    <MudTd>@player</MudTd>
+                                    </HeaderContent>
+                                    <RowTemplate Context="player">
+                                        <MudTd>@player</MudTd>
                                         @foreach (var shockwaveTiming in context.GetShockwaves(0))
                                         {
-                                                            <MudTd>@context.GetBoonAtTime(player, "Stability", shockwaveTiming) stacks</MudTd>
+                                            <MudTd>@context.GetBoonAtTime(player, "Stability", shockwaveTiming) stacks</MudTd>
                                         }
-                                                </RowTemplate>
-                                            </MudTable>
-                                        </MudTd>
+                                    </RowTemplate>
+                                </MudTable>
+                            </MudTd>
                         }
-                            </RowTemplate>
-                        </MudTable>
-                    </MudCard>
-                </MudCollapse>
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+        </MudCollapse>
     }
     @if(selectedRole == Role.DPS || selectedRole == Role.Venticator || selectedRole == Role.Portal || selectedRole == Role.QuickDps)
     {
@@ -458,11 +458,11 @@
                     <MudText Typo="Typo.h6">Damage per Second</MudText>
                 </MudCardHeader>
                 <MudTable Items="@LogParser.BulkLog.Logs"
-                          Hover="true"
-                          Dense="true"
-                          Breakpoint="Breakpoint.Sm"
-                          LoadingProgressColor="Color.Info"
-                          Class="flex-table">
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
                     <HeaderContent>
                         <MudTh>Log</MudTh>
                         @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar", "Purification"]))
@@ -496,28 +496,28 @@
                         targetDamage = 200000;
                     }
 
-                <MudTable Items="@LogParser.BulkLog.Logs"
-                          Hover="true"
-                          Dense="true"
-                          Breakpoint="Breakpoint.Sm"
-                          LoadingProgressColor="Color.Info"
-                          Class="flex-table">
-                    <HeaderContent>
-                        <MudTh>Log</MudTh>
-                        <MudTh>Timecaster</MudTh>
-                        <MudTh>Saltspray Dragon</MudTh>
-                        <MudTh>Giants</MudTh>
-                        <MudTh>Goliath</MudTh>
-                        <MudTh>Obliterator</MudTh>
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd>@context.GetFileName()</MudTd>
-                        <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                        <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                        <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                        <MudTd><MudText Style="@($"color:{GetColorFromPercentage(context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false)/targetDamage)};")">@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")) / @((targetDamage).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")))</MudText></MudTd>
-                        <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                    </RowTemplate>
+                    <MudTable Items="@LogParser.BulkLog.Logs"
+                    Hover="true"
+                    Dense="true"
+                    Breakpoint="Breakpoint.Sm"
+                    LoadingProgressColor="Color.Info"
+                    Class="flex-table">
+                        <HeaderContent>
+                            <MudTh>Log</MudTh>
+                            <MudTh>Timecaster</MudTh>
+                            <MudTh>Saltspray Dragon</MudTh>
+                            <MudTh>Giants</MudTh>
+                            <MudTh>Goliath</MudTh>
+                            <MudTh>Obliterator</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context.GetFileName()</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd><MudText Style="@($"color:{GetColorFromPercentage(context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false)/targetDamage)};")">@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")) / @((targetDamage).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")))</MudText></MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                        </RowTemplate>
                     </MudTable>
                 }
             </MudCard>
@@ -525,69 +525,69 @@
     }
     @if(selectedRole == Role.Portal)
     {
-    <MudButton OnClick="OnBoonstripExpandCollapseClick">@(_boonstripExpanded ? "Boonstrip" : "Boonstrip")</MudButton>
-    <MudDivider />
-    <MudCollapse Expanded="_boonstripExpanded">
-        <MudCard>
-            <MudCardHeader>
-                <MudText Typo="Typo.h6">Boonstrip</MudText>
-            </MudCardHeader>
-            <MudTable Items="@LogParser.BulkLog.Logs"
-                      Hover="true"
-                      Dense="true"
-                      Breakpoint="Breakpoint.Sm"
-                      LoadingProgressColor="Color.Info"
-                      Class="flex-table">
-                <HeaderContent>
-                    <MudTh>Log</MudTh>
-                    @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                    {
-                        <MudTh>@phase</MudTh>
-                    }
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd>@context.GetFileName()</MudTd>
-                    @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                    {
-                        <MudTh>@context.GetBoonStripDuringPhase(selectedPlayer, phase)</MudTh>
-                    }
-                </RowTemplate>
-            </MudTable>
-        </MudCard>
-    </MudCollapse>
-    <MudButton OnClick="OnMassInvisExpandCollapseClick">@(_massinvisExpanded ? "Mass Invis" : "Mass Invis")</MudButton>
-    <MudDivider />
-    <MudCollapse Expanded="_massinvisExpanded">
-        <MudCard>
-            <MudCardHeader>
-                <MudText Typo="Typo.h6">Mass Invisiblity</MudText>
-            </MudCardHeader>
-            <MudTable Items="@LogParser.BulkLog.Logs"
-                      Hover="true"
-                      Dense="true"
-                      Breakpoint="Breakpoint.Sm"
-                      LoadingProgressColor="Color.Info"
-                      Class="flex-table">
-                <HeaderContent>
-                    <MudTh>Log</MudTh>
-                    @foreach (var stealthPhase in LogParser.BulkLog.GetStealthPhases())
-                    {
-                        <MudTh>@stealthPhase</MudTh>
-                    }
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd>@context.GetFileName()</MudTd>
-                    @{
-                        var stealthTimeline = context.GetStealthTimeline();
-                        foreach (var stealthPhase in LogParser.BulkLog.GetStealthPhases())
+        <MudButton OnClick="OnBoonstripExpandCollapseClick">@(_boonstripExpanded ? "Boonstrip" : "Boonstrip")</MudButton>
+        <MudDivider />
+        <MudCollapse Expanded="_boonstripExpanded">
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Boonstrip</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
                         {
-                            <MudTh>@GetMassInvisString(stealthTimeline.GetStealthResults(stealthPhase))</MudTh>
+                            <MudTh>@phase</MudTh>
                         }
-                    }
-                </RowTemplate>
-            </MudTable>
-        </MudCard>
-    </MudCollapse>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@context.GetBoonStripDuringPhase(selectedPlayer, phase)</MudTh>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+        </MudCollapse>
+        <MudButton OnClick="OnMassInvisExpandCollapseClick">@(_massinvisExpanded ? "Mass Invis" : "Mass Invis")</MudButton>
+        <MudDivider />
+        <MudCollapse Expanded="_massinvisExpanded">
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Mass Invisiblity</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var stealthPhase in LogParser.BulkLog.GetStealthPhases())
+                        {
+                            <MudTh>@stealthPhase</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @{
+                            var stealthTimeline = context.GetStealthTimeline();
+                            foreach (var stealthPhase in LogParser.BulkLog.GetStealthPhases())
+                            {
+                                <MudTh>@GetMassInvisString(stealthTimeline.GetStealthResults(stealthPhase))</MudTh>
+                            }
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+        </MudCollapse>
     }
 </div>
 
@@ -701,7 +701,7 @@
     {
         _boonsExpanded = !_boonsExpanded;
     }
-    
+
     private void OnChillExpandCollapseClick()
     {
         _chillExpanded = !_chillExpanded;
@@ -756,21 +756,32 @@
                 return GetColorFromBoonStacks(value);
         }
     }
-    
+
     private string GetColorFromBoonStacks(double stacks)
     {
         return GetColorFromPercentage(stacks / 25.0);
     }
+
+    private readonly double[] constThresholds = [ 1.0, 0.95, 0.9, 0.8, 0.5 ];
+
     private string GetColorFromPercentage(double percentage, bool reverse = false)
     {
-        if (percentage >= 1.0)
+        return GetColorFromPercentage(percentage, constThresholds, reverse);
+    }
+
+    private string GetColorFromPercentage(double percentage, double[] thresholds, bool reverse = false)
+    {
+        if(thresholds.Length < 5){
+            thresholds = constThresholds;
+        }
+        if (percentage >= thresholds[0])
         {
             if(reverse){
                 return Colors.Red.Darken4;
             }
             return Colors.Green.Darken1;
         }
-        if (percentage > 0.95)
+        if (percentage > thresholds[1])
         {
             if (reverse)
             {
@@ -778,7 +789,7 @@
             }
             return Colors.LightGreen.Darken1;
         }
-        if (percentage > 0.9)
+        if (percentage > thresholds[2])
         {
             if (reverse)
             {
@@ -786,7 +797,7 @@
             }
             return Colors.Lime.Darken1;
         }
-        if (percentage > 0.8)
+        if (percentage > thresholds[3])
         {
             if (reverse)
             {
@@ -794,7 +805,7 @@
             }
             return Colors.Yellow.Darken1;
         }
-        if (percentage > 0.5)
+        if (percentage > thresholds[4])
         {
             if (reverse)
             {
