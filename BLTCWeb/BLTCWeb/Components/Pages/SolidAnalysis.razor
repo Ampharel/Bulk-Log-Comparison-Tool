@@ -52,7 +52,7 @@
                     <MudTh>Reinforced Armor</MudTh>
                     <MudTh>Food</MudTh>
                     <MudTh>Enhancements</MudTh>
-                    <MudTh>Mechanic</MudTh>
+                    <MudTh>Eligibility</MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd>@context.GetFileName()</MudTd>
@@ -64,6 +64,10 @@
                         enchancements = enchancements.TrimStart(' ', '|');
                         <MudTd>@food</MudTd>
                         <MudTd>@enchancements</MudTd>
+                        <MudTd>
+                            <MudCheckBox T="bool" Value="@(context.GetPhases(["Goliath"], false).Count()>0)" Disabled="true">Reached Goliath</MudCheckBox>
+                            <MudCheckBox T="bool" Value="@(context.GetMechanicLogs("Success Green", "Soo-Won 2").Count()>=3)" Disabled="true">Passed SW2 first green</MudCheckBox>
+                        </MudTd>
                     }
                 </RowTemplate>
             </MudTable>
@@ -490,10 +494,14 @@
                     <MudText Typo="Typo.h6">Burst</MudText>
                 </MudCardHeader>
                 @{
-                    var targetDamage = 300000;
+                    var targetDamage = 350000;
                     if(selectedRole == Role.QuickDps)
                     {
                         targetDamage = 200000;
+                    }
+                    if(selectedRole == Role.Portal)
+                    {
+                        targetDamage = 275000;
                     }
 
                     <MudTable Items="@LogParser.BulkLog.Logs"
