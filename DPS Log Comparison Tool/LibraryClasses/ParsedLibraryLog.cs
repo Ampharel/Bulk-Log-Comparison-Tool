@@ -1177,12 +1177,17 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return !IsDead && !IsDC;
         }
 
-        public List<string> GetDownReasons(string accountName)
+        public List<(string, long)> GetDownReasons(string accountName)
         {
-            var downEvents = _log.CombatData.GetDownEvents(_log.PlayerAgents.FirstOrDefault(x => x.Name.Contains(accountName)));
-            var deathEvents = _log.CombatData.GetDeadEvents(_log.PlayerAgents.FirstOrDefault(x => x.Name.Contains(accountName)));
-            var dmgTakenEvents = _log.CombatData.GetDamageTakenData(_log.PlayerAgents.FirstOrDefault(x => x.Name.Contains(accountName)));
-            List<string> downedReasons = new();
+            var player = _log.PlayerAgents.FirstOrDefault(x => x.Name.Contains(accountName));
+            if(player == null)
+            {
+                return new();
+            }
+            var downEvents = _log.CombatData.GetDownEvents(player);
+            var deathEvents = _log.CombatData.GetDeadEvents(player);
+            var dmgTakenEvents = _log.CombatData.GetDamageTakenData(player);
+            List<(string,long)> downedReasons = new();
             foreach(var downed in downEvents)
             {
                 var events = dmgTakenEvents.Where(x => Math.Abs(x.Time - downed.Time) < 10).ToList();
@@ -1198,7 +1203,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                         name = newName;
                     }
                 }
-                downedReasons.Add(name);
+                downedReasons.Add((name,downed.Time));
             }
             return downedReasons;
         }

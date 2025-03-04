@@ -52,6 +52,7 @@
                     <MudTh>Reinforced Armor</MudTh>
                     <MudTh>Food</MudTh>
                     <MudTh>Enhancements</MudTh>
+                    <MudTh>Downed</MudTh>
                     <MudTh>Eligibility</MudTh>
                 </HeaderContent>
                 <RowTemplate>
@@ -64,6 +65,30 @@
                         enchancements = enchancements.TrimStart(' ', '|');
                         <MudTd>@food</MudTd>
                         <MudTd>@enchancements</MudTd>
+                        <MudTd>
+                        @{
+                            var downs = context.GetDownReasons(selectedPlayer);
+                            var phaseStart = context.GetPhaseStart("Soo-Won 2");
+                            downs = downs.Where(x => x.Item2 < phaseStart).ToList();
+                            if(downs.Count() > 0){
+                            <MudTable Items="@downs"
+                            Hover="true"
+                            Dense="true"
+                            Breakpoint="Breakpoint.Sm"
+                            LoadingProgressColor="Color.Info"
+                            Class="flex-table">
+                                <HeaderContent>
+                                    <MudTh>Downed</MudTh>
+                                </HeaderContent>
+                                <RowTemplate Context="downReason">
+                                    <MudTd>
+                                        <MudText Color="@Color.Error">@downReason.Item1 at @(downReason.Item2 / 1000)</MudText>
+                                    </MudTd>
+                                </RowTemplate>
+                                </MudTable>
+                            }
+                        }
+                        </MudTd>
                         <MudTd>
                             <MudCheckBox T="bool" Value="@(context.GetPhases(["Goliath"], false).Count()>0)" Disabled="true">Reached Goliath</MudCheckBox>
                             <MudCheckBox T="bool" Value="@(context.GetMechanicLogs("Success Green", "Soo-Won 2").Count()>=3)" Disabled="true">Passed SW2 first green</MudCheckBox>

@@ -132,11 +132,12 @@
                 <MudTh>Graph</MudTh>
             </HeaderContent>
             <RowTemplate>
-                @{
+                @if (Series.ContainsKey(context))
+                {
                     var data = Series[context];
+                    <MudTd>@context</MudTd>
+                    <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="mm:ss" TimeLabelSpacing="@graphTimespan" ChartSeries="@data" @bind-SelectedIndex="Index" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
                 }
-                <MudTd>@context</MudTd>
-                <MudTimeSeriesChart ChartType="ChartType.Line" TimeLabelFormat="mm:ss" TimeLabelSpacing="@graphTimespan" ChartSeries="@data" @bind-SelectedIndex="Index" CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />
             </RowTemplate>
         </MudTable>
     }

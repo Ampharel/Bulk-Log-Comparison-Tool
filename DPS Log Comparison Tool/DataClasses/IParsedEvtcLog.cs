@@ -28,7 +28,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public List<(string, string)> GetStealthResult(string accountName, StealthAlgoritmns algoritmn, bool showLate = false);
         public StealthTimelineCollection GetStealthTimeline();
         public long GetStealthTiming(string phase);
-        public List<string> GetDownReasons(string accountName);
+        public List<(string, long)> GetDownReasons(string accountName);
 
         public string[] GetPlayers();
         public string GetSpec(string accountName);

@@ -196,7 +196,7 @@
                                 }
                             </MudTd>
                             @foreach (var downReason in latestLog.GetDownReasons(context)){
-                                <MudTd>@downReason</MudTd>
+                                <MudTd>@downReason.Item1 at @(downReason.Item2/1000)</MudTd>
                             }
                         </RowTemplate>
                     </MudTable>
