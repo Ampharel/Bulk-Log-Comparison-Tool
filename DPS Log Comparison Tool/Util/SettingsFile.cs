@@ -70,6 +70,11 @@ namespace Bulk_Log_Comparison_Tool.Util
 
         public void AddSetting(string key, string value, bool autoSave = true)
         {
+            if(_settings.Keys.Contains(key) && _settings[key] == value)
+            {
+                
+                return;
+            }
             _settings[key] = value;
             if (autoSave)
             {
@@ -92,8 +97,15 @@ namespace Bulk_Log_Comparison_Tool.Util
             var kvps = _settings.Select(x => x.Key + equalSign + x.Value);
             var description = string.Join(Environment.NewLine, descriptionLines.Select(x => prefix + x));
 
-            System.IO.File.WriteAllText(SettingsPath, description + Environment.NewLine + Environment.NewLine);
-            System.IO.File.AppendAllLines(SettingsPath, kvps);
+            try
+            {
+                System.IO.File.WriteAllText(SettingsPath, description + Environment.NewLine + Environment.NewLine);
+                System.IO.File.AppendAllLines(SettingsPath, kvps);
+            }
+            catch (Exception e)
+            {
+
+            }
         }
     }
 }
