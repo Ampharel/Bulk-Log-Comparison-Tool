@@ -90,7 +90,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             var Logs = _logParser.BulkLog.Logs;
             tableDps.ColumnCount = Logs.Count() + 1;
 
-            var Phases = _logParser.BulkLog.GetPhases();
+            var Phases = _logParser.BulkLog.GetPhases([]);
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
             {
                 var Phase = Phases.FirstOrDefault();

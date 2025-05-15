@@ -106,10 +106,10 @@
                         if (Series.ContainsKey(context.GetFileName()))
                         {
                             var data = Series[context.GetFileName()];
-                            foreach (var dat in data)
-                            {
-                                Console.WriteLine(dat);
-                            }
+                            // foreach (var dat in data)
+                            // {
+                            //     Console.WriteLine(dat);
+                            // }
                             <MudTd>@context.GetFileName()</MudTd>
                             <MudTimeSeriesChart ChartType="ChartType.Line"  TimeLabelFormat="mm:ss" ChartSeries="@data" @bind-SelectedIndex="Index" TimeLabelSpacing="@graphTimespan"       
                             CanHideSeries Width="100%" Height="350px" ChartOptions="@Options" />

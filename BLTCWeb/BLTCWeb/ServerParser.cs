@@ -2,6 +2,7 @@
 using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool.LibraryClasses;
 using Bulk_Log_Comparison_Tool.Util;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;
 
 namespace BLCTWeb
@@ -15,12 +16,13 @@ namespace BLCTWeb
         private List<(string, long, long)> _customPhases = new();
 
         public event Action NewDataEvent;
-        private LibraryParser parser = new LibraryParser(false);
+        private IEvtcParser parser = new LibraryParser(false);
 
         private SettingsFile CustomPhaseSettings;
 
         public ServerParser()
         {
+
             LoadCustomPhases();
         }
 

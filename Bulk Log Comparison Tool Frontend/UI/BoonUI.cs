@@ -85,7 +85,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             tableBoons.RowCount = ActivePlayers.Count + Groups.Count();
             tableBoons.ColumnCount = Logs.Count() + 1;
 
-            var Phases = _logParser.BulkLog.GetPhases();
+            var Phases = _logParser.BulkLog.GetPhases([]);
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
             {
                 var Phase = Phases.FirstOrDefault();
@@ -139,7 +139,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                     if(graph.Checked)
                     {
                         List<(int,int)> boons = new();
-                        var phases = Logs[x].GetPhases();
+                        var phases = Logs[x].GetPhases([]);
                         phases = phases.Skip(1).ToArray();
                         var phaseStart = Logs[x].GetPhaseStart(_selectedPhase);
                         while (phases.Count() > 0 && Logs[x].GetPhaseStart(phases.First()) < phaseStart)

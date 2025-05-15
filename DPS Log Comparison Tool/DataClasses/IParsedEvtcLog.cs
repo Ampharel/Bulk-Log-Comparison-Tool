@@ -11,7 +11,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public string GetLogStart();
         public double GetPlayerDps(string accountName, string phaseName = "", bool allTarget = false, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
         public double GetPlayerDps(string accountName, long time = 0, string phaseName = "",  bool allTarget = false, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
-        protected double GetPlayerDps(string accountName, long start, long end, AbstractSingleActor[] targets, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
+        protected double GetPlayerDps(string accountName, long start, long end, SingleActor[] targets, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
         public string[] GetPhases(string[] filter, bool exclusion = true);
         public void AddPhase(string name, long start, long duration);
         public string[] GetTargets(string phaseName = "");
@@ -45,7 +45,6 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public string[] GetFood(string accountName);
         public string[] GetEnhancements(string account);
         public bool HasReinforcedArmor(string accountName);
-        public long GetPlayerHealth(string accountName);
         public List<LastLaugh> GetLastLaughs(string accountName, string phaseName);
         public List<LastLaugh> GetChampionLastLaugh(string accountName, string phaseName);
         public long[] GetZhaitanFearTimings();
