@@ -136,6 +136,7 @@
     {
         await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
         _fileNames.Clear();
+        _newFiles.Clear();
         ClearDragClass();
         _processingCount = 0;
     }
@@ -145,18 +146,29 @@
 
     private void OnInputFileChanged(InputFileChangeEventArgs e)
     {
-        ClearDragClass();
-        var files = e.GetMultipleFiles(100);
-        foreach (var file in files)
+        try
         {
-            if(_newFiles.Contains(file)) continue;
-            var uploadFile = new UploadFile(file);
-            _fileNames.Add(uploadFile);
-            _newFiles.Enqueue(file);
+            ClearDragClass();
+            var files = e.GetMultipleFiles(100);
+            if (files == null || files.Count == 0)
+            {
+                Console.WriteLine("No files selected.");
+                return;
+            }
+            foreach (var file in files)
+            {
+                if(_newFiles.Contains(file)) continue;
+                var uploadFile = new UploadFile(file);
+                _fileNames.Add(uploadFile);
+                _newFiles.Enqueue(file);
+            }
+             _processingCount = _newFiles.Count;
         }
-        _processingCount = _newFiles.Count;
+        catch (Exception ex)
+        {
+            Console.WriteLine($"OnInputFileChanged Exception: {ex}");
+        }
     }
-
     private async Task UploadAsync()
     {
         _isLoading = true;
@@ -166,22 +178,37 @@
         Console.WriteLine($"Starting processing of {_newFiles.Count} files");
         sw.Start();
 
-        await Parallel.ForEachAsync(_newFiles, async (file,token) =>
-        {
-            await UploadFileAsync(file);
-            _fileNames.RemoveAll(f => f.Name.Equals(file.Name));
-            _processingCount--;
-            InvokeAsync(() => LogParser.FinishMultiload());
-            InvokeAsync(StateHasChanged);
-        });
+        var processingTasks = new List<Task>();
 
-        // while (_newFiles.TryDequeue(out var file))
-        // {
-        //     await UploadFileAsync(file);
-        //     _fileNames.RemoveAll(f => f.Name.Equals(file.Name));
-        //     _processingCount--;
-        //     StateHasChanged();
-        // }
+        while (_newFiles.TryDequeue(out var file))
+        {
+            // Step 1: Read file into memory (must be on UI thread)
+            var ms = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
+            ms.Position = 0;
+
+            // Step 2: Start processing in the background immediately
+            var name = file.Name;
+            processingTasks.Add(Task.Run(async () =>
+            {
+                try
+                {
+                    await ProcessFileStreamAsync(ms, name);
+                    _fileNames.RemoveAll(f => f.Name.Equals(name));
+                }
+                finally
+                {
+                    _processingCount--;
+                    await InvokeAsync(() => LogParser.FinishMultiload());
+                    await InvokeAsync(StateHasChanged);
+                }
+            }));
+
+            // _processingCount is set to the number of files being processed
+            _processingCount = processingTasks.Count;
+        }
+
+        await Task.WhenAll(processingTasks);
 
         Console.WriteLine($"Finished processing of files, took {sw.ElapsedMilliseconds} ms in total");
 
@@ -189,64 +216,41 @@
         await OnUpload.InvokeAsync();
     }
 
-    private static SemaphoreSlim fileLockObject = new SemaphoreSlim(1);
-
-    private async Task UploadFileAsync(IBrowserFile file)
+    // This method does the unpacking and parsing, now safe to run in parallel
+    private async Task ProcessFileStreamAsync(MemoryStream ms, string fileName)
     {
-        if (LogParser.HasLog(file.Name))
+        ms.Position = 0;
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+        var elapsed = 0L;
+
+        Console.WriteLine($"Starting unpacking of file: {fileName}");
+        elapsed = sw.ElapsedMilliseconds;
+        using (MemoryStream unpackedMemoryStream_ = new MemoryStream())
         {
-            Console.WriteLine($"{file.Name} already exists!");
-            return;
-        }
-        using (MemoryStream ms = new())
-        {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            var elapsed = 0L;
-
-            await fileLockObject.WaitAsync();
-            try
+            using (ZipArchive val = new ZipArchive(ms, ZipArchiveMode.Read))
             {
-                Console.WriteLine($"Awaited lock for {sw.ElapsedMilliseconds} ms");
-                elapsed = sw.ElapsedMilliseconds;
-                Console.WriteLine($"Starting upload of file: {file.Name}");
-                await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
-                Console.WriteLine($"Upload of file: {file.Name} took {sw.ElapsedMilliseconds - elapsed} ms");
-            }
-            finally
-            {
-                fileLockObject.Release();
-            }
-
-            ms.Position = 0;
-
-            Console.WriteLine($"Starting unpacking of file: {file.Name}");
-            elapsed = sw.ElapsedMilliseconds;
-            using (MemoryStream unpackedMemoryStream_ = new MemoryStream())
-            {
-                using (ZipArchive val = new ZipArchive(ms, ZipArchiveMode.Read))
+                if (val.Entries.Count != 1)
                 {
-                    if (val.Entries.Count != 1)
-                    {
-                        Console.WriteLine("Invalid file");
-                        return;
-                    }
-                    using Stream stream = val.Entries[0].Open();
-                    await stream.CopyToAsync(unpackedMemoryStream_);
-                    unpackedMemoryStream_.Position = 0;
-
-                    Console.WriteLine($"Finished unpacking of file: {file.Name} took {sw.ElapsedMilliseconds - elapsed} ms");
+                    Console.WriteLine("Invalid file");
+                    return;
                 }
+                using Stream stream = val.Entries[0].Open();
+                await stream.CopyToAsync(unpackedMemoryStream_);
+                unpackedMemoryStream_.Position = 0;
 
-                Console.WriteLine($"Starting parsing of file: {file.Name}");
-                elapsed = sw.ElapsedMilliseconds;
-                LogParser.AddLog(unpackedMemoryStream_, file.Name,true);
-                Console.WriteLine($"Parsing of file: {file.Name} took {sw.ElapsedMilliseconds - elapsed} ms");
+                Console.WriteLine($"Finished unpacking of file: {fileName} took {sw.ElapsedMilliseconds - elapsed} ms");
             }
 
-            Console.WriteLine($"Finished with file {file.Name}, total time was {sw.ElapsedMilliseconds} ms");
+            Console.WriteLine($"Starting parsing of file: {fileName}");
+            elapsed = sw.ElapsedMilliseconds;
+            LogParser.AddLog(unpackedMemoryStream_, fileName, true);
+            Console.WriteLine($"Parsing of file: {fileName} took {sw.ElapsedMilliseconds - elapsed} ms");
         }
-        var uploadedFile = _fileNames.FirstOrDefault(f => f.Name == file.Name);
+
+        Console.WriteLine($"Finished with file {fileName}, total time was {sw.ElapsedMilliseconds} ms");
+
+        var uploadedFile = _fileNames.FirstOrDefault(f => f.Name == fileName);
         if (uploadedFile != null)
         {
             uploadedFile.IsUploaded = true;
