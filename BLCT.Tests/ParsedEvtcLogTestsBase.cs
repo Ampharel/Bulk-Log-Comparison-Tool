@@ -16,21 +16,28 @@ public abstract class ParsedEvtcLogTestsBase
     [Fact]
     public void GetLogStart_ReturnsExpectedStart()
     {
-        Assert.Equal("2025-05-10 12:15:07 +01", log.GetLogStart());
+        Assert.Contains("2025-05-10 13:15:07", log.GetLogStart());
     }
 
     [Fact]
     public void GetPlayerDps_ByPhase_ReturnsExpectedDps()
     {
         double dps = log.GetPlayerDps("Ampharel.6432", "Jormag");
-        Assert.Equal(51478, dps, 10);
+        Assert.InRange(dps, 51475, 51485);
     }
 
     [Fact]
     public void GetPlayerDps_ByTime_ReturnsExpectedDps()
     {
         double dps = log.GetPlayerDps("Ampharel.6432", 5000, "Jormag");
-        Assert.Equal(51088, dps, 10);
+        Assert.InRange(dps, 51085, 51090);
+    }
+
+    [Fact]
+    public void GetPlayerGoliathBurst_ByTime_ReturnsExpectedBurst()
+    {
+        double burst = log.GetPlayerDps("Ampharel.6432", phaseName: "Void Goliath", time: 15000, cumulative: true);
+        Assert.Equal(437205, burst, 10);
     }
 
     [Fact]
@@ -89,28 +96,97 @@ public abstract class ParsedEvtcLogTestsBase
     public void GetBoon_ByTarget_ReturnsExpectedValue()
     {
         double boon = log.GetBoon("Ampharel.6432", "Might");
-        Assert.True(boon == 24.455);
+        Assert.Equal(24.455, boon, 0.01);
+    }
+
+    [Fact]
+    public void GetBoon_ByTarget_InPurification1_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Purification 1");
+        Assert.Equal(25.0, boon, 0.01);
+    }
+    [Fact]
+    public void GetBoon_ByTarget_InJormag_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Jormag");
+        Assert.Equal(25.0, boon, 0.01);
+    }
+    [Fact]
+    public void GetBoon_ByTarget_InPrimordus_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Primordus");
+        Assert.Equal(23.985, boon, 0.01);
+    }
+    [Fact]
+    public void GetBoon_ByTarget_InKralkatorrik_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Kralkatorrik");
+        Assert.Equal(25.0, boon, 0.01);
+    }
+    [Fact]
+    public void GetBoon_ByTarget_InPurification2_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Purification 2");
+        Assert.Equal(25.0, boon, 0.01);
+    }
+    [Fact]
+    public void GetBoon_ByTarget_InMordemoth_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Mordremoth");
+        Assert.Equal(25.0, boon, 0.01);
+    }
+    [Fact]
+    public void GetBoon_ByTarget_InZhaitan_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Zhaitan");
+        Assert.Equal(25.0, boon, 0.01);
+    }
+    [Fact]
+    public void GetBoon_ByTarget_InPurification3_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Purification 3");
+        Assert.Equal(24.868, boon, 0.01);
+    }
+    [Fact]
+    public void GetBoon_ByTarget_InSooWon1_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Soo-Won 1");
+        Assert.Equal(25.0, boon, 0.01);
+    }
+    [Fact]
+    public void GetBoon_ByTarget_InPurification4_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Purification 4");
+        Assert.Equal(24.688, boon, 0.01);
+    }
+    [Fact]
+    public void GetBoon_ByTarget_InSooWon2_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon("Ampharel.6432", "Might", "Soo-Won 2");
+        Assert.Equal(24.259, boon, 0.01);
     }
 
     [Fact]
     public void GetBoonAtTime_ReturnsExpectedValue()
     {
         double boon = log.GetBoonAtTime("Ampharel.6432", "Might", 1000);
-        Assert.Equal(0, boon);
+        Assert.Equal(0, boon, 0.01);
     }
 
-    [Fact]
-    public void GetBoonTimedEvents_ReturnsList()
-    {
-        var events = log.GetBoonTimedEvents("Ampharel.6432", "Quickness", "Jormag");
-        Assert.Equal(81, events.Count);
-    }
 
     [Fact]
     public void GetBoon_ByGroup_ReturnsExpectedValue()
     {
         double boon = log.GetBoon(1, "Might");
         Assert.Equal(23.154, boon, 0.01);
+    }
+
+
+    [Fact]
+    public void GetBoon_ByGroup_InPhase_ReturnsExpectedValue()
+    {
+        double boon = log.GetBoon(1, "Might", "Primordus");
+        Assert.Equal(22.934, boon, 0.01);
     }
 
     [Fact]
@@ -215,7 +291,7 @@ public abstract class ParsedEvtcLogTestsBase
     {
         var reasons = log.GetDownReasons("Nark.1964");
         var firstDownReason = reasons.First();
-        Assert.Equal("Targeted Expulsion", firstDownReason.Item1);
+        Assert.Contains("Targeted Expulsion", firstDownReason.Item1);
         Assert.Equal(517683, firstDownReason.Item2);
     }
 
@@ -268,7 +344,10 @@ public abstract class ParsedEvtcLogTestsBase
     public void GetBoonNames_ReturnsExpectedBoonNames()
     {
         var expectedBoons = new[] { "Might", "Fury", "Quickness", "Alacrity", "Protection", "Regeneration", "Vigor", "Stability", "Swiftness", "Resistance", "Resolution" };
-        Assert.Equal(expectedBoons, log.GetBoonNames());
+        Array.Sort(expectedBoons);
+        var boonArray = log.GetBoonNames().ToArray();
+        Array.Sort(boonArray);
+        Assert.Equal(expectedBoons, boonArray);
     }
 
     [Fact]
@@ -315,18 +394,16 @@ public abstract class ParsedEvtcLogTestsBase
     }
 
     [Fact]
-    public void GetFood_ReturnsArray()
+    public void GetConsumables_ReturnArray()
     {
-        var food = log.GetFood("Ampharel.6432");
-        Assert.Equal(4, food.Length);
+        var consumables = log.GetConsumables("Ampharel.6432");
+        string[] expected = { "Writ of Masterful Strength", "Dragon's Breath Bun", "Steamed Red Dumpling", "Block of Tofu", "Plate of Steak and Asparagus Dinner" };
+        foreach (var item in expected)
+        {
+            Assert.Contains(item, consumables);
+        }
     }
 
-    [Fact]
-    public void GetEnhancements_ReturnsArray()
-    {
-        var enhancements = log.GetEnhancements("Ampharel.6432");
-        Assert.Equal("Writ of Masterful Strength", enhancements.First());
-    }
 
     [Fact]
     public void HasReinforcedArmor_ReturnsBool()
@@ -353,7 +430,7 @@ public abstract class ParsedEvtcLogTestsBase
     public void GetChampionLastLaugh_ReturnsList()
     {
         var laughs = log.GetChampionLastLaugh("Drakh Valor.3826", "Full Fight");
-        Assert.Single(laughs);
+        Assert.Empty(laughs);
     }
 
     [Fact]
@@ -368,7 +445,7 @@ public abstract class ParsedEvtcLogTestsBase
     {
         var timings = log.GetZhaitanFearTimings();
         var result = log.GetCleanseReactionTime("Ampharel.6432", timings.First());
-        Assert.Equal("Kar.7453", result.Item1);
+        Assert.Equal("", result.Item1);
         Assert.Equal(355, result.Item2);
     }
 

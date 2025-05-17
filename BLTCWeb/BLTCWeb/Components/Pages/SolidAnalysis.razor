@@ -50,8 +50,7 @@
                 <HeaderContent>
                     <MudTh>Log</MudTh>
                     <MudTh>Reinforced Armor</MudTh>
-                    <MudTh>Food</MudTh>
-                    <MudTh>Enhancements</MudTh>
+                    <MudTh>Consumables</MudTh>
                     <MudTh>Downed</MudTh>
                     <MudTh>Eligibility</MudTh>
                 </HeaderContent>
@@ -59,12 +58,9 @@
                     <MudTd>@context.GetFileName()</MudTd>
                     <MudTd><MudCheckBox T="bool" Value="@context.HasReinforcedArmor(selectedPlayer)" Disabled="true">Reinforced Armor</MudCheckBox></MudTd>
                     @{
-                        var food = context.GetFood(selectedPlayer).Aggregate("", (current, next) => current + " | " + next);
-                        food = food.TrimStart(' ', '|');
-                        var enchancements = context.GetEnhancements(selectedPlayer).Aggregate("", (current, next) => current + " | " + next);
-                        enchancements = enchancements.TrimStart(' ', '|');
-                        <MudTd>@food</MudTd>
-                        <MudTd>@enchancements</MudTd>
+                        var consumables = context.GetConsumables(selectedPlayer);
+                        var consumableString = consumables.Aggregate("", (current, consumable) => current + $"{ consumable}\n");
+                        <MudTd><MudText Style="white-space: pre-line;">@consumableString</MudText></MudTd>
                         <MudTd>
                         @{
                             var downs = context.GetDownReasons(selectedPlayer);

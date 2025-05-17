@@ -34,7 +34,12 @@ public class JsonParser : IEvtcParser
 
     private IParsedEvtcLog ParseJsonLog(Stream fileStream, string fileName)
     {
-        var log = JsonSerializer.Deserialize<JsonLog>(fileStream);
+        var log = JsonSerializer.Deserialize<JsonLog>(fileStream,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true,
+                    IncludeFields = true
+                });
 
         if (log == null)
             throw new InvalidOperationException("Failed to parse JSON log.");

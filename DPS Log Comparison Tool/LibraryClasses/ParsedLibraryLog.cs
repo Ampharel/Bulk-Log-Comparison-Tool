@@ -103,9 +103,13 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             {
                 target = _log.FightData.GetPhases(_log).SelectMany(x => x.Targets.Keys).DistinctBy(x => x.Character).ToArray();
             }
-            else
+            else if (allTarget)
             {
                 target = phase.Item1.Targets.Keys.ToArray();
+            }
+            else
+            {
+                target = [phase.Item1.Targets.Keys.First()];
             }
             if (target == null)
                 return 0;
@@ -189,9 +193,13 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             {
                 target = _log.FightData.GetPhases(_log).SelectMany(x => x.Targets.Keys).DistinctBy(x => x.Character).ToArray();
             }
-            else
+            else if(allTarget)
             {
                 target = phase.Item1.Targets.Keys.ToArray();
+            }
+            else
+            {
+                target = [phase.Item1.Targets.Keys.First()];
             }
             if (target == null)
                 return 0;
@@ -1229,6 +1237,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         }
 
+        public string[] GetConsumables(string accountName)
+        {
+            return GetFood(accountName).Concat(GetEnhancements(accountName)).ToArray();
+        }
+
         public string[] GetFood(string accountName)
         {
             var foods = _log.StatisticsHelper.PresentNourishements;
@@ -1268,6 +1281,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             List<LastLaugh> lastLaughs = new();
             foreach (var lastLaugh in lastLaughEvents.DistinctBy(x => x.Time))
             {
+                if(lastLaugh.HealthDamage+lastLaugh.ShieldDamage == 0)
+                {
+                    continue;
+                }
                 lastLaughs.Add(new LastLaugh(lastLaugh.SkillId, lastLaugh.From.Name, accountName, lastLaugh.Time, lastLaugh.HealthDamage, lastLaugh.ShieldDamage));
             }
             return lastLaughs;

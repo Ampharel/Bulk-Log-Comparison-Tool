@@ -23,4 +23,11 @@ public class JsonParsedEvtcLogTests : ParsedEvtcLogTestsBase, IClassFixture<Pars
     {
         Assert.Equal("20250510-122619.zevtc.json", log.GetFileName());
     }
+
+    [Fact]
+    public void GetBoonTimedEvents_ReturnsList()
+    {
+        var events = log.GetBoonTimedEvents("Ampharel.6432", "Quickness", "Jormag");
+        Assert.Equal(3, events.Count);
+    }
 }

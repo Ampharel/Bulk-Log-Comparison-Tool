@@ -23,4 +23,12 @@ public class LibraryParsedEvtcLogTests : ParsedEvtcLogTestsBase, IClassFixture<P
     {
         Assert.Equal("20250510-122619.zevtc", log.GetFileName());
     }
+
+
+    [Fact]
+    public void GetBoonTimedEvents_ReturnsList()
+    {
+        var events = log.GetBoonTimedEvents("Ampharel.6432", "Quickness", "Jormag");
+        Assert.Equal(81, events.Count);
+    }
 }
