@@ -12,7 +12,7 @@ Elevation="3"
 Variant="DrawerVariant.Persistent"
 ClipMode="DrawerClipMode.Docked">
 
-    <MudDrawerHeader>
+    <MudDrawerHeader @onclick="OnHeaderClick">
         <MudText Typo="Typo.h6">Upload Logs</MudText>
     </MudDrawerHeader>
 
@@ -50,15 +50,18 @@ ClipMode="DrawerClipMode.Docked">
                 </MudPaper>
             </ActivatorContent>
         </MudFileUpload>
-        <MudTextField Label="EXPERIMENTAL:"
-        Placeholder="Paste dps.report / wingman logs here"
-        Lines="5"
-        Margin="Margin.Dense"
-        FullWidth="true"
-        @bind-Value="_logUrls"
-        Adornment="Adornment.None"
-        Immediate="true"
-        TextArea="true" />
+        @if (_showExperimentalField)
+        {
+            <MudTextField Label="EXPERIMENTAL:"
+                          Placeholder="Paste dps.report / wingman logs here"
+                          Lines="5"
+                          Margin="Margin.Dense"
+                          FullWidth="true"
+                          @bind-Value="_logUrls"
+                          Adornment="Adornment.None"
+                          Immediate="true"
+                          TextArea="true" />
+        }
         <MudToolBar Gutters="false" Class="relative d-flex justify-end gap-4">
             <MudButton Color="Color.Primary"
             OnClick="OpenFilePickerAsync"
@@ -331,6 +334,33 @@ ClipMode="DrawerClipMode.Docked">
         }
 
         public string Name => File.Name;
+    }
+
+    private int _headerClickCount = 0;
+    private bool _showExperimentalField = false;
+    private System.Timers.Timer? _headerClickTimer;
+
+    private void OnHeaderClick()
+    {
+        _headerClickCount++;
+        _headerClickTimer?.Stop();
+        _headerClickTimer = new System.Timers.Timer(1500); // 1.5 seconds to reset
+        _headerClickTimer.Elapsed += (s, e) =>
+        {
+            _headerClickCount = 0;
+            _headerClickTimer?.Stop();
+            InvokeAsync(StateHasChanged);
+        };
+        _headerClickTimer.AutoReset = false;
+        _headerClickTimer.Start();
+
+        if (_headerClickCount >= 10)
+        {
+            _showExperimentalField = true;
+            _headerClickCount = 0;
+            _headerClickTimer?.Stop();
+            StateHasChanged();
+        }
     }
 }
 

@@ -71,13 +71,32 @@ public class ParsedJsonLog : IParsedEvtcLog
         var phaseIndex = GetIndexFromPhase(phaseName);
         if (phaseIndex < 0) return 0;
         var phase = _log.Phases.First(x => x.Name == phaseName);
-        var targetIndex = phase.Targets.First();
-        var damageNumbers = playerAccount.DpsTargets[targetIndex][phaseIndex];
-        if(cumulative)
+        var targets = phase.Targets;
+        if (!allTarget)
         {
-            return damageNumbers.Damage;
+            targets = [targets.First()];
         }
-        return damageNumbers.Dps;
+        var dmg = 0;
+        foreach(var targetIndex in targets)
+        {
+            var damageNumbers = playerAccount.DpsTargets[targetIndex][phaseIndex];
+            if (cumulative)
+            {
+                if (defiance)
+                {
+                    dmg += (int)damageNumbers.BreakbarDamage;
+                }
+                else
+                {
+                    dmg += damageNumbers.Damage;
+                }
+            }
+            else
+            {
+                dmg += damageNumbers.Dps;
+            }
+        }
+        return dmg;
         //return GetPlayerDps(accountName, GetPhaseEnd(phaseName)-GetPhaseStart(phaseName), phaseName, allTarget, cumulative, defiance, damageType);
     }
 
@@ -89,19 +108,21 @@ public class ParsedJsonLog : IParsedEvtcLog
         var phaseIndex = GetIndexFromPhase(phaseName);
         if (phaseIndex < 0) return 0;
         var phase = _log.Phases.First(x => x.Name == phaseName);
-        var targetIndex = phase.Targets.First();
 
-        var damageNumbers = playerAccount.TargetDamage1S[targetIndex][phaseIndex];
+        var damageNumbers = playerAccount.TargetDamage1S.Select(x => x[phaseIndex]);
         var cumulDamage = 0;
-        if (time / 1000 >= damageNumbers.Count)
+        foreach (var damageNumber in damageNumbers)
         {
-            cumulDamage = damageNumbers.Last();
+            if (time / 1000 >= damageNumber.Count)
+            {
+                cumulDamage += damageNumber.Last();
+            }
+            else
+            {
+                cumulDamage += damageNumber[(int)(time / 1000)];
+            }
         }
-        else
-        {
-            cumulDamage = damageNumbers[(int)(time / 1000)];
-        }
-        if(cumulative)
+        if (cumulative)
         {
             return cumulDamage;
         }
@@ -176,7 +197,7 @@ public class ParsedJsonLog : IParsedEvtcLog
     {
         if (duration)
         {
-            throw new NotImplementedException();
+            return -1;
         }
         if (phaseName == "")
         {
@@ -359,14 +380,16 @@ public class ParsedJsonLog : IParsedEvtcLog
         if (stealthResult == null) return stealthResults;
         foreach (var stealth in stealthResult)
         {
+            var hadStealth = false;
             foreach(var sr in stealth.Value.Results.Where(x => x.Player == accountName))
             {
+                hadStealth = true;
                 stealthResults.Add((stealth.Key, sr.Reason));
             }
-        }
-        if (stealthResults.Count == 0)
-        {
-            stealthResults.Add((accountName, "No Stealth"));
+            if (!hadStealth)
+            {
+                stealthResults.Add((stealth.Key, "No Stealth"));
+            }
         }
         return stealthResults;
     }

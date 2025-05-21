@@ -462,4 +462,24 @@ public abstract class ParsedEvtcLogTestsBase
         long result = log.GetBoonStripDuringPhase("Ampharel.6432", "Primordus");
         Assert.Equal(8, result);
     }
+
+    [Fact]
+    public void GetStealthPhases_ReturnsExpectedPhases()
+    {
+        var expected = new[] { "Primordus", "Kralkatorrik", "Giants", "Soo-Won 2" };
+        Assert.Equal(expected, log.GetStealthPhases());
+    }
+    [Fact]
+    public void GetPlayerDps_Defiance_ReturnsOnlyBreakbarDamage()
+    {
+        double cc = log.GetPlayerDps("Ampharel.6432", "Void Time Caster Breakbar 1", defiance: true, cumulative: true);
+        // Should be in the expected breakbar damage range, not normal DPS
+        Assert.Equal(300, cc); // Adjust range as appropriate for your data
+    }
+    [Fact]
+    public void GetPlayerDps_FullFightAllTargets_SumsAllTargets()
+    {
+        double dpsSingle = log.GetPlayerDps("Ampharel.6432", "Full Fight", allTarget: true);
+        Assert.Equal(31971, dpsSingle);
+    }
 }
