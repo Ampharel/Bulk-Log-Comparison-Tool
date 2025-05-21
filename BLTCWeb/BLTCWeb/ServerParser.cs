@@ -17,6 +17,9 @@ namespace BLCTWeb
 
         public event Action NewDataEvent;
         private IEvtcParser parser = new LibraryParser(false);
+        private IEvtcParser jsonParser = new JsonParser();
+
+        public IEvtcParser JsonParser => jsonParser;
 
         private SettingsFile CustomPhaseSettings;
 
@@ -90,6 +93,15 @@ namespace BLCTWeb
 
             if (!multiload)
                 NewDataEvent?.Invoke();
+        }
+
+        public void AddJsonLog(IParsedEvtcLog log)
+        {
+            foreach (var phase in _customPhases)
+            {
+                log.AddPhase(phase.Item1, phase.Item2, phase.Item3);
+            }
+            _bulklog.AddLog(log);
         }
 
         public void RemoveLog(string file, bool multiload = false)

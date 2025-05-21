@@ -30,4 +30,14 @@ public class JsonParsedEvtcLogTests : ParsedEvtcLogTestsBase, IClassFixture<Pars
         var events = log.GetBoonTimedEvents("Ampharel.6432", "Quickness", "Jormag");
         Assert.Equal(3, events.Count);
     }
+
+
+    [Fact]
+    public void GetCleanseReactionTime_ReturnsTuple()
+    {
+        var timings = log.GetZhaitanFearTimings();
+        var result = log.GetCleanseReactionTime("Ampharel.6432", timings.First());
+        Assert.Equal("", result.Item1);
+        Assert.Equal(355, result.Item2);
+    }
 }

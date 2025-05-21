@@ -5,12 +5,12 @@
 @inject ServerParser LogParser
 
 <MudDrawer @bind-Open="_drawerOpen"
-           Width="300px"
-           Fixed="true"
-           Anchor="Anchor.End"
-           Elevation="3"
-           Variant="DrawerVariant.Persistent"
-           ClipMode="DrawerClipMode.Docked">
+Width="300px"
+Fixed="true"
+Anchor="Anchor.End"
+Elevation="3"
+Variant="DrawerVariant.Persistent"
+ClipMode="DrawerClipMode.Docked">
 
     <MudDrawerHeader>
         <MudText Typo="Typo.h6">Upload Logs</MudText>
@@ -18,23 +18,23 @@
 
     <MudStack Style="width: 100%; padding: 8px;">
         <MudFileUpload T="IReadOnlyList<IBrowserFile>"
-                       @ref="@_fileUpload"
-                       OnFilesChanged="OnInputFileChanged"
-                       AppendMultipleFiles
-                       Hidden="@false"
-                       InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
-                       InputStyle="opacity:0"
-                       tabindex="-1"
-                       MaximumFileCount="100"
-                       @ondrop="@ClearDragClass"
-                       @ondragenter="@SetDragClass"
-                       @ondragleave="@ClearDragClass"
-                       @ondragend="@ClearDragClass">
+        @ref="@_fileUpload"
+        OnFilesChanged="OnInputFileChanged"
+        AppendMultipleFiles
+        Hidden="@false"
+        InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+        InputStyle="opacity:0"
+        tabindex="-1"
+        MaximumFileCount="100"
+        @ondrop="@ClearDragClass"
+        @ondragenter="@SetDragClass"
+        @ondragleave="@ClearDragClass"
+        @ondragend="@ClearDragClass">
             <ActivatorContent>
                 <MudPaper Height="auto"
-                          Outlined="true"
-                          Class="@_dragClass"
-                          Style="display: flex; flex-direction: column; justify-content: flex-start; padding: 16px;">
+                Outlined="true"
+                Class="@_dragClass"
+                Style="display: flex; flex-direction: column; justify-content: flex-start; padding: 16px;">
                     <MudText Typo="Typo.h6" Class="mb-2">
                         Drag and drop files here or click
                     </MudText>
@@ -42,30 +42,39 @@
                         @foreach (var uploadFile in _fileNames)
                         {
                             <MudChip T="string"
-                                     Color="@((uploadFile.IsUploaded) ? Color.Success : Color.Dark)"
-                                     Text="@uploadFile.Name"
-                                     tabindex="-1" />
+                            Color="@((uploadFile.IsUploaded) ? Color.Success : Color.Dark)"
+                            Text="@uploadFile.Name"
+                            tabindex="-1" />
                         }
                     </div>
                 </MudPaper>
             </ActivatorContent>
         </MudFileUpload>
+        <MudTextField Label="EXPERIMENTAL:"
+        Placeholder="Paste dps.report / wingman logs here"
+        Lines="5"
+        Margin="Margin.Dense"
+        FullWidth="true"
+        @bind-Value="_logUrls"
+        Adornment="Adornment.None"
+        Immediate="true"
+        TextArea="true" />
         <MudToolBar Gutters="false" Class="relative d-flex justify-end gap-4">
             <MudButton Color="Color.Primary"
-                       OnClick="OpenFilePickerAsync"
-                       Variant="Variant.Filled">
+            OnClick="OpenFilePickerAsync"
+            Variant="Variant.Filled">
                 Open file picker
             </MudButton>
             <MudButton Color="Color.Primary"
-                       Disabled="@(!_fileNames.Any() || _isLoading)"
-                       OnClick="UploadAsync"
-                       Variant="Variant.Filled">
+            Disabled="@((!_fileNames.Any() && !_logUrls.Any()) || _isLoading)"
+            OnClick="UploadAsync"
+            Variant="Variant.Filled">
                 Upload
             </MudButton>
             <MudButton Color="Color.Error"
-                       Disabled="@(!_fileNames.Any())"
-                       OnClick="ClearAsync"
-                       Variant="Variant.Filled">
+            Disabled="@(!_fileNames.Any())"
+            OnClick="ClearAsync"
+            Variant="Variant.Filled">
                 Clear
             </MudButton>
         </MudToolBar>
@@ -91,9 +100,9 @@
         }
     </MudList>
     <MudButton Color="Color.Error"
-               Disabled="@(!SelectedFiles.Any())"
-               OnClick="@DeleteLogs"
-               Variant="Variant.Filled">
+    Disabled="@(!SelectedFiles.Any())"
+    OnClick="@DeleteLogs"
+    Variant="Variant.Filled">
         Delete
     </MudButton>
 </MudDrawer>
@@ -118,6 +127,7 @@
     private int _processingCount = 0;
     private bool _isLoading = false;
     private IReadOnlyCollection<string> SelectedFiles = [];
+    private string _logUrls = string.Empty;
 
     private void DeleteLogs()
     {
@@ -162,13 +172,14 @@
                 _fileNames.Add(uploadFile);
                 _newFiles.Enqueue(file);
             }
-             _processingCount = _newFiles.Count;
+            _processingCount = _newFiles.Count;
         }
         catch (Exception ex)
         {
             Console.WriteLine($"OnInputFileChanged Exception: {ex}");
         }
     }
+
     private async Task UploadAsync()
     {
         _isLoading = true;
@@ -180,14 +191,13 @@
 
         var processingTasks = new List<Task>();
 
+        // Process files as before
         while (_newFiles.TryDequeue(out var file))
         {
-            // Step 1: Read file into memory (must be on UI thread)
             var ms = new MemoryStream();
             await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
             ms.Position = 0;
 
-            // Step 2: Start processing in the background immediately
             var name = file.Name;
             processingTasks.Add(Task.Run(async () =>
             {
@@ -204,9 +214,12 @@
                 }
             }));
 
-            // _processingCount is set to the number of files being processed
             _processingCount = processingTasks.Count;
         }
+
+        // Process URLs in parallel
+        processingTasks.Add(ProcessLogUrlsAsync(_logUrls));
+        _logUrls = "";
 
         await Task.WhenAll(processingTasks);
 
@@ -214,6 +227,48 @@
 
         _isLoading = false;
         await OnUpload.InvokeAsync();
+    }
+
+    // New function to process URLs in parallel
+    private async Task ProcessLogUrlsAsync(string logUrls)
+    {
+        if (string.IsNullOrWhiteSpace(logUrls))
+            return;
+
+        var urls = logUrls
+            .Split(new[] { '\r', '\n', ' ', ',' }, StringSplitOptions.RemoveEmptyEntries)
+            .Distinct()
+            .ToList();
+
+        if (urls.Count == 0)
+            return;
+
+        var urlTasks = urls.Select(async url =>
+        {
+            try
+            {
+                // Assume JsonParser is available and thread-safe
+                await InvokeAsync(() => LogParser.AddJsonLog(LogParser.JsonParser.ParseLog(ConvertUrl(url))));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to process log URL '{url}': {ex.Message}");
+            }
+        });
+
+        await Task.WhenAll(urlTasks);
+    }
+
+    private string ConvertUrl(string url)
+    {
+        if (url.Contains("dps.report"))
+        {
+            return "https://dps.report/getJson?permalink=" + url.Split('/').Last();
+        }
+        if(url.Contains("gw2wingman.nevermindcreations.de")){
+            return "https://gw2wingman.nevermindcreations.de/api/" + url.Split('/').Last();
+        }
+        return url;
     }
 
     // This method does the unpacking and parsing, now safe to run in parallel

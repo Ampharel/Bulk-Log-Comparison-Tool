@@ -3,11 +3,13 @@ using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool.LibraryClasses;
 using Bulk_Log_Comparison_Tool.Util;
 using GW2EIEvtcParser.EIData;
+using GW2EIEvtcParser.ParsedData;
 using GW2EIJSON;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using static GW2EIEvtcParser.ParserHelper;
 
 public class ParsedJsonLog : IParsedEvtcLog
 {
@@ -21,7 +23,41 @@ public class ParsedJsonLog : IParsedEvtcLog
     public ParsedJsonLog(JsonLog log, string fileName)
     {
         _log = log ?? throw new ArgumentNullException(nameof(log));
-        _fileName = fileName;
+        _fileName = fileName.Split('=').Last();
+        LoadFile();
+    }
+
+
+    private void LoadFile()
+    {
+        _expectedStealthPhases = new();
+        CreateFile();
+        var stealthPhases = File.ReadAllLines("StealthPhases.txt").Where(x => !x.StartsWith("#") && x.Contains('|')).ToList();
+        foreach (var phase in stealthPhases)
+        {
+            var splitPhase = phase.Split('|');
+            var bossPhase = splitPhase.First();
+            var description = splitPhase.Last();
+            if (!_expectedStealthPhases.ContainsKey(bossPhase))
+            {
+                _expectedStealthPhases.Add(bossPhase, description);
+            }
+        }
+    }
+
+    private void CreateFile()
+    {
+        if (!File.Exists("StealthPhases.txt"))
+        {
+            File.WriteAllLines("StealthPhases.txt", new string[]
+            {
+                    "#This file should contain all expected stealth phases in the PhaseName|DescriptiveName format",
+                    "Primordus|Primordus",
+                    "Kralkatorrik|Kralkatorrik",
+                    "Giants|Giants",
+                    "Soo-Won 2|Champions"
+            });
+        }
     }
 
     public string GetFileName() => _fileName;
@@ -57,7 +93,7 @@ public class ParsedJsonLog : IParsedEvtcLog
 
         var damageNumbers = playerAccount.TargetDamage1S[targetIndex][phaseIndex];
         var cumulDamage = 0;
-        if (time / 1000 > damageNumbers.Count)
+        if (time / 1000 >= damageNumbers.Count)
         {
             cumulDamage = damageNumbers.Last();
         }
@@ -71,18 +107,6 @@ public class ParsedJsonLog : IParsedEvtcLog
         }
         return cumulDamage / (time / 1000);
 
-        JsonNPC[] target;
-        if (phaseName == "Full Fight" && allTarget)
-        {
-            target = _log.Targets.ToArray();
-        }
-        else
-        {
-            var targetIds = _log.Phases?.FirstOrDefault(p => string.Equals(p.Name, phaseName, StringComparison.OrdinalIgnoreCase))?.Targets.ToArray() ?? [];
-            target = _log.Targets.Where(t => targetIds.Contains(t.Id)).ToArray();
-        }
-        var phaseEnd = time == 0 ? GetPhaseEnd(phaseName) : GetPhaseStart(phaseName) + time;
-        return GetPlayerDps(accountName, GetPhaseStart(phaseName), phaseEnd, target, cumulative: cumulative, defiance: defiance, damageType: damageType);
     }
     public double GetPlayerDps(string accountName, long start, long end, JsonNPC[] targets, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All)
     {
@@ -198,6 +222,10 @@ public class ParsedJsonLog : IParsedEvtcLog
     {
         var boonID = GetBuffIdFromBoonName(boonName);
         if (boonID == 0) return 0;
+        return GetBoonAtTime(target, boonID, time);
+    }
+    public double GetBoonAtTime(string target, long boonID, long time)
+    {
         if (_log.BuffMap == null) return 0;
         var player = _log.Players?.FirstOrDefault(p => string.Equals(p.Account, target, StringComparison.OrdinalIgnoreCase));
         if (player == null) return 0;
@@ -214,20 +242,30 @@ public class ParsedJsonLog : IParsedEvtcLog
 
         return GetBoonTimedEvents(target, boonName, phaseStart, phaseEnd, source);
     }
+    public List<(double, double)> GetBoonTimedEvents(string target, long boonID, string phaseName = "", string source = "")
+    {
+        var phaseStart = GetPhaseStart(phaseName);
+        var phaseEnd = GetPhaseEnd(phaseName);
+
+        return GetBoonTimedEvents(target, boonID, phaseStart, phaseEnd, source);
+    }
 
     private List<(double, double)> GetBoonTimedEvents(string target, string boonName, long start, long end, string source = "")
     {
         var boonID = GetBuffIdFromBoonName(boonName);
         if (boonID == 0) return [];
+        return GetBoonTimedEvents(target, boonID, start, end, source);
+    }
+    private List<(double, double)> GetBoonTimedEvents(string target, long boonID, long start, long end, string source = "")
+    {
         if (_log.BuffMap == null) return [];
         var player = _log.Players?.FirstOrDefault(p => string.Equals(p.Account, target, StringComparison.OrdinalIgnoreCase));
         if (player == null) return [];
         var buff = player.BuffUptimes?.FirstOrDefault(b => b.Id == boonID);
         if (buff == null) return [];
 
-
         var boonTimedEvents = new List<(double, double)>();
-        boonTimedEvents.Add((start, GetBoonAtTime(target, boonName, start)));
+        boonTimedEvents.Add((start, GetBoonAtTime(target, boonID, start)));
 
         var prevBoon = 0;
         foreach(var buffState in buff.States)
@@ -236,7 +274,7 @@ public class ParsedJsonLog : IParsedEvtcLog
             boonTimedEvents.Add((buffState[0], buffState[1]));
         }
 
-        boonTimedEvents.Add((end, GetBoonAtTime(target, boonName, end)));
+        boonTimedEvents.Add((end, GetBoonAtTime(target, boonID, end)));
         return boonTimedEvents;
     }
 
@@ -291,14 +329,17 @@ public class ParsedJsonLog : IParsedEvtcLog
 
     public bool HasBoonDuringTime(string target, string boonName, long start, long end)
     {
-        // Not directly supported in JSON, requires custom logic
-        throw new NotImplementedException("Boon during time check not implemented.");
+        var timedEvents = GetBoonTimedEvents(target, boonName, start, end);
+        return timedEvents.Any(x => x.Item2 != 0 && x.Item1 >= start && x.Item1 <= end);
     }
 
     public bool IsAlive(string player, long time)
     {
-        // Not directly supported in JSON, requires custom logic
-        throw new NotImplementedException("Alive check not implemented.");
+        var playerObject = _log.Players?.FirstOrDefault(p => string.Equals(p.Account, player, StringComparison.OrdinalIgnoreCase));
+        if (playerObject == null) return false;
+        var dead = playerObject.CombatReplayData?.Dead?.Any(x => x[0] <= time && x[1] >= time) ?? false;
+        var dc = playerObject.CombatReplayData?.Dc?.Any(x => x[0] <= time && x[1] >= time) ?? false;
+        return !(dead || dc);
     }
 
     public BuffStackTyping GetBoonStackType(string boonName)
@@ -312,21 +353,147 @@ public class ParsedJsonLog : IParsedEvtcLog
 
     public List<(string, string)> GetStealthResult(string accountName, StealthAlgoritmns algoritmn, bool showLate = false)
     {
-        // Not directly supported in JSON, requires custom logic
-        throw new NotImplementedException("Stealth result extraction from JSON not implemented.");
+        var stealthTimeline = GetStealthTimeline();
+        var stealthResults = new List<(string, string)>();
+        var stealthResult = stealthTimeline.Results;
+        if (stealthResult == null) return stealthResults;
+        foreach (var stealth in stealthResult)
+        {
+            foreach(var sr in stealth.Value.Results.Where(x => x.Player == accountName))
+            {
+                stealthResults.Add((stealth.Key, sr.Reason));
+            }
+        }
+        if (stealthResults.Count == 0)
+        {
+            stealthResults.Add((accountName, "No Stealth"));
+        }
+        return stealthResults;
     }
 
     public StealthTimelineCollection GetStealthTimeline()
     {
-        // Not directly supported in JSON, requires custom logic
-        throw new NotImplementedException("Stealth timeline extraction from JSON not implemented.");
+        var stealthResultsPerPhase = new Dictionary<string, StealthTimeline>();
+        var Phases = _log.Phases;
+        var MassInvis = _log.Players.SelectMany(x => x.Rotation.Where(x => x.Id == 10245).SelectMany(x => x.Skills));
+        
+        foreach(var stealthPhase in _expectedStealthPhases)
+        {
+            var phase = _log.Phases.FirstOrDefault(y => y.Name == stealthPhase.Key);
+            if (phase == null)
+            {
+                stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline());
+                continue;
+            }
+
+
+            var killedPhase = Phases.OrderByDescending(x => x.End).FirstOrDefault(x => x.End < phase.Start);
+            var invis = MassInvis.FirstOrDefault(x => phase.Start - 10000 < x.CastTime+x.Duration);
+
+            List<StealthResult> stealthResults = new List<StealthResult>();
+            long stealthTime = killedPhase.End;
+            if (invis == null)
+            {
+                foreach (var player in _log.Players)
+                {
+                    stealthResults.Add(new StealthResult(player.Account, "No MI"));
+                }
+            }
+            else
+            {
+                foreach (var player in _log.Players)
+                {
+                    var stealths = GetBoonTimedEvents(player.Account, "Hide in Shadows", "Full Fight");
+                    var stealthEvent = stealths.FirstOrDefault(x => x.Item2 == 1 && x.Item1 > invis.CastTime && x.Item1 < invis.CastTime + invis.Duration + 6000);
+                    if (stealthEvent == default)
+                    {
+                        stealthResults.Add(new StealthResult(player.Account, "No MI"));
+                        continue;
+                    }
+                    stealthTime = (long)stealthEvent.Item1;
+                    var revealed = stealths.FirstOrDefault(x => x.Item2 == 0 && x.Item1 > stealthEvent.Item1);
+
+
+                    bool isKneeling = false;
+                    bool isTriggered = false;
+
+                    var naturalConvergences = player.Rotation.FirstOrDefault(x => x.Id == 31503);
+                    var lingeringNaturalConvergence = naturalConvergences?.Skills?.Where(x => x.CastTime+x.Duration > stealthTime - 8000 && x.CastTime < revealed.Item1).FirstOrDefault();
+                    if (lingeringNaturalConvergence != null)
+                    {
+                        stealthResults.Add(new StealthResult(player.Account, "Lingering Natural Convergence!", stealthTime, stealthTime));
+                    }
+
+                    var kneel = GetBoonTimedEvents(player.Account, 42869, "Full Fight");
+                    var dragonTrigger = GetBoonTimedEvents(player.Account, 62823, "Full Fight");
+
+                    foreach(var kneelTiming in kneel)
+                    {
+                        if (kneelTiming.Item1 > stealthTime && kneelTiming.Item1 < revealed.Item1)
+                        {
+                            var text = kneelTiming.Item2 > 0 ? "Kneeling!" : "Stopped Kneeling";
+                            stealthResults.Add(new StealthResult(player.Account, text, (long)kneelTiming.Item1, stealthTime));
+                        }
+                    }
+                    foreach(var dt in dragonTrigger)
+                    {
+                        if (dt.Item1 > stealthTime && dt.Item1 < revealed.Item1)
+                        {
+                            var text = dt.Item2 > 0 ? "Dragon Trigger!" : "Stopped Dragon Trigger";
+                            stealthResults.Add(new StealthResult(player.Account, text, (long)dt.Item1, stealthTime));
+                        }
+                    }
+
+                    if (revealed == default)
+                    {
+                        stealthResults.Add(new StealthResult(player.Account, "Stealth timeout", stealthTime + 6000, stealthTime));
+                        continue;
+                    }
+
+                    var targets = _log.Phases.FirstOrDefault(x => x.Name == stealthPhase.Value)?.Targets;
+
+
+                    var revealingSkill = player.Rotation
+                        .Where(rotation => rotation.Skills.Any(skill => skill.CastTime + skill.Duration <= revealed.Item1))
+                        .OrderByDescending(rotation => rotation.Skills
+                        .Where(skill => skill.CastTime + skill.Duration <= revealed.Item1)
+                        .Max(skill => skill.CastTime + skill.Duration))
+                        .FirstOrDefault();
+
+                    var revealingSkillName = _log.SkillMap["s" + revealingSkill?.Id].Name ?? "Lingering skill";
+
+                    if (revealingSkillName == null)
+                    {
+                        stealthResults.Add(new StealthResult(player.Account, "Unknown"));
+                    }
+                    else
+                    {
+                        var skill = revealingSkill?.Skills
+                            .Where(s => s.CastTime + s.Duration <= revealed.Item1)
+                            .OrderByDescending(s => s.CastTime + s.Duration)
+                            .FirstOrDefault();
+                        stealthResults.Add(new StealthResult(player.Account, "", skill?.CastTime ?? 0, stealthTime));
+                    }
+                }
+            }
+            stealthResults = stealthResults.OrderBy(x => x.Time).ToList();
+            stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline(stealthPhase.Value, invis?.CastTime ?? killedPhase.End, stealthTime, killedPhase.End, false/*invis?.Caster.HasBuff(_log, 1187, invis.Time, invis.EndTime - invis.Time) ?? true*/, stealthResults));
+        }
+        return new StealthTimelineCollection(stealthResultsPerPhase);
     }
+
 
     public long GetStealthTiming(string phase)
     {
-        // Not directly supported in JSON, requires custom logic
-        throw new NotImplementedException("Stealth timing extraction from JSON not implemented.");
+        var stealthPhase = _log.Phases.Where(x => x.Name.Equals(phase)).FirstOrDefault();
+        var rotations = _log.Players.SelectMany(x => x.Rotation.Where(x => x.Id == 10245).SelectMany(x => x.Skills));
+        var MassInvis = rotations.Where(x => x.CastTime > stealthPhase?.Start - 10000 && x.CastTime < stealthPhase?.End).FirstOrDefault();
+        var time = MassInvis?.CastTime + MassInvis?.Duration;
+        return time ?? 0L;
     }
+
+
+
     private List<(long Time, string MechanicName)> GetAllMechanicsForPlayer(string accountName)
     {
         var playerObject = _log.Players?.FirstOrDefault(p => string.Equals(p.Account, accountName, StringComparison.OrdinalIgnoreCase));
@@ -403,13 +570,17 @@ public class ParsedJsonLog : IParsedEvtcLog
     public string[] GetMechanicNames(string phaseName = "", long start = 0, long end = 0)
     {
         if (_log.Mechanics == null) return Array.Empty<string>();
-        return _log.Mechanics.Select(m => m.Name ?? string.Empty).ToArray();
+        return _log.Mechanics.Select(m => m.FullName ?? string.Empty).ToArray();
     }
 
     public (string, long)[] GetMechanicLogsForPlayer(string accountName, string mechanicName, string phaseName = "", long start = 0, long end = 0)
     {
+        var playerObject = _log.Players?.FirstOrDefault(p => string.Equals(p.Account, accountName, StringComparison.OrdinalIgnoreCase));
+
+        if (playerObject == null) return Array.Empty<(string, long)>();
+
         return GetMechanicLogs(mechanicName, phaseName, start, end)
-            .Where(x => string.Equals(x.Item1, accountName, StringComparison.OrdinalIgnoreCase))
+            .Where(x => string.Equals(x.Item1, playerObject.Name, StringComparison.OrdinalIgnoreCase))
             .ToArray();
     }
 
@@ -417,7 +588,7 @@ public class ParsedJsonLog : IParsedEvtcLog
     {
         var mechanics = _log.Mechanics;
         if (mechanics == null) return [];
-        var mechs = mechanics.First(x => x.FullName.Equals(mechanicName));
+        var mechs = mechanics.FirstOrDefault(x => x.FullName.Equals(mechanicName));
         if (mechs == null) return [];
         return mechs.MechanicsData
             .Select(x => (x.Actor ?? "", x.Time))
@@ -440,8 +611,7 @@ public class ParsedJsonLog : IParsedEvtcLog
 
     public string[] GetStealthPhases()
     {
-        // Not directly supported in JSON, requires custom logic
-        return Array.Empty<string>();
+        return _expectedStealthPhases.Keys.ToArray();
     }
 
     public string[] GetConsumables(string account)
@@ -460,8 +630,7 @@ public class ParsedJsonLog : IParsedEvtcLog
 
     public bool HasReinforcedArmor(string accountName)
     {
-        // Not directly supported in JSON, requires custom logic
-        return false;
+        return HasBoonDuringTime(accountName, "Reinforced Armor", 0, GetPhaseEnd("Full Fight"));
     }
 
     public List<LastLaugh> GetLastLaughs(string accountName, string phaseName)
@@ -473,7 +642,7 @@ public class ParsedJsonLog : IParsedEvtcLog
         var lastLaughs = mechanics.First(x => x.Name == "VoidExp.H");
         // Not directly supported in JSON, requires custom logic
         return lastLaughs.MechanicsData
-            .Where(x => x.Actor == playerObject.Account)
+            .Where(x => x.Actor == playerObject.Name)
             .Select(x => new LastLaugh(0,"",accountName,x.Time,0,0)).ToList();
     }
 
