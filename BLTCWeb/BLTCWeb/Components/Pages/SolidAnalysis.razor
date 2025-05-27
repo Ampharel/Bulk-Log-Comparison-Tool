@@ -275,6 +275,67 @@
 
     <MudDivider />
 
+    @{
+    var heal = selectedRole == Role.HealKite;
+    List<string> boons = [];
+    if (heal)
+    {
+        boons.Add("Alacrity");
+        boons.Add("Regeneration");
+    }
+    else if (selectedRole == Role.QuickDps)
+    {
+        boons.Add("Quickness");
+    }
+    else
+    {
+        boons.Add("Quickness");
+        boons.Add("Alacrity");
+    }
+    boons.AddRange(["Might", "Fury", "Swiftness", "Protection"]);
+    <MudButton OnClick="OnBoonsExpandCollapseClick">@(_boonsExpanded ? "Boons" : "Boons")</MudButton>
+    <MudDivider />
+    <MudCollapse Expanded="_boonsExpanded">
+        @foreach (var boon in boons)
+        {
+            <MudCard>
+                <MudCardHeader>
+                    <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="@(() => ToggleBoonExpand(boon))">
+                        @boon
+                        <MudIcon Icon="@(_boonExpanded.ContainsKey(boon) && _boonExpanded[boon] ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" />
+                    </MudButton>
+                </MudCardHeader>
+                <MudCollapse Expanded="@(_boonExpanded.ContainsKey(boon) && _boonExpanded[boon])">
+                    <MudTable Items="@LogParser.BulkLog.Logs"
+                                Hover="true"
+                                Dense="true"
+                                Breakpoint="Breakpoint.Sm"
+                                LoadingProgressColor="Color.Info"
+                                Class="flex-table">
+                        <HeaderContent>
+                            <MudTh>Log</MudTh>
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                            {
+                                <MudTh>@phase</MudTh>
+                            }
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd>@context.GetFileName()</MudTd>
+                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                            {
+                                var boonStackType = context.GetBoonStackType(boon);
+                                var boonValue = context.GetBoon(context.GetPlayerGroup(selectedPlayer), boon, phase, ignoreKite: !heal);
+                                var boonColour = GetColorFromBoon(boonStackType, boonValue);
+                                <MudTh><MudText Style="@($"color:{boonColour};")">@BoonToString(boonStackType, boonValue)</MudText></MudTh>
+                            }
+                        </RowTemplate>
+                    </MudTable>
+                </MudCollapse>
+            </MudCard>
+        }
+    </MudCollapse>
+    }
+
     @if(selectedRole == Role.DPS || selectedRole == Role.Venticator || selectedRole == Role.Portal || selectedRole == Role.QuickDps)
     {
         <MudButton OnClick="OnDpsExpandCollapseClick">@(_dpsExpanded ? "Dps" : "Dps")</MudButton>
@@ -313,7 +374,7 @@
                                         extra = "(2)";
                                     }
                                 }
-                                <MudTh>@context.GetPlayerDps(selectedPlayer, phase, true, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")) + @extra</MudTh>
+                                <MudTh>@context.GetPlayerDps(selectedPlayer, phase, true, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")) @extra</MudTh>
                             }
                         }
                     </RowTemplate>
@@ -322,62 +383,9 @@
         </MudCollapse>
     }
     <MudDivider />
-    @if(selectedRole == Role.HealKite || selectedRole == Role.QuickDps)
-    {
-        var heal = selectedRole == Role.HealKite;
-        List<string> boons = [];
-        if (heal)
+    @{
+        if (selectedRole == Role.HealKite)
         {
-            boons.Add("Alacrity");
-            boons.Add("Regeneration");
-        }
-        else
-        {
-            boons.Add("Quickness");
-        }
-        boons.AddRange(["Might", "Fury", "Swiftness", "Protection"]);
-        <MudButton OnClick="OnBoonsExpandCollapseClick">@(_boonsExpanded ? "Boons" : "Boons")</MudButton>
-        <MudDivider />
-        <MudCollapse Expanded="_boonsExpanded">
-            @foreach (var boon in boons)
-            {
-                <MudCard>
-                    <MudCardHeader>
-                        <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="@(() => ToggleBoonExpand(boon))">
-                            @boon
-                            <MudIcon Icon="@(_boonExpanded.ContainsKey(boon) && _boonExpanded[boon] ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" />
-                        </MudButton>
-                    </MudCardHeader>
-                    <MudCollapse Expanded="@(_boonExpanded.ContainsKey(boon) && _boonExpanded[boon])">
-                        <MudTable Items="@LogParser.BulkLog.Logs"
-                                  Hover="true"
-                                  Dense="true"
-                                  Breakpoint="Breakpoint.Sm"
-                                  LoadingProgressColor="Color.Info"
-                                  Class="flex-table">
-                            <HeaderContent>
-                                <MudTh>Log</MudTh>
-                                @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                                {
-                                    <MudTh>@phase</MudTh>
-                                }
-                            </HeaderContent>
-                            <RowTemplate>
-                                <MudTd>@context.GetFileName()</MudTd>
-                                @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                                {
-                                    var boonStackType = context.GetBoonStackType(boon);
-                                    var boonValue = context.GetBoon(context.GetPlayerGroup(selectedPlayer), boon, phase, ignoreKite: !heal);
-                                    var boonColour = GetColorFromBoon(boonStackType, boonValue);
-                                    <MudTh><MudText Style="@($"color:{boonColour};")">@BoonToString(boonStackType, boonValue)</MudText></MudTh>
-                                }
-                            </RowTemplate>
-                        </MudTable>
-                    </MudCollapse>
-                </MudCard>
-            }
-        </MudCollapse>
-        if(heal){
             <MudButton OnClick="OnChillExpandCollapseClick">@(_fearExpanded ? "Chill" : "Chill")</MudButton>
             <MudDivider />
             <MudCollapse Expanded="_chillExpanded">
