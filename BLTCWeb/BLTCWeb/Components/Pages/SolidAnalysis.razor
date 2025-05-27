@@ -62,28 +62,28 @@
                         var consumableString = consumables.Aggregate("", (current, consumable) => current + $"{ consumable}\n");
                         <MudTd><MudText Style="white-space: pre-line;">@consumableString</MudText></MudTd>
                         <MudTd>
-                        @{
-                            var downs = context.GetDownReasons(selectedPlayer);
-                            var phaseStart = context.GetPhaseStart("Soo-Won 2");
-                            downs = downs.Where(x => x.Item2 < phaseStart).ToList();
-                            if(downs.Count() > 0){
-                            <MudTable Items="@downs"
-                            Hover="true"
-                            Dense="true"
-                            Breakpoint="Breakpoint.Sm"
-                            LoadingProgressColor="Color.Info"
-                            Class="flex-table">
-                                <HeaderContent>
-                                    <MudTh>Downed</MudTh>
-                                </HeaderContent>
-                                <RowTemplate Context="downReason">
-                                    <MudTd>
-                                        <MudText Color="@Color.Error">@downReason.Item1 at @(downReason.Item2 / 1000)</MudText>
-                                    </MudTd>
-                                </RowTemplate>
-                                </MudTable>
+                            @{
+                                var downs = context.GetDownReasons(selectedPlayer);
+                                var phaseStart = context.GetPhaseStart("Soo-Won 2");
+                                downs = downs.Where(x => x.Item2 < phaseStart).ToList();
+                                if(downs.Count() > 0){
+                                    <MudTable Items="@downs"
+                                    Hover="true"
+                                    Dense="true"
+                                    Breakpoint="Breakpoint.Sm"
+                                    LoadingProgressColor="Color.Info"
+                                    Class="flex-table">
+                                        <HeaderContent>
+                                            <MudTh>Downed</MudTh>
+                                        </HeaderContent>
+                                        <RowTemplate Context="downReason">
+                                            <MudTd>
+                                                <MudText Color="@Color.Error">@downReason.Item1 at @(downReason.Item2 / 1000)</MudText>
+                                            </MudTd>
+                                        </RowTemplate>
+                                    </MudTable>
+                                }
                             }
-                        }
                         </MudTd>
                         <MudTd>
                             <MudCheckBox T="bool" Value="@(context.GetPhases(["Goliath"], false).Count()>0)" Disabled="true">Reached Goliath</MudCheckBox>
@@ -274,7 +274,7 @@
     </MudCollapse>
 
     <MudDivider />
-    
+
     @if(selectedRole == Role.DPS || selectedRole == Role.Venticator || selectedRole == Role.Portal || selectedRole == Role.QuickDps)
     {
         <MudButton OnClick="OnDpsExpandCollapseClick">@(_dpsExpanded ? "Dps" : "Dps")</MudButton>
@@ -302,7 +302,18 @@
                         @{
                             @foreach (var phase in context.GetPhases(["Breakbar"]))
                             {
-                                <MudTh>@context.GetPlayerDps(selectedPlayer, phase, true, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
+                                var extra = "";
+                                if (phase.Contains("Primordus"))
+                                {
+                                    if(context.GetPhaseEnd(phase) - context.GetPhaseStart(phase) <= 74162)
+                                    {
+                                        extra = "(1)";
+                                    }
+                                    else{
+                                        extra = "(2)";
+                                    }
+                                }
+                                <MudTh>@context.GetPlayerDps(selectedPlayer, phase, true, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")) + extra</MudTh>
                             }
                         }
                     </RowTemplate>
