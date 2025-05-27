@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using static GW2EIEvtcParser.ParserHelper;
+using static GW2EIJSON.JsonRotation;
 
 public class ParsedJsonLog : IParsedEvtcLog
 {
@@ -406,7 +407,8 @@ public class ParsedJsonLog : IParsedEvtcLog
         var stealthResultsPerPhase = new Dictionary<string, StealthTimeline>();
         var Phases = _log.Phases;
         var MassInvis = _log.Players.SelectMany(x => x.Rotation.Where(x => x.Id == 10245).SelectMany(x => x.Skills));
-        
+        JsonSkill? lastStealth = null;
+
         foreach(var stealthPhase in _expectedStealthPhases)
         {
             var phase = _log.Phases.FirstOrDefault(y => y.Name == stealthPhase.Key);
@@ -419,6 +421,7 @@ public class ParsedJsonLog : IParsedEvtcLog
 
             var killedPhase = Phases.OrderByDescending(x => x.End).FirstOrDefault(x => x.End < phase.Start);
             var invis = MassInvis.FirstOrDefault(x => phase.Start - 10000 < x.CastTime+x.Duration);
+            lastStealth = invis;
 
             List<StealthResult> stealthResults = new List<StealthResult>();
             long stealthTime = killedPhase.End;
@@ -520,7 +523,7 @@ public class ParsedJsonLog : IParsedEvtcLog
                 }
             }
             stealthResults = stealthResults.OrderBy(x => x.Time).ToList();
-            stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline(stealthPhase.Value, invis?.CastTime ?? killedPhase.End, stealthTime, killedPhase.End, false/*invis?.Caster.HasBuff(_log, 1187, invis.Time, invis.EndTime - invis.Time) ?? true*/, stealthResults));
+            stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline(stealthPhase.Value, invis?.CastTime ?? killedPhase.End, stealthTime, killedPhase.End, lastStealth?.TimeGained > 0, stealthResults));
         }
         return new StealthTimelineCollection(stealthResultsPerPhase);
     }
