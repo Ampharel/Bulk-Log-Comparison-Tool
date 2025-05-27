@@ -109,7 +109,14 @@ public class ParsedJsonLog : IParsedEvtcLog
         if (phaseIndex < 0) return 0;
         var phase = _log.Phases.First(x => x.Name == phaseName);
 
+        var targetIndex = phase.Targets.FirstOrDefault();
+        var target = _log.Targets[targetIndex];
+
         var damageNumbers = playerAccount.TargetDamage1S.Select(x => x[phaseIndex]);
+        if (!allTarget)
+        {
+            damageNumbers = [damageNumbers.ElementAt(targetIndex)];
+        }
         var cumulDamage = 0;
         foreach (var damageNumber in damageNumbers)
         {
@@ -475,27 +482,40 @@ public class ParsedJsonLog : IParsedEvtcLog
 
                     var targets = _log.Phases.FirstOrDefault(x => x.Name == stealthPhase.Value)?.Targets;
 
+                    //stealthResults.Add(new StealthResult(player.Account, "revealed", (long)revealed.Item1, stealthTime));
 
-                    var revealingSkill = player.Rotation
-                        .Where(rotation => rotation.Skills.Any(skill => skill.CastTime + skill.Duration <= revealed.Item1))
+                    var revealingSkills = player.Rotation
+                        .Where(rotation => rotation.Skills.Any(skill => skill.CastTime + skill.Duration <= revealed.Item1 && skill.TimeGained >= 0))
                         .OrderByDescending(rotation => rotation.Skills
-                        .Where(skill => skill.CastTime + skill.Duration <= revealed.Item1)
-                        .Max(skill => skill.CastTime + skill.Duration))
-                        .FirstOrDefault();
+                        .Where(skill => skill.CastTime + skill.Duration <= revealed.Item1 && skill.TimeGained >= 0)
+                        .Max(skill => skill.CastTime + skill.Duration));
 
-                    var revealingSkillName = _log.SkillMap["s" + revealingSkill?.Id].Name ?? "Lingering skill";
+                    var revealingSkillName = "";
+                    JsonRotation? revealingSkill = null;
+                    foreach (var rs in revealingSkills)
+                    {
+                        if (!(_log.Targets.Any(x => x.TotalDamageTaken.Any(x => x.Any(x => x.Id == rs?.Id && x.TotalDamage > 0))))) continue;
+                        var rsName = _log.SkillMap["s" + rs?.Id].Name;
+                        if (rsName == null || rsName.Contains("Sigil") || rsName.Contains("Nourishment") || rsName.Contains("Weapon Swap"))
+                        {
+                            continue; // Skip sigils and nourishment
+                        }
+                        revealingSkill = rs;
+                        revealingSkillName = rsName;
+                        break;
+                    }
 
                     if (revealingSkillName == null)
                     {
-                        stealthResults.Add(new StealthResult(player.Account, "Unknown"));
+                        stealthResults.Add(new StealthResult(player.Account, "Lingering skill"));
                     }
                     else
                     {
                         var skill = revealingSkill?.Skills
-                            .Where(s => s.CastTime + s.Duration <= revealed.Item1)
+                            .Where(s => s.CastTime + s.Duration <= revealed.Item1 && s.TimeGained >= 0)
                             .OrderByDescending(s => s.CastTime + s.Duration)
                             .FirstOrDefault();
-                        stealthResults.Add(new StealthResult(player.Account, "", skill?.CastTime ?? 0, stealthTime));
+                        stealthResults.Add(new StealthResult(player.Account, revealingSkillName, skill?.CastTime ?? 0, stealthTime));
                     }
                 }
             }

@@ -274,6 +274,42 @@
     </MudCollapse>
 
     <MudDivider />
+    
+    @if(selectedRole == Role.DPS || selectedRole == Role.Venticator || selectedRole == Role.Portal || selectedRole == Role.QuickDps)
+    {
+        <MudButton OnClick="OnDpsExpandCollapseClick">@(_dpsExpanded ? "Dps" : "Dps")</MudButton>
+        <MudDivider />
+        <MudCollapse Expanded="_dpsExpanded">
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h6">Damage per Second</MudText>
+                </MudCardHeader>
+                <MudTable Items="@LogParser.BulkLog.Logs"
+                Hover="true"
+                Dense="true"
+                Breakpoint="Breakpoint.Sm"
+                LoadingProgressColor="Color.Info"
+                Class="flex-table">
+                    <HeaderContent>
+                        <MudTh>Log</MudTh>
+                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                        {
+                            <MudTh>@phase</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd>@context.GetFileName()</MudTd>
+                        @{
+                            @foreach (var phase in context.GetPhases(["Breakbar"]))
+                            {
+                                <MudTh>@context.GetPlayerDps(selectedPlayer, phase, true, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
+                            }
+                        }
+                    </RowTemplate>
+                </MudTable>
+            </MudCard>
+        </MudCollapse>
+    }
     <MudDivider />
     @if(selectedRole == Role.HealKite || selectedRole == Role.QuickDps)
     {
@@ -292,36 +328,41 @@
         <MudButton OnClick="OnBoonsExpandCollapseClick">@(_boonsExpanded ? "Boons" : "Boons")</MudButton>
         <MudDivider />
         <MudCollapse Expanded="_boonsExpanded">
-            @foreach(var boon in boons)
+            @foreach (var boon in boons)
             {
                 <MudCard>
                     <MudCardHeader>
-                        <MudText Typo="Typo.h6">@boon</MudText>
+                        <MudButton Color="Color.Primary" Variant="Variant.Text" OnClick="@(() => ToggleBoonExpand(boon))">
+                            @boon
+                            <MudIcon Icon="@(_boonExpanded.ContainsKey(boon) && _boonExpanded[boon] ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)" />
+                        </MudButton>
                     </MudCardHeader>
-                    <MudTable Items="@LogParser.BulkLog.Logs"
-                    Hover="true"
-                    Dense="true"
-                    Breakpoint="Breakpoint.Sm"
-                    LoadingProgressColor="Color.Info"
-                    Class="flex-table">
-                        <HeaderContent>
-                            <MudTh>Log</MudTh>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                <MudTh>@phase</MudTh>
-                            }
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd>@context.GetFileName()</MudTd>
-                            @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
-                            {
-                                var boonStackType = context.GetBoonStackType(boon);
-                                var boonValue = context.GetBoon(context.GetPlayerGroup(selectedPlayer), boon, phase, ignoreKite: !heal);
-                                var boonColour = GetColorFromBoon(boonStackType, boonValue);
-                                <MudTh><MudText Style="@($"color:{boonColour};")">@BoonToString(boonStackType, boonValue)</MudText></MudTh>
-                            }
-                        </RowTemplate>
-                    </MudTable>
+                    <MudCollapse Expanded="@(_boonExpanded.ContainsKey(boon) && _boonExpanded[boon])">
+                        <MudTable Items="@LogParser.BulkLog.Logs"
+                                  Hover="true"
+                                  Dense="true"
+                                  Breakpoint="Breakpoint.Sm"
+                                  LoadingProgressColor="Color.Info"
+                                  Class="flex-table">
+                            <HeaderContent>
+                                <MudTh>Log</MudTh>
+                                @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                                {
+                                    <MudTh>@phase</MudTh>
+                                }
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.GetFileName()</MudTd>
+                                @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar"]))
+                                {
+                                    var boonStackType = context.GetBoonStackType(boon);
+                                    var boonValue = context.GetBoon(context.GetPlayerGroup(selectedPlayer), boon, phase, ignoreKite: !heal);
+                                    var boonColour = GetColorFromBoon(boonStackType, boonValue);
+                                    <MudTh><MudText Style="@($"color:{boonColour};")">@BoonToString(boonStackType, boonValue)</MudText></MudTh>
+                                }
+                            </RowTemplate>
+                        </MudTable>
+                    </MudCollapse>
                 </MudCard>
             }
         </MudCollapse>
@@ -475,38 +516,6 @@
     }
     @if(selectedRole == Role.DPS || selectedRole == Role.Venticator || selectedRole == Role.Portal || selectedRole == Role.QuickDps)
     {
-        <MudButton OnClick="OnDpsExpandCollapseClick">@(_dpsExpanded ? "Dps" : "Dps")</MudButton>
-        <MudDivider />
-        <MudCollapse Expanded="_dpsExpanded">
-            <MudCard>
-                <MudCardHeader>
-                    <MudText Typo="Typo.h6">Damage per Second</MudText>
-                </MudCardHeader>
-                <MudTable Items="@LogParser.BulkLog.Logs"
-                Hover="true"
-                Dense="true"
-                Breakpoint="Breakpoint.Sm"
-                LoadingProgressColor="Color.Info"
-                Class="flex-table">
-                    <HeaderContent>
-                        <MudTh>Log</MudTh>
-                        @foreach (var phase in LogParser.BulkLog.GetPhases(["Breakbar", "Purification"]))
-                        {
-                            <MudTh>@phase</MudTh>
-                        }
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd>@context.GetFileName()</MudTd>
-                        @{
-                            @foreach (var phase in context.GetPhases(["Breakbar", "Purification"]))
-                            {
-                                <MudTh>@context.GetPlayerDps(selectedPlayer, phase, false, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTh>
-                            }
-                        }
-                    </RowTemplate>
-                </MudTable>
-            </MudCard>
-        </MudCollapse>
         <MudButton OnClick="OnBurstExpandCollapseClick">@(_burstExpanded ? "Burst" : "Burst")</MudButton>
         <MudDivider />
         <MudCollapse Expanded="_burstExpanded">
@@ -543,9 +552,9 @@
                             <MudTd>@context.GetFileName()</MudTd>
                             <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Time Caster", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                             <MudTd>@context.GetPlayerDps(selectedPlayer, "Void Saltspray Dragon", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
-                            <MudTd><MudText Style="@($"color:{GetColorFromPercentage(context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false)/targetDamage)};")">@context.GetPlayerDps(selectedPlayer, 13000, "Void Goliath", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")) / @((targetDamage).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")))</MudText></MudTd>
-                            <MudTd>@context.GetPlayerDps(selectedPlayer, 13000, "Void Obliterator", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 15000, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
+                            <MudTd><MudText Style="@($"color:{GetColorFromPercentage(context.GetPlayerDps(selectedPlayer, 15000, "Void Goliath", false, true, false)/targetDamage)};")">@context.GetPlayerDps(selectedPlayer, 15000, "Void Goliath", false, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")) / @((targetDamage).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")))</MudText></MudTd>
+                            <MudTd>@context.GetPlayerDps(selectedPlayer, 15000, "Void Obliterator", false, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
                         </RowTemplate>
                     </MudTable>
                 }
@@ -688,6 +697,16 @@
         }
         protDuration /= 1000;
         return protDuration;
+    }    
+
+    private Dictionary<string, bool> _boonExpanded = new();
+
+    private void ToggleBoonExpand(string boon)
+    {
+        if (_boonExpanded.ContainsKey(boon))
+            _boonExpanded[boon] = !_boonExpanded[boon];
+        else
+            _boonExpanded[boon] = true;
     }
 
     private void UpdateSelectedPlayer(string playerName)

@@ -269,7 +269,7 @@ ClipMode="DrawerClipMode.Docked">
             return "https://dps.report/getJson?permalink=" + url.Split('/').Last();
         }
         if(url.Contains("gw2wingman.nevermindcreations.de")){
-            return "https://gw2wingman.nevermindcreations.de/api/" + url.Split('/').Last();
+            return "https://gw2wingman.nevermindcreations.de/api/getFullJson/" + url.Split('/').Last();
         }
         return url;
     }
