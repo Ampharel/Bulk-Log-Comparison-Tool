@@ -313,7 +313,7 @@
                                         extra = "(2)";
                                     }
                                 }
-                                <MudTh>@context.GetPlayerDps(selectedPlayer, phase, true, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")) + extra</MudTh>
+                                <MudTh>@context.GetPlayerDps(selectedPlayer, phase, true, false, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU")) + @extra</MudTh>
                             }
                         }
                     </RowTemplate>
