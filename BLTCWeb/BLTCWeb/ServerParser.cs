@@ -2,6 +2,7 @@
 using Bulk_Log_Comparison_Tool.Enums;
 using Bulk_Log_Comparison_Tool.LibraryClasses;
 using Bulk_Log_Comparison_Tool.Util;
+using SixLabors.ImageSharp.PixelFormats;
 using System.Diagnostics;
 
 namespace BLCTWeb
@@ -15,12 +16,16 @@ namespace BLCTWeb
         private List<(string, long, long)> _customPhases = new();
 
         public event Action NewDataEvent;
-        private LibraryParser parser = new LibraryParser(false);
+        private IEvtcParser parser = new LibraryParser(false);
+        private IEvtcParser jsonParser = new JsonParser();
+
+        public IEvtcParser JsonParser => jsonParser;
 
         private SettingsFile CustomPhaseSettings;
 
         public ServerParser()
         {
+
             LoadCustomPhases();
         }
 
@@ -88,6 +93,15 @@ namespace BLCTWeb
 
             if (!multiload)
                 NewDataEvent?.Invoke();
+        }
+
+        public void AddJsonLog(IParsedEvtcLog log)
+        {
+            foreach (var phase in _customPhases)
+            {
+                log.AddPhase(phase.Item1, phase.Item2, phase.Item3);
+            }
+            _bulklog.AddLog(log);
         }
 
         public void RemoveLog(string file, bool multiload = false)

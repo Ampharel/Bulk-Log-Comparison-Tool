@@ -11,8 +11,6 @@ namespace Bulk_Log_Comparison_Tool.Util
     public static class Util
     {
         public static int TryParse(this string? Source) => int.TryParse(Source, out int result) ? result : 0;
-        public static Vector3 ToVector3(this Point3D p3d) => new Vector3(p3d.X, p3d.Y, p3d.Z);
-
         public static List<int> TrimmedAverage(List<int> ints)
         {
             if (ints.Count == 0)

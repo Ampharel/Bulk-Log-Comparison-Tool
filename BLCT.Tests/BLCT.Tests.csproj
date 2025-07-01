@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="TestData\20250510-122619.zevtc" />
+    <None Remove="TestData\20250510-122619.zevtc.json" />
+    <None Remove="TestData\Data.txt" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="TestData\20250510-122619.zevtc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\20250510-122619.zevtc.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="TestData\Data.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DPS Log Comparison Tool\Bulk Log Comparison Tool.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="GW2EIBuilders">
+      <HintPath>..\DPS Log Comparison Tool\lib\GW2EIBuilders.dll</HintPath>
+    </Reference>
+    <Reference Include="GW2EIEvtcParser">
+      <HintPath>..\DPS Log Comparison Tool\lib\GW2EIEvtcParser.dll</HintPath>
+    </Reference>
+    <Reference Include="GW2EIGW2API">
+      <HintPath>..\DPS Log Comparison Tool\lib\GW2EIGW2API.dll</HintPath>
+    </Reference>
+    <Reference Include="GW2EIJSON">
+      <HintPath>..\DPS Log Comparison Tool\lib\GW2EIJSON.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

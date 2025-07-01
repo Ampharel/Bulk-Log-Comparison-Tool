@@ -11,6 +11,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
     public interface IEvtcParser
     {
         public IParsedEvtcLog ParseLog(string filePath);
+        public IParsedEvtcLog ParseLog(Stream fileStream, string fileName);
 
     }
 }

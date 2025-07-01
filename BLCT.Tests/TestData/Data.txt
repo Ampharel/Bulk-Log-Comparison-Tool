@@ -1,0 +1,4 @@
+https://dps.report/getJson?permalink=woSc-20250510-122619_void
+https://dps.report/woSc-20250510-122619_void
+https://gw2wingman.nevermindcreations.de/api/getJson/6394a-20250207-222226_harvsttmpl_kill
+https://gw2wingman.nevermindcreations.de/api/getFullJson/6394a-20250207-222226_harvsttmpl_kill

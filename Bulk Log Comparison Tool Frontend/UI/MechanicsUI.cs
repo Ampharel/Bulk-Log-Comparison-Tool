@@ -77,7 +77,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
             tableMechanics.RowCount = ActivePlayers.Count;
             tableMechanics.ColumnCount = Logs.Count() + 1;
 
-            var Phases = logParser.BulkLog.GetPhases();
+            var Phases = logParser.BulkLog.GetPhases([]);
             if (_selectedPhase == "" || !Phases.Contains(_selectedPhase))
             {
                 var Phase = Phases.FirstOrDefault();

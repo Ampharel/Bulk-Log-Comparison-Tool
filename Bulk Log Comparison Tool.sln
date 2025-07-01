@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BLCTWeb", "BLTCWeb\BLTCWeb\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BLCTWeb.Client", "BLTCWeb\BLTCWeb.Client\BLCTWeb.Client.csproj", "{F5EF592C-A0E9-4831-BCEB-0E7C8ABCCF4E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BLCT.Tests", "BLCT.Tests\BLCT.Tests.csproj", "{08D0AF2B-31C3-445F-B92E-31D2F98AAEE0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{F5EF592C-A0E9-4831-BCEB-0E7C8ABCCF4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F5EF592C-A0E9-4831-BCEB-0E7C8ABCCF4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F5EF592C-A0E9-4831-BCEB-0E7C8ABCCF4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08D0AF2B-31C3-445F-B92E-31D2F98AAEE0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08D0AF2B-31C3-445F-B92E-31D2F98AAEE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08D0AF2B-31C3-445F-B92E-31D2F98AAEE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08D0AF2B-31C3-445F-B92E-31D2F98AAEE0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

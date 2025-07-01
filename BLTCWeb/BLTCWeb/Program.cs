@@ -10,9 +10,9 @@ namespace BLCTWeb
     {
         public static void Main(string[] args)
         {
-            //var sw = new StreamWriter($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\\OutputLog.txt", true);
-            //sw.AutoFlush = true;
-            //Console.SetOut(sw);
+            var sw = new StreamWriter($"{Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location)}\\OutputLog.txt", true);
+            sw.AutoFlush = true;
+            Console.SetOut(sw);
             CultureInfo.CurrentCulture = new CultureInfo("en-US");
             var builder = WebApplication.CreateBuilder(args);
 

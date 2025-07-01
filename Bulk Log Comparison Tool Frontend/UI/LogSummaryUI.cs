@@ -104,7 +104,7 @@ namespace Bulk_Log_Comparison_Tool_Frontend.UI
                 {
                     if(x < downed.Count())
                     {
-                        tableDeaths.Rows[y].Cells[x].Value = downed[x] ?? "";
+                        tableDeaths.Rows[y].Cells[x].Value = downed[x].Item1 ?? "";
                     }
                     else
                     {

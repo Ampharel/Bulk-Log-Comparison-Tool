@@ -5,36 +5,36 @@
 @inject ServerParser LogParser
 
 <MudDrawer @bind-Open="_drawerOpen"
-           Width="300px"
-           Fixed="true"
-           Anchor="Anchor.End"
-           Elevation="3"
-           Variant="DrawerVariant.Persistent"
-           ClipMode="DrawerClipMode.Docked">
+Width="300px"
+Fixed="true"
+Anchor="Anchor.End"
+Elevation="3"
+Variant="DrawerVariant.Persistent"
+ClipMode="DrawerClipMode.Docked">
 
-    <MudDrawerHeader>
+    <MudDrawerHeader @onclick="OnHeaderClick">
         <MudText Typo="Typo.h6">Upload Logs</MudText>
     </MudDrawerHeader>
 
     <MudStack Style="width: 100%; padding: 8px;">
         <MudFileUpload T="IReadOnlyList<IBrowserFile>"
-                       @ref="@_fileUpload"
-                       OnFilesChanged="OnInputFileChanged"
-                       AppendMultipleFiles
-                       Hidden="@false"
-                       InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
-                       InputStyle="opacity:0"
-                       tabindex="-1"
-                       MaximumFileCount="100"
-                       @ondrop="@ClearDragClass"
-                       @ondragenter="@SetDragClass"
-                       @ondragleave="@ClearDragClass"
-                       @ondragend="@ClearDragClass">
+        @ref="@_fileUpload"
+        OnFilesChanged="OnInputFileChanged"
+        AppendMultipleFiles
+        Hidden="@false"
+        InputClass="absolute mud-width-full mud-height-full overflow-hidden z-10"
+        InputStyle="opacity:0"
+        tabindex="-1"
+        MaximumFileCount="100"
+        @ondrop="@ClearDragClass"
+        @ondragenter="@SetDragClass"
+        @ondragleave="@ClearDragClass"
+        @ondragend="@ClearDragClass">
             <ActivatorContent>
                 <MudPaper Height="auto"
-                          Outlined="true"
-                          Class="@_dragClass"
-                          Style="display: flex; flex-direction: column; justify-content: flex-start; padding: 16px;">
+                Outlined="true"
+                Class="@_dragClass"
+                Style="display: flex; flex-direction: column; justify-content: flex-start; padding: 16px;">
                     <MudText Typo="Typo.h6" Class="mb-2">
                         Drag and drop files here or click
                     </MudText>
@@ -42,30 +42,42 @@
                         @foreach (var uploadFile in _fileNames)
                         {
                             <MudChip T="string"
-                                     Color="@((uploadFile.IsUploaded) ? Color.Success : Color.Dark)"
-                                     Text="@uploadFile.Name"
-                                     tabindex="-1" />
+                            Color="@((uploadFile.IsUploaded) ? Color.Success : Color.Dark)"
+                            Text="@uploadFile.Name"
+                            tabindex="-1" />
                         }
                     </div>
                 </MudPaper>
             </ActivatorContent>
         </MudFileUpload>
+        @if (_showExperimentalField)
+        {
+            <MudTextField Label="EXPERIMENTAL:"
+                          Placeholder="Paste dps.report / wingman logs here"
+                          Lines="5"
+                          Margin="Margin.Dense"
+                          FullWidth="true"
+                          @bind-Value="_logUrls"
+                          Adornment="Adornment.None"
+                          Immediate="true"
+                          TextArea="true" />
+        }
         <MudToolBar Gutters="false" Class="relative d-flex justify-end gap-4">
             <MudButton Color="Color.Primary"
-                       OnClick="OpenFilePickerAsync"
-                       Variant="Variant.Filled">
+            OnClick="OpenFilePickerAsync"
+            Variant="Variant.Filled">
                 Open file picker
             </MudButton>
             <MudButton Color="Color.Primary"
-                       Disabled="@(!_fileNames.Any() || _isLoading)"
-                       OnClick="UploadAsync"
-                       Variant="Variant.Filled">
+            Disabled="@((!_fileNames.Any() && !_logUrls.Any()) || _isLoading)"
+            OnClick="UploadAsync"
+            Variant="Variant.Filled">
                 Upload
             </MudButton>
             <MudButton Color="Color.Error"
-                       Disabled="@(!_fileNames.Any())"
-                       OnClick="ClearAsync"
-                       Variant="Variant.Filled">
+            Disabled="@(!_fileNames.Any())"
+            OnClick="ClearAsync"
+            Variant="Variant.Filled">
                 Clear
             </MudButton>
         </MudToolBar>
@@ -91,9 +103,9 @@
         }
     </MudList>
     <MudButton Color="Color.Error"
-               Disabled="@(!SelectedFiles.Any())"
-               OnClick="@DeleteLogs"
-               Variant="Variant.Filled">
+    Disabled="@(!SelectedFiles.Any())"
+    OnClick="@DeleteLogs"
+    Variant="Variant.Filled">
         Delete
     </MudButton>
 </MudDrawer>
@@ -118,6 +130,7 @@
     private int _processingCount = 0;
     private bool _isLoading = false;
     private IReadOnlyCollection<string> SelectedFiles = [];
+    private string _logUrls = string.Empty;
 
     private void DeleteLogs()
     {
@@ -136,6 +149,7 @@
     {
         await (_fileUpload?.ClearAsync() ?? Task.CompletedTask);
         _fileNames.Clear();
+        _newFiles.Clear();
         ClearDragClass();
         _processingCount = 0;
     }
@@ -145,16 +159,28 @@
 
     private void OnInputFileChanged(InputFileChangeEventArgs e)
     {
-        ClearDragClass();
-        var files = e.GetMultipleFiles(100);
-        foreach (var file in files)
+        try
         {
-            if(_newFiles.Contains(file)) continue;
-            var uploadFile = new UploadFile(file);
-            _fileNames.Add(uploadFile);
-            _newFiles.Enqueue(file);
+            ClearDragClass();
+            var files = e.GetMultipleFiles(100);
+            if (files == null || files.Count == 0)
+            {
+                Console.WriteLine("No files selected.");
+                return;
+            }
+            foreach (var file in files)
+            {
+                if(_newFiles.Contains(file)) continue;
+                var uploadFile = new UploadFile(file);
+                _fileNames.Add(uploadFile);
+                _newFiles.Enqueue(file);
+            }
+            _processingCount = _newFiles.Count;
         }
-        _processingCount = _newFiles.Count;
+        catch (Exception ex)
+        {
+            Console.WriteLine($"OnInputFileChanged Exception: {ex}");
+        }
     }
 
     private async Task UploadAsync()
@@ -166,22 +192,39 @@
         Console.WriteLine($"Starting processing of {_newFiles.Count} files");
         sw.Start();
 
-        await Parallel.ForEachAsync(_newFiles, async (file,token) =>
-        {
-            await UploadFileAsync(file);
-            _fileNames.RemoveAll(f => f.Name.Equals(file.Name));
-            _processingCount--;
-            InvokeAsync(() => LogParser.FinishMultiload());
-            InvokeAsync(StateHasChanged);
-        });
+        var processingTasks = new List<Task>();
 
-        // while (_newFiles.TryDequeue(out var file))
-        // {
-        //     await UploadFileAsync(file);
-        //     _fileNames.RemoveAll(f => f.Name.Equals(file.Name));
-        //     _processingCount--;
-        //     StateHasChanged();
-        // }
+        // Process files as before
+        while (_newFiles.TryDequeue(out var file))
+        {
+            var ms = new MemoryStream();
+            await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
+            ms.Position = 0;
+
+            var name = file.Name;
+            processingTasks.Add(Task.Run(async () =>
+            {
+                try
+                {
+                    await ProcessFileStreamAsync(ms, name);
+                    _fileNames.RemoveAll(f => f.Name.Equals(name));
+                }
+                finally
+                {
+                    _processingCount--;
+                    await InvokeAsync(() => LogParser.FinishMultiload());
+                    await InvokeAsync(StateHasChanged);
+                }
+            }));
+
+            _processingCount = processingTasks.Count;
+        }
+
+        // Process URLs in parallel
+        processingTasks.Add(ProcessLogUrlsAsync(_logUrls));
+        _logUrls = "";
+
+        await Task.WhenAll(processingTasks);
 
         Console.WriteLine($"Finished processing of files, took {sw.ElapsedMilliseconds} ms in total");
 
@@ -189,64 +232,83 @@
         await OnUpload.InvokeAsync();
     }
 
-    private static SemaphoreSlim fileLockObject = new SemaphoreSlim(1);
-
-    private async Task UploadFileAsync(IBrowserFile file)
+    // New function to process URLs in parallel
+    private async Task ProcessLogUrlsAsync(string logUrls)
     {
-        if (LogParser.HasLog(file.Name))
-        {
-            Console.WriteLine($"{file.Name} already exists!");
+        if (string.IsNullOrWhiteSpace(logUrls))
             return;
-        }
-        using (MemoryStream ms = new())
-        {
-            Stopwatch sw = new Stopwatch();
-            sw.Start();
-            var elapsed = 0L;
 
-            await fileLockObject.WaitAsync();
+        var urls = logUrls
+            .Split(new[] { '\r', '\n', ' ', ',' }, StringSplitOptions.RemoveEmptyEntries)
+            .Distinct()
+            .ToList();
+
+        if (urls.Count == 0)
+            return;
+
+        var urlTasks = urls.Select(async url =>
+        {
             try
             {
-                Console.WriteLine($"Awaited lock for {sw.ElapsedMilliseconds} ms");
-                elapsed = sw.ElapsedMilliseconds;
-                Console.WriteLine($"Starting upload of file: {file.Name}");
-                await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
-                Console.WriteLine($"Upload of file: {file.Name} took {sw.ElapsedMilliseconds - elapsed} ms");
+                // Assume JsonParser is available and thread-safe
+                await InvokeAsync(() => LogParser.AddJsonLog(LogParser.JsonParser.ParseLog(ConvertUrl(url))));
             }
-            finally
+            catch (Exception ex)
             {
-                fileLockObject.Release();
+                Console.WriteLine($"Failed to process log URL '{url}': {ex.Message}");
             }
+        });
 
-            ms.Position = 0;
+        await Task.WhenAll(urlTasks);
+    }
 
-            Console.WriteLine($"Starting unpacking of file: {file.Name}");
-            elapsed = sw.ElapsedMilliseconds;
-            using (MemoryStream unpackedMemoryStream_ = new MemoryStream())
-            {
-                using (ZipArchive val = new ZipArchive(ms, ZipArchiveMode.Read))
-                {
-                    if (val.Entries.Count != 1)
-                    {
-                        Console.WriteLine("Invalid file");
-                        return;
-                    }
-                    using Stream stream = val.Entries[0].Open();
-                    await stream.CopyToAsync(unpackedMemoryStream_);
-                    unpackedMemoryStream_.Position = 0;
-
-                    Console.WriteLine($"Finished unpacking of file: {file.Name} took {sw.ElapsedMilliseconds - elapsed} ms");
-                }
-
-                Console.WriteLine($"Starting parsing of file: {file.Name}");
-                elapsed = sw.ElapsedMilliseconds;
-                LogParser.AddLog(unpackedMemoryStream_, file.Name,true);
-                Console.WriteLine($"Parsing of file: {file.Name} took {sw.ElapsedMilliseconds - elapsed} ms");
-            }
-
-            Console.WriteLine($"Finished with file {file.Name}, total time was {sw.ElapsedMilliseconds} ms");
+    private string ConvertUrl(string url)
+    {
+        if (url.Contains("dps.report"))
+        {
+            return "https://dps.report/getJson?permalink=" + url.Split('/').Last();
         }
-        var uploadedFile = _fileNames.FirstOrDefault(f => f.Name == file.Name);
+        if(url.Contains("gw2wingman.nevermindcreations.de")){
+            return "https://gw2wingman.nevermindcreations.de/api/getFullJson/" + url.Split('/').Last();
+        }
+        return url;
+    }
+
+    // This method does the unpacking and parsing, now safe to run in parallel
+    private async Task ProcessFileStreamAsync(MemoryStream ms, string fileName)
+    {
+        ms.Position = 0;
+        Stopwatch sw = new Stopwatch();
+        sw.Start();
+        var elapsed = 0L;
+
+        Console.WriteLine($"Starting unpacking of file: {fileName}");
+        elapsed = sw.ElapsedMilliseconds;
+        using (MemoryStream unpackedMemoryStream_ = new MemoryStream())
+        {
+            using (ZipArchive val = new ZipArchive(ms, ZipArchiveMode.Read))
+            {
+                if (val.Entries.Count != 1)
+                {
+                    Console.WriteLine("Invalid file");
+                    return;
+                }
+                using Stream stream = val.Entries[0].Open();
+                await stream.CopyToAsync(unpackedMemoryStream_);
+                unpackedMemoryStream_.Position = 0;
+
+                Console.WriteLine($"Finished unpacking of file: {fileName} took {sw.ElapsedMilliseconds - elapsed} ms");
+            }
+
+            Console.WriteLine($"Starting parsing of file: {fileName}");
+            elapsed = sw.ElapsedMilliseconds;
+            LogParser.AddLog(unpackedMemoryStream_, fileName, true);
+            Console.WriteLine($"Parsing of file: {fileName} took {sw.ElapsedMilliseconds - elapsed} ms");
+        }
+
+        Console.WriteLine($"Finished with file {fileName}, total time was {sw.ElapsedMilliseconds} ms");
+
+        var uploadedFile = _fileNames.FirstOrDefault(f => f.Name == fileName);
         if (uploadedFile != null)
         {
             uploadedFile.IsUploaded = true;
@@ -273,7 +335,35 @@
 
         public string Name => File.Name;
     }
+
+    private int _headerClickCount = 0;
+    private bool _showExperimentalField = false;
+    private System.Timers.Timer? _headerClickTimer;
+
+    private void OnHeaderClick()
+    {
+        _headerClickCount++;
+        _headerClickTimer?.Stop();
+        _headerClickTimer = new System.Timers.Timer(1500); // 1.5 seconds to reset
+        _headerClickTimer.Elapsed += (s, e) =>
+        {
+            _headerClickCount = 0;
+            _headerClickTimer?.Stop();
+            InvokeAsync(StateHasChanged);
+        };
+        _headerClickTimer.AutoReset = false;
+        _headerClickTimer.Start();
+
+        if (_headerClickCount >= 10)
+        {
+            _showExperimentalField = true;
+            _headerClickCount = 0;
+            _headerClickTimer?.Stop();
+            StateHasChanged();
+        }
+    }
 }
+
 
 
 
