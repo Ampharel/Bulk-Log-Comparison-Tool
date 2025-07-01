@@ -417,7 +417,12 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 }
             }
 
-
+            var deathEvents = _log.CombatData.GetDeadEvents(Target.AgentItem);
+            var de = deathEvents.FirstOrDefault(x => x.Time <= end);
+            if (de != null)
+            {
+                end = de.Time;
+            }
 
             var Buffs = Target.GetBuffs(BuffEnum.Self, _log, start, end);
             var targetBuffs = new List<Buff>();
@@ -444,7 +449,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return _log.PlayerList.Any(x => x.Account == accountName);
         }
 
-        public double GetBoon(int group, string boonName, string phaseName = "", long time = 0, bool duration = false, bool ignoreKite = false)
+        public double GetBoon(int group, string boonName, string phaseName = "", long time = 0, bool duration = false, bool ignoreKite = false, bool ignoreDead = false)
         {
             var groupMembers = _log.PlayerList.Where(x => x.Group == group);
             List<double> boonUptimes = new();
@@ -456,6 +461,11 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             foreach (var player in groupMembers)
             {
                 if(ignoreKite && player.Toughness == highestToughness)
+                {
+                    continue;
+                }
+                var actualTime = time == 0 ? GetPhaseEnd(phaseName) : time;
+                if (ignoreDead && player.IsDead(_log, actualTime))
                 {
                     continue;
                 }
