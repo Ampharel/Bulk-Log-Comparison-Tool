@@ -184,6 +184,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
         public double GetPlayerDps(string accountName, long time = 0, string phaseName = "",  bool allTarget = false, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All)
         {
+            //Maybe add burst time check
             var phase = GetPhaseFromName(phaseName);
             if (phase.Item1 == null)
                 return 0;
@@ -431,6 +432,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             {
                 end = de.Time;
             }
+            if(end <= start)
+            {
+                return -1;
+            }
 
             var Buffs = Target.GetBuffs(BuffEnum.Self, _log, start, end);
             var targetBuffs = new List<Buff>();
@@ -477,7 +482,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     continue;
                 }
+                var boonResult = GetBoon(player.Account, boonName, phaseName, time, duration);
+                if (boonResult == -1) { continue; }
                 boonUptimes.Add(GetBoon(player.Account, boonName, phaseName, time, duration));
+
             }
             if (boonUptimes.Count == 0)
             {
@@ -611,7 +619,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
 
                 if (phaseData == null) continue;
                 
-                var Invis = MassInvis.Where(x => x.EndTime + 10000 > phaseData.Start).FirstOrDefault();
+                var Invis = MassInvis.Where(x => x.EndTime + 10000 > phaseData.Start && x.EndTime < phaseData.End).FirstOrDefault();
                 if (Invis == null)
                 {
                     StealthResult.Add((phase.Value, "No MI"));
@@ -678,7 +686,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     continue;
                 }
                 var killedPhase = Phases.OrderByDescending(x => x.End).FirstOrDefault(x => x.End < phase.Start);
-                var invis = MassInvis.FirstOrDefault(x => phase.Start - 10000 < x.EndTime);
+                var invis = MassInvis.FirstOrDefault(x => phase.Start - 10000 < x.EndTime && x.EndTime < phase.End);
 
                 List<StealthResult> stealthResults = new List<StealthResult>();
                 long stealthTime = killedPhase.End;
@@ -688,6 +696,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                     {
                         stealthResults.Add(new StealthResult(player.Account, "No MI"));
                     }
+                    continue;
                 }
                 else
                 {
@@ -1286,7 +1295,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 return [];
             }
             var damageEvents = _log.CombatData.GetDamageTakenData(player.AgentItem);
-            var lastLaughEvents = damageEvents.Where(x => skillIds.Contains(x.SkillId)).ToList();
+            var lastLaughEvents = damageEvents.Where(x => skillIds.Contains(x.SkillID)).ToList();
 
             List<LastLaugh> lastLaughs = new();
             foreach (var lastLaugh in lastLaughEvents.DistinctBy(x => x.Time))
@@ -1295,7 +1304,7 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
                 {
                     continue;
                 }
-                lastLaughs.Add(new LastLaugh(lastLaugh.SkillId, lastLaugh.From.Name, accountName, lastLaugh.Time, lastLaugh.HealthDamage, lastLaugh.ShieldDamage));
+                lastLaughs.Add(new LastLaugh(lastLaugh.SkillID, lastLaugh.From.Name, accountName, lastLaugh.Time, lastLaugh.HealthDamage, lastLaugh.ShieldDamage));
             }
             return lastLaughs;
         }   

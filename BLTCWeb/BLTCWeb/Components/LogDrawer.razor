@@ -50,18 +50,15 @@ ClipMode="DrawerClipMode.Docked">
                 </MudPaper>
             </ActivatorContent>
         </MudFileUpload>
-        @if (_showExperimentalField)
-        {
-            <MudTextField Label="EXPERIMENTAL:"
-                          Placeholder="Paste dps.report / wingman logs here"
-                          Lines="5"
-                          Margin="Margin.Dense"
-                          FullWidth="true"
-                          @bind-Value="_logUrls"
-                          Adornment="Adornment.None"
-                          Immediate="true"
-                          TextArea="true" />
-        }
+        <MudTextField Label="Links:"
+                        Placeholder="Paste dps.report / wingman logs here"
+                        Lines="5"
+                        Margin="Margin.Dense"
+                        FullWidth="true"
+                        @bind-Value="_logUrls"
+                        Adornment="Adornment.None"
+                        Immediate="true"
+                        TextArea="true" />
         <MudToolBar Gutters="false" Class="relative d-flex justify-end gap-4">
             <MudButton Color="Color.Primary"
             OnClick="OpenFilePickerAsync"
@@ -108,6 +105,21 @@ ClipMode="DrawerClipMode.Docked">
     Variant="Variant.Filled">
         Delete
     </MudButton>
+    @if (_errors.Any())
+    {
+        <div class="card">
+            <div class="card-body">
+                <ul>
+                    @foreach (var err in _errors)
+                    {
+                        <span>
+                            <MudText Color="Color.Error">@err</MudText>
+                        </span>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
 </MudDrawer>
 
 <div class="d-flex justify-center align-center mud-height-full">
@@ -131,6 +143,7 @@ ClipMode="DrawerClipMode.Docked">
     private bool _isLoading = false;
     private IReadOnlyCollection<string> SelectedFiles = [];
     private string _logUrls = string.Empty;
+    private List<string> _errors = [];
 
     private void DeleteLogs()
     {
@@ -185,6 +198,7 @@ ClipMode="DrawerClipMode.Docked">
 
     private async Task UploadAsync()
     {
+        _errors = [];
         _isLoading = true;
         StateHasChanged();
 
@@ -197,27 +211,35 @@ ClipMode="DrawerClipMode.Docked">
         // Process files as before
         while (_newFiles.TryDequeue(out var file))
         {
-            var ms = new MemoryStream();
-            await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
-            ms.Position = 0;
-
-            var name = file.Name;
-            processingTasks.Add(Task.Run(async () =>
+            try
             {
-                try
-                {
-                    await ProcessFileStreamAsync(ms, name);
-                    _fileNames.RemoveAll(f => f.Name.Equals(name));
-                }
-                finally
-                {
-                    _processingCount--;
-                    await InvokeAsync(() => LogParser.FinishMultiload());
-                    await InvokeAsync(StateHasChanged);
-                }
-            }));
+                var ms = new MemoryStream();
+                await file.OpenReadStream(maxAllowedSize: MaxFileSize).CopyToAsync(ms);
+                ms.Position = 0;
 
-            _processingCount = processingTasks.Count;
+                var name = file.Name;
+                processingTasks.Add(Task.Run(async () =>
+                {
+                    try
+                    {
+                        await ProcessFileStreamAsync(ms, name);
+                        _fileNames.RemoveAll(f => f.Name.Equals(name));
+                    }
+                    finally
+                    {
+                        _processingCount--;
+                        await InvokeAsync(() => LogParser.FinishMultiload());
+                        await InvokeAsync(StateHasChanged);
+                    }
+                }));
+
+                _processingCount = processingTasks.Count;
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"Something went wrong uploading file {file.Name} with error {e.HResult}");
+                _errors.Add($"Something went wrong uploading file {file.Name} with error {e.HResult}");
+            }
         }
 
         // Process URLs in parallel
@@ -255,6 +277,7 @@ ClipMode="DrawerClipMode.Docked">
             }
             catch (Exception ex)
             {
+                _errors.Add($"Failed to process log URL '{url}': {ex.Message}");
                 Console.WriteLine($"Failed to process log URL '{url}': {ex.Message}");
             }
         });

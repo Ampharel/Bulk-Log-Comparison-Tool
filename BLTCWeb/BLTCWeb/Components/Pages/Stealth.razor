@@ -103,8 +103,10 @@
                                     <MudText Typo="Typo.h6">@phaseTime.ToString("0.##"): Phasing</MudText>
                                     </ItemContent>
                                 </MudTimelineItem>
+                                @if(miTime > 0){
                                 <MudTimelineItem Color="@StealthColour" Size="Size.Small">
                                     <ItemContent>
+                                    
                                     <MudText Typo="Typo.h6" Style="text-align:right">@miTime.ToString("0.##"): Mass Invis</MudText>
                                     </ItemContent>
                                         <ItemOpposite>
@@ -157,7 +159,6 @@
                                 </MudTimelineItem>
 
                             }
-                            @{
 
                                 var endStyle = leftStyle;
                                 var stealthEnd = stealthTime + 6.0f;
@@ -171,8 +172,12 @@
                                         <MudText Style=@endStyle Typo="Typo.h6">@stealthEnd.ToString("0.##"): Stealth Timeout</MudText>
                                 </ItemContent>
                                 </MudTimelineItem>
-                            }
+                                    }
                     </MudTimeline>
+                    }
+                    else
+                    {
+                        <MudText Typo="Typo.h6">No MI</MudText>
                     }
                 }
             </MudTd>
