@@ -1,3 +1,6 @@
+Since the release of the web version, the standalone version support was dropped. The tool can be used here:
+https://htcm-blct.com/
+
 This project allows users to analyze multiple arcdps logs for gw2 in bulk. This quickly shows patterns and makes it easier to spot mistakes / consistent issues.
 It also allows you to quickly compare your logs and see if you're improving.
 
