@@ -282,6 +282,10 @@ public class ParsedJsonLog : IParsedEvtcLog
     private List<(double, double)> GetBoonTimedEvents(string target, string boonName, long start, long end, string source = "")
     {
         var boonID = GetBuffIdFromBoonName(boonName);
+        if(boonName == "Quickness")
+        {
+            Console.Write("bla");
+        }
         if (boonID == 0) return [];
         return GetBoonTimedEvents(target, boonID, start, end, source);
     }
@@ -528,7 +532,7 @@ public class ParsedJsonLog : IParsedEvtcLog
                 }
             }
             stealthResults = stealthResults.OrderBy(x => x.Time).ToList();
-            stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline(stealthPhase.Value, invis?.CastTime ?? killedPhase.End, stealthTime, killedPhase.End, lastStealth?.TimeGained > 0, stealthResults));
+            stealthResultsPerPhase.Add(stealthPhase.Value, new StealthTimeline(stealthPhase.Value, invis?.CastTime ?? killedPhase.End, stealthTime, killedPhase.End, lastStealth?.Quickness > 0.9, stealthResults));
         }
         return new StealthTimelineCollection(stealthResultsPerPhase);
     }
@@ -631,7 +635,7 @@ public class ParsedJsonLog : IParsedEvtcLog
         if (playerObject == null) return Array.Empty<(string, long)>();
 
         return GetMechanicLogs(mechanicName, phaseName, start, end)
-            .Where(x => string.Equals(x.Item1, playerObject.Name, StringComparison.OrdinalIgnoreCase))
+            .Where(x => string.Equals(x.Item1, playerObject.Account, StringComparison.OrdinalIgnoreCase))
             .ToArray();
     }
 
@@ -641,8 +645,19 @@ public class ParsedJsonLog : IParsedEvtcLog
         if (mechanics == null) return [];
         var mechs = mechanics.FirstOrDefault(x => x.FullName.Equals(mechanicName));
         if (mechs == null) return [];
+
+        var startTime = start;
+        var endTime = end;
+        
+        if(phaseName != "")
+        {
+            startTime = GetPhaseStart(phaseName);
+            endTime = GetPhaseEnd(phaseName);
+        }
+
         return mechs.MechanicsData
             .Select(x => (GetAccountNameFromCharacterName(x.Actor ?? ""), x.Time))
+            .Where(x => x.Time >= startTime && x.Time <= endTime)
             .ToArray();
     }
 
