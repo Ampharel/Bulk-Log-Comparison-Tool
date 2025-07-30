@@ -8,6 +8,7 @@
 @rendermode InteractiveServer
 
 @inject ServerParser LogParser
+@inject SpecFilterService SpecFilter
 <LogDrawer OnUpload="StateHasChanged" />
 <div style="overflow-x: auto;">
     <MudGrid>
@@ -60,9 +61,9 @@
               LoadingProgressColor="MudBlazor.Color.Info"
               Class="flex-table">
         <HeaderContent>
-            <MudTh>Player</MudTh>
-            <MudTh>Specializations</MudTh>
-            @foreach (var log in LogParser.BulkLog.Logs)
+            <MudTh Class="sticky-col col-1">Player</MudTh>
+            <MudTh Class="sticky-col col-2">Specializations</MudTh>
+            @foreach (var log in GetFilteredLogs())
             {
                 if(log.GetShockwaves(0).Count() > 0){
                 <MudTh>@log.GetFileName()</MudTh>
@@ -70,14 +71,24 @@
             }
         </HeaderContent>
         <RowTemplate>
-            <MudTd>@context</MudTd>
-                <MudTd>
-                    @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
-                {
-                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+            <MudTd Class="sticky-col col-1">@context</MudTd>
+            <MudTd Class="sticky-col col-2">
+                @{
+                    var specs = LogParser.GetPlayerSpecs(context);
+                    var images = imageGenerator.GetSpecializationImages(specs);
+                    for (int i = 0; i < specs.Length; i++)
+                    {
+                        var specId = specs[i];
+                        var filter = SpecFilter.IsEnabled(context, specId) ? "none" : "grayscale(1) opacity(0.5)";
+                        var style = $"cursor:pointer; margin-right:4px; filter:{filter};";
+
+                        <span style="@style" @onclick="@(() => SpecFilter.Toggle(context, specId))">
+                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@($"data:image/png;base64,{Convert.ToBase64String(images[i].BytesFromImage())}")" />
+                        </span>
+                    }
                 }
             </MudTd>
-            @foreach(var log in LogParser.BulkLog.Logs){
+            @foreach(var log in GetFilteredLogs()){
                 if(log.GetShockwaves(0).Count() > 0){
                     var data = GetImageForPlayer(log, @context);
                     if(data.Length > 0){
@@ -115,5 +126,10 @@
             shockwaves.Add((shockwave, shockwaveType));
         }
         return shockwaves;
+    }
+
+    private IParsedEvtcLog[] GetFilteredLogs()
+    {
+        return SpecFilter.FilterLogs(LogParser.BulkLog.Logs).ToArray();
     }
 }

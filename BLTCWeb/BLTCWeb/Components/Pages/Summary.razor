@@ -9,6 +9,7 @@
 
 <h3>Summary</h3>
 @inject ServerParser LogParser
+@inject SpecFilterService SpecFilter
 <LogDrawer OnUpload="StateHasChanged" />
 <div style="overflow-x: auto;">
 
@@ -61,19 +62,29 @@
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
                         <HeaderContent>
-                            <MudTh>Player</MudTh>
-                            <MudTh>Specialization</MudTh>
+                            <MudTh Class="sticky-col col-1">Player</MudTh>
+                            <MudTh Class="sticky-col col-2">Specialization</MudTh>
                             @foreach (var phase in latestLog?.GetStealthPhases() ?? [])
                             {
                                 <MudTh>@phase</MudTh>
                             }
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd>@context</MudTd>
-                            <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
-                                {
-                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                            <MudTd Class="sticky-col col-1">@context</MudTd>
+                            <MudTd Class="sticky-col col-2">
+                                @{
+                                    var specs = new[] { latestLog.GetSpec(context) };
+                                    var images = imageGenerator.GetSpecializationImages(specs);
+                                    for (int i = 0; i < specs.Length; i++)
+                                    {
+                                        var specId = specs[i];
+                                        var filter = SpecFilter.IsEnabled(context, specId) ? "none" : "grayscale(1) opacity(0.5)";
+                                        var style = $"cursor:pointer; margin-right:4px; filter:{filter};";
+
+                                        <span style="@style" @onclick="@(() => SpecFilter.Toggle(context, specId))">
+                                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@($"data:image/png;base64,{Convert.ToBase64String(images[i].BytesFromImage())}")" />
+                                        </span>
+                                    }
                                 }
                             </MudTd>
                             @foreach (var phase in latestLog?.GetStealthPhases() ?? [])
@@ -97,8 +108,8 @@
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
                         <HeaderContent>
-                            <MudTh>Player</MudTh>
-                            <MudTh>Specialization</MudTh>
+                            <MudTh Class="sticky-col col-1">Player</MudTh>
+                            <MudTh Class="sticky-col col-2">Specialization</MudTh>
                             @foreach (var mechanic in selectedMechanics)
                             {
                                 if (mechanic.Value)
@@ -108,11 +119,21 @@
                             }
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd>@context</MudTd>
-                            <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
-                                {
-                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                            <MudTd Class="sticky-col col-1">@context</MudTd>
+                            <MudTd Class="sticky-col col-2">
+                                @{
+                                    var specs = new[] { latestLog.GetSpec(context) };
+                                    var images = imageGenerator.GetSpecializationImages(specs);
+                                    for (int i = 0; i < specs.Length; i++)
+                                    {
+                                        var specId = specs[i];
+                                        var filter = SpecFilter.IsEnabled(context, specId) ? "none" : "grayscale(1) opacity(0.5)";
+                                        var style = $"cursor:pointer; margin-right:4px; filter:{filter};";
+
+                                        <span style="@style" @onclick="@(() => SpecFilter.Toggle(context, specId))">
+                                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@($"data:image/png;base64,{Convert.ToBase64String(images[i].BytesFromImage())}")" />
+                                        </span>
+                                    }
                                 }
                             </MudTd>
                             @foreach (var mechanic in selectedMechanics)
@@ -139,16 +160,26 @@
                     LoadingProgressColor="MudBlazor.Color.Info"
                     Class="flex-table">
                         <HeaderContent>
-                            <MudTh>Player</MudTh>
-                            <MudTh>Specializations</MudTh>
+                            <MudTh Class="sticky-col col-1">Player</MudTh>
+                            <MudTh Class="sticky-col col-2">Specializations</MudTh>
                             <MudTh>Shockwaves</MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd>@context</MudTd>
-                            <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
-                                {
-                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                            <MudTd Class="sticky-col col-1">@context</MudTd>
+                            <MudTd Class="sticky-col col-2">
+                                @{
+                                    var specs = new[] { latestLog.GetSpec(context) };
+                                    var images = imageGenerator.GetSpecializationImages(specs);
+                                    for (int i = 0; i < specs.Length; i++)
+                                    {
+                                        var specId = specs[i];
+                                        var filter = SpecFilter.IsEnabled(context, specId) ? "none" : "grayscale(1) opacity(0.5)";
+                                        var style = $"cursor:pointer; margin-right:4px; filter:{filter};";
+
+                                        <span style="@style" @onclick="@(() => SpecFilter.Toggle(context, specId))">
+                                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@($"data:image/png;base64,{Convert.ToBase64String(images[i].BytesFromImage())}")" />
+                                        </span>
+                                    }
                                 }
                             </MudTd>
                             @if (latestLog.GetShockwaves(0).Count() > 0)
@@ -183,16 +214,26 @@
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
                         <HeaderContent>
-                            <MudTh>Player</MudTh>
-                            <MudTh>Specializations</MudTh>
+                            <MudTh Class="sticky-col col-1">Player</MudTh>
+                            <MudTh Class="sticky-col col-2">Specializations</MudTh>
                             <MudTh>Downs</MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd>@context</MudTd>
-                            <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
-                                {
-                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                            <MudTd Class="sticky-col col-1">@context</MudTd>
+                            <MudTd Class="sticky-col col-2">
+                                @{
+                                    var specs = new[] { latestLog.GetSpec(context) };
+                                    var images = imageGenerator.GetSpecializationImages(specs);
+                                    for (int i = 0; i < specs.Length; i++)
+                                    {
+                                        var specId = specs[i];
+                                        var filter = SpecFilter.IsEnabled(context, specId) ? "none" : "grayscale(1) opacity(0.5)";
+                                        var style = $"cursor:pointer; margin-right:4px; filter:{filter};";
+
+                                        <span style="@style" @onclick="@(() => SpecFilter.Toggle(context, specId))">
+                                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@($"data:image/png;base64,{Convert.ToBase64String(images[i].BytesFromImage())}")" />
+                                        </span>
+                                    }
                                 }
                             </MudTd>
                             @foreach (var downReason in latestLog.GetDownReasons(context)){
@@ -215,16 +256,26 @@
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
                         <HeaderContent>
-                            <MudTh>Player</MudTh>
-                            <MudTh>Specializations</MudTh>
+                            <MudTh Class="sticky-col col-1">Player</MudTh>
+                            <MudTh Class="sticky-col col-2">Specializations</MudTh>
                             <MudTh>Defiance damage</MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd>@context</MudTd>
-                            <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
-                                {
-                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                            <MudTd Class="sticky-col col-1">@context</MudTd>
+                            <MudTd Class="sticky-col col-2">
+                                @{
+                                    var specs = new[] { latestLog.GetSpec(context) };
+                                    var images = imageGenerator.GetSpecializationImages(specs);
+                                    for (int i = 0; i < specs.Length; i++)
+                                    {
+                                        var specId = specs[i];
+                                        var filter = SpecFilter.IsEnabled(context, specId) ? "none" : "grayscale(1) opacity(0.5)";
+                                        var style = $"cursor:pointer; margin-right:4px; filter:{filter};";
+
+                                        <span style="@style" @onclick="@(() => SpecFilter.Toggle(context, specId))">
+                                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@($"data:image/png;base64,{Convert.ToBase64String(images[i].BytesFromImage())}")" />
+                                        </span>
+                                    }
                                 }
                             </MudTd>
                             <MudTd>@latestLog.GetPlayerDps(@context, "Full Fight", true, true, true).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
@@ -245,17 +296,27 @@
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
                         <HeaderContent>
-                            <MudTh>Player</MudTh>
-                            <MudTh>Specializations</MudTh>
+                            <MudTh Class="sticky-col col-1">Player</MudTh>
+                            <MudTh Class="sticky-col col-2">Specializations</MudTh>
                             <MudTh>Giants</MudTh>
                             <MudTh>Goliath</MudTh>
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd>@context</MudTd>
-                            <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
-                                {
-                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                            <MudTd Class="sticky-col col-1">@context</MudTd>
+                            <MudTd Class="sticky-col col-2">
+                                @{
+                                    var specs = new[] { latestLog.GetSpec(context) };
+                                    var images = imageGenerator.GetSpecializationImages(specs);
+                                    for (int i = 0; i < specs.Length; i++)
+                                    {
+                                        var specId = specs[i];
+                                        var filter = SpecFilter.IsEnabled(context, specId) ? "none" : "grayscale(1) opacity(0.5)";
+                                        var style = $"cursor:pointer; margin-right:4px; filter:{filter};";
+
+                                        <span style="@style" @onclick="@(() => SpecFilter.Toggle(context, specId))">
+                                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@($"data:image/png;base64,{Convert.ToBase64String(images[i].BytesFromImage())}")" />
+                                        </span>
+                                    }
                                 }
                             </MudTd>
                             <MudTd>@latestLog.GetPlayerDps(@context, "Giants", true, true, false).ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
@@ -277,8 +338,8 @@
                     LoadingProgressColor="Color.Info"
                     Class="flex-table">
                         <HeaderContent>
-                            <MudTh>Player</MudTh>
-                            <MudTh>Specializations</MudTh>
+                            <MudTh Class="sticky-col col-1">Player</MudTh>
+                            <MudTh Class="sticky-col col-2">Specializations</MudTh>
                             @foreach (var boon in latestLog.GetBoonNames())
                             {
 
@@ -286,11 +347,21 @@
                             }
                         </HeaderContent>
                         <RowTemplate>
-                            <MudTd>@context</MudTd>
-                            <MudTd>
-                                @foreach (var icon in imageGenerator.GetSpecializationImages([latestLog.GetSpec(context)]))
-                                {
-                                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                            <MudTd Class="sticky-col col-1">@context</MudTd>
+                            <MudTd Class="sticky-col col-2">
+                                @{
+                                    var specs = new[] { latestLog.GetSpec(context) };
+                                    var images = imageGenerator.GetSpecializationImages(specs);
+                                    for (int i = 0; i < specs.Length; i++)
+                                    {
+                                        var specId = specs[i];
+                                        var filter = SpecFilter.IsEnabled(context, specId) ? "none" : "grayscale(1) opacity(0.5)";
+                                        var style = $"cursor:pointer; margin-right:4px; filter:{filter};";
+
+                                        <span style="@style" @onclick="@(() => SpecFilter.Toggle(context, specId))">
+                                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@($"data:image/png;base64,{Convert.ToBase64String(images[i].BytesFromImage())}")" />
+                                        </span>
+                                    }
                                 }
                             </MudTd>
                             @foreach(var boon in latestLog.GetBoonNames())
