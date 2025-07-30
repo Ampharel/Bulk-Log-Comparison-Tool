@@ -177,9 +177,9 @@
         LoadingProgressColor="Color.Info"
         Class="flex-table">
             <HeaderContent>
-                <MudTh>Player</MudTh>
-                <MudTh>Specializations</MudTh>
-                @foreach (var log in LogParser.BulkLog.Logs)
+                <MudTh Class="sticky-col col-1">Player</MudTh>
+                <MudTh Class="sticky-col col-2">Specializations</MudTh>
+                @foreach (var log in GetFilteredLogs())
                 {
                     <MudTh>@log.GetFileName()</MudTh>
                 }
@@ -189,21 +189,34 @@
                 @if (_showPlayersDict.ContainsKey(context) && _showPlayersDict[context])
                 {
 
-                    <MudTd>@context</MudTd>
-                    <MudTd>
-                        @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, context))
-                        {
-                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                    <MudTd Class="sticky-col col-1">@context</MudTd>
+                    <MudTd Class="sticky-col col-2">
+                        @{
+                            var specs = LogParser.GetPlayerSpecs(context);
+                            var images = imageGenerator.GetSpecializationImages(specs);
+                            for (int i = 0; i < specs.Length; i++)
+                            {
+                                var specId = specs[i];
+                                var filter = IsPlayerSpecEnabled(context, specId)
+                                    ? "none"
+                                    : "grayscale(1) opacity(0.5)";
+                                var style = $"cursor:pointer; margin-right:4px; filter:{filter};";
+
+                                <span style="@style" @onclick="@(() => TogglePlayerSpec(context, specId))">
+                                    <MudImage
+                                        ObjectPosition="@ObjectPosition.Center"
+                                        Src="@($"data:image/png;base64,{Convert.ToBase64String(images[i].BytesFromImage())}")" />
+                                </span>
+                            }
                         }
                     </MudTd>
                     var TotalBoon = 0d;
                     var TotalLogs = 0;
                     var boonStackType = BuffStackTyping.Queue;
-                    foreach (var log in LogParser.BulkLog.Logs)
+                    foreach (var log in GetFilteredLogs())
                     {
-
                         boonStackType = log.GetBoonStackType(_selectedBoon);
-                        var boon = log.GetBoon(@context, _selectedBoon, _selectedPhase);
+                        var boon = log.GetBoon(context, _selectedBoon, _selectedPhase);
                         if (boon > 0)
                         {
                             TotalBoon += boon;
@@ -342,6 +355,25 @@
                 Series.Add(Player, new List<TimeSeriesChartSeries>());
             }
         }
+    }
+
+    private IParsedEvtcLog[] GetFilteredLogs()
+    {
+        return LogParser.BulkLog.Logs.Where(log =>
+        {
+            foreach (var player in log.GetPlayers())
+            {
+                var spec = log.GetSpec(player);
+
+                if (PlayerDisabledSpecs.TryGetValue(player, out var disabledSpecs)
+                    && disabledSpecs.Contains(spec))
+                {
+                    return false; // This log is filtered out by at least one player
+                }
+            }
+
+            return true; // No players filtered it out
+        }).ToArray();
     }
 
     private List<TimeSeriesChartSeries.TimeValue> CreateChartData(string Player, IParsedEvtcLog Log, int maxValue)
@@ -545,5 +577,22 @@
     {
         _selectedPhase = text;
         OnNewData();
+    }
+
+    private Dictionary<string, HashSet<string>> PlayerDisabledSpecs = new();
+
+    private void TogglePlayerSpec(string playerId, string specId)
+    {
+        if (!PlayerDisabledSpecs.ContainsKey(playerId))
+            PlayerDisabledSpecs[playerId] = new HashSet<string>();
+
+        if (!PlayerDisabledSpecs[playerId].Add(specId))
+            PlayerDisabledSpecs[playerId].Remove(specId);
+    }
+
+    private bool IsPlayerSpecEnabled(string playerId, string specId)
+    {
+        return !PlayerDisabledSpecs.ContainsKey(playerId)
+            || !PlayerDisabledSpecs[playerId].Contains(specId);
     }
 }

@@ -124,7 +124,7 @@ namespace BLCTWeb
         }
         public string[] GetPlayerSpecs(string player)
         {
-            return _bulklog.Logs.Select(x => x.GetSpec(player)).Distinct().ToArray();
+            return _bulklog.Logs.Select(x => x.GetSpec(player)).Where(y => y.Length != 0).Distinct().ToArray();
         }
     }
 }

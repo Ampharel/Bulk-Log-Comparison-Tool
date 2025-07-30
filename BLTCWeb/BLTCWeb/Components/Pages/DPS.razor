@@ -39,8 +39,8 @@
     LoadingProgressColor="Color.Info"
     Class="flex-table">
         <HeaderContent>
-            <MudTh>Player</MudTh>
-            <MudTh>Specializations</MudTh>
+            <MudTh Class="sticky-col col-1">Player</MudTh>
+            <MudTh Class="sticky-col col-2">Specializations</MudTh>
             @foreach (var log in LogParser.BulkLog.Logs)
             {
                 <MudTh>@log.GetFileName()</MudTh>
@@ -49,8 +49,8 @@
 
         </HeaderContent>
         <RowTemplate>
-            <MudTd>@context</MudTd>
-            <MudTd>
+            <MudTd Class="sticky-col col-1">@context</MudTd>
+            <MudTd Class="sticky-col col-2">
                 @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
                 {
                     <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />

@@ -1,6 +1,7 @@
 using BLCTWeb.Client;
 using BLCTWeb.Client.Pages;
 using BLCTWeb.Components;
+using Microsoft.AspNetCore.Components.Server;
 using MudBlazor.Services;
 using System.Globalization;
 
@@ -23,6 +24,12 @@ namespace BLCTWeb
                 .AddInteractiveWebAssemblyComponents()
                 .AddInteractiveServerComponents();
             builder.Services.AddScoped<ServerParser>();
+#if DEBUG
+            builder.Services.Configure<CircuitOptions>(options =>
+            {
+                options.DetailedErrors = true;
+            });
+#endif
 
             var app = builder.Build();
             

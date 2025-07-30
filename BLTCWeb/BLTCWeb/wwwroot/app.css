@@ -58,3 +58,20 @@ h1:focus {
     margin-right: 0 !important;
 }
 
+.sticky-col {
+    position: sticky;
+    z-index: 2;
+    background-color: var(--mud-palette-surface); /* Keeps it theme-compatible */
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.1); /* subtle right shadow */
+}
+
+.col-1 {
+    left: 0;
+    min-width: 150px;
+}
+
+.col-2 {
+    left: 150px; /* sum of all previous sticky widths */
+    min-width: 120px;
+    box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05); /* lighter shadow for second col */
+}
