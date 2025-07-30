@@ -48,7 +48,7 @@
             {
                 <MudTh @onclick="() => OnSort(log.GetFileName())" Style="cursor:pointer">@log.GetFileName()</MudTh>
             }
-            <MudTh>Average</MudTh>
+            <MudTh @onclick='() => OnSort("Average")' Style="cursor:pointer">Average</MudTh>
 
         </HeaderContent>
         <RowTemplate>
@@ -155,12 +155,31 @@
         var players = LogParser.BulkLog.GetPlayers().AsEnumerable();
         if (!string.IsNullOrEmpty(_sortColumn))
         {
-            var log = LogParser.BulkLog.Logs.FirstOrDefault(l => l.GetFileName() == _sortColumn);
-            if (log != null)
+            if (_sortColumn == "Average")
             {
                 players = _sortDescending
-                    ? players.OrderByDescending(p => log.GetPlayerDps(p, _selectedPhase, _allTargets, _cumulative, _defiance))
-                    : players.OrderBy(p => log.GetPlayerDps(p, _selectedPhase, _allTargets, _cumulative, _defiance));
+                    ? players.OrderByDescending(p =>
+                        {
+                            var logs = GetFilteredLogs();
+                            var values = logs.Select(l => l.GetPlayerDps(p, _selectedPhase, _allTargets, _cumulative, _defiance)).Where(v => v > 0);
+                            return values.Any() ? values.Average() : 0;
+                        })
+                    : players.OrderBy(p =>
+                        {
+                            var logs = GetFilteredLogs();
+                            var values = logs.Select(l => l.GetPlayerDps(p, _selectedPhase, _allTargets, _cumulative, _defiance)).Where(v => v > 0);
+                            return values.Any() ? values.Average() : 0;
+                        });
+            }
+            else
+            {
+                var log = LogParser.BulkLog.Logs.FirstOrDefault(l => l.GetFileName() == _sortColumn);
+                if (log != null)
+                {
+                    players = _sortDescending
+                        ? players.OrderByDescending(p => log.GetPlayerDps(p, _selectedPhase, _allTargets, _cumulative, _defiance))
+                        : players.OrderBy(p => log.GetPlayerDps(p, _selectedPhase, _allTargets, _cumulative, _defiance));
+                }
             }
         }
         return players;
