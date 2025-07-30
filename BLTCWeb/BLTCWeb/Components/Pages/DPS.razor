@@ -2,9 +2,11 @@
 @using System.Net.Http.Json
 @using MudBlazor
 @using System.Globalization
+@using Bulk_Log_Comparison_Tool.DataClasses
 @rendermode InteractiveServer
 
 @inject ServerParser LogParser
+@inject SpecFilterService SpecFilter
 <LogDrawer OnUpload="StateHasChanged" />
 <div style="overflow-x: auto;">
     <MudButtonGroup Color="Color.Primary" Variant="Variant.Outlined">
@@ -41,7 +43,7 @@
         <HeaderContent>
             <MudTh Class="sticky-col col-1">Player</MudTh>
             <MudTh Class="sticky-col col-2">Specializations</MudTh>
-            @foreach (var log in LogParser.BulkLog.Logs)
+            @foreach (var log in GetFilteredLogs())
             {
                 <MudTh>@log.GetFileName()</MudTh>
             }
@@ -51,15 +53,25 @@
         <RowTemplate>
             <MudTd Class="sticky-col col-1">@context</MudTd>
             <MudTd Class="sticky-col col-2">
-                @foreach (var icon in imageGenerator.GetSpecializationImages(LogParser, @context))
-                {
-                    <MudImage ObjectPosition="@ObjectPosition.Center" Src="@String.Format("data:image/png;base64,{0}", Convert.ToBase64String(icon.BytesFromImage()))" />
+                @{
+                    var specs = LogParser.GetPlayerSpecs(context);
+                    var images = imageGenerator.GetSpecializationImages(specs);
+                    for (int i = 0; i < specs.Length; i++)
+                    {
+                        var specId = specs[i];
+                        var filter = SpecFilter.IsEnabled(context, specId) ? "none" : "grayscale(1) opacity(0.5)";
+                        var style = $"cursor:pointer; margin-right:4px; filter:{filter};";
+
+                        <span style="@style" @onclick="@(() => SpecFilter.Toggle(context, specId))">
+                            <MudImage ObjectPosition="@ObjectPosition.Center" Src="@($"data:image/png;base64,{Convert.ToBase64String(images[i].BytesFromImage())}")" />
+                        </span>
+                    }
                 }
             </MudTd>
             @{
                 var TotalDps = 0.0;
                 var TotalLogs = 0;
-                foreach (var log in LogParser.BulkLog.Logs)
+                foreach (var log in GetFilteredLogs())
                 {
                     var dps = log.GetPlayerDps(@context, _selectedPhase, _allTargets, _cumulative, _defiance);
                     <MudTd>@dps.ToString("N0", CultureInfo.CreateSpecificCulture("ru-RU"))</MudTd>
@@ -117,6 +129,11 @@
     {
         _allTargets = value;
         OnNewData();
+    }
+
+    private IParsedEvtcLog[] GetFilteredLogs()
+    {
+        return SpecFilter.FilterLogs(LogParser.BulkLog.Logs).ToArray();
     }
 
 

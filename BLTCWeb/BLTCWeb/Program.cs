@@ -24,6 +24,7 @@ namespace BLCTWeb
                 .AddInteractiveWebAssemblyComponents()
                 .AddInteractiveServerComponents();
             builder.Services.AddScoped<ServerParser>();
+            builder.Services.AddScoped<SpecFilterService>();
 #if DEBUG
             builder.Services.Configure<CircuitOptions>(options =>
             {

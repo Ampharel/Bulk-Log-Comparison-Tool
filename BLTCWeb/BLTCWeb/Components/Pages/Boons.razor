@@ -9,6 +9,7 @@
 <h3>Boons</h3>
 
 @inject ServerParser LogParser
+@inject SpecFilterService SpecFilter
 <LogDrawer OnUpload="StateHasChanged" />
 
 
@@ -359,21 +360,7 @@
 
     private IParsedEvtcLog[] GetFilteredLogs()
     {
-        return LogParser.BulkLog.Logs.Where(log =>
-        {
-            foreach (var player in log.GetPlayers())
-            {
-                var spec = log.GetSpec(player);
-
-                if (PlayerDisabledSpecs.TryGetValue(player, out var disabledSpecs)
-                    && disabledSpecs.Contains(spec))
-                {
-                    return false; // This log is filtered out by at least one player
-                }
-            }
-
-            return true; // No players filtered it out
-        }).ToArray();
+        return SpecFilter.FilterLogs(LogParser.BulkLog.Logs).ToArray();
     }
 
     private List<TimeSeriesChartSeries.TimeValue> CreateChartData(string Player, IParsedEvtcLog Log, int maxValue)
@@ -579,20 +566,13 @@
         OnNewData();
     }
 
-    private Dictionary<string, HashSet<string>> PlayerDisabledSpecs = new();
-
     private void TogglePlayerSpec(string playerId, string specId)
     {
-        if (!PlayerDisabledSpecs.ContainsKey(playerId))
-            PlayerDisabledSpecs[playerId] = new HashSet<string>();
-
-        if (!PlayerDisabledSpecs[playerId].Add(specId))
-            PlayerDisabledSpecs[playerId].Remove(specId);
+        SpecFilter.Toggle(playerId, specId);
     }
 
     private bool IsPlayerSpecEnabled(string playerId, string specId)
     {
-        return !PlayerDisabledSpecs.ContainsKey(playerId)
-            || !PlayerDisabledSpecs[playerId].Contains(specId);
+        return SpecFilter.IsEnabled(playerId, specId);
     }
 }
