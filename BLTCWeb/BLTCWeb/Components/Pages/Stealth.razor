@@ -3,6 +3,7 @@
 @using MudBlazor
 @using Bulk_Log_Comparison_Tool.LibraryClasses
 @using Bulk_Log_Comparison_Tool.DataClasses
+@using System.Linq
 @rendermode InteractiveServer
 
 @inject ServerParser LogParser
@@ -31,7 +32,7 @@
     @{
         if (!_selectedPhase.Equals("Choose a phase") && _showType == ShowType.Table)
         {
-            <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+            <MudTable Items="@GetSortedPlayers()"
             Hover="true"
             Dense="true"
               Breakpoint="Breakpoint.Sm"
@@ -42,7 +43,7 @@
                     <MudTh Class="sticky-col col-2">Specialization</MudTh>
                     @foreach (var log in GetFilteredLogs())
                     {
-                        <MudTh>@log.GetFileName()</MudTh>
+                        <MudTh @onclick="() => OnSort(log.GetFileName())" Style="cursor:pointer">@log.GetFileName()</MudTh>
                     }
                 </HeaderContent>
                 <RowTemplate>
@@ -206,6 +207,8 @@
     private string _selectedPhase = "Choose a phase";
     private List<string> _stealthResults = new List<string>();
     private ShowType _showType = ShowType.Graph;
+    private string? _sortColumn;
+    private bool _sortDescending;
 
     private void SetButtonText(string text)
     {
@@ -226,5 +229,40 @@
     private IParsedEvtcLog[] GetFilteredLogs()
     {
         return SpecFilter.FilterLogs(LogParser.BulkLog.Logs).ToArray();
+    }
+
+    private IEnumerable<string> GetSortedPlayers()
+    {
+        var players = LogParser.BulkLog.GetPlayers().AsEnumerable();
+        if (!string.IsNullOrEmpty(_sortColumn))
+        {
+            var log = LogParser.BulkLog.Logs.FirstOrDefault(l => l.GetFileName() == _sortColumn);
+            if (log != null)
+            {
+                players = _sortDescending
+                    ? players.OrderByDescending(p => ParseDouble(log.GetStealthResult(p, Bulk_Log_Comparison_Tool.Enums.StealthAlgoritmns.OutlierFiltering).FirstOrDefault(x => x.Item1.Equals(_selectedPhase)).Item2))
+                    : players.OrderBy(p => ParseDouble(log.GetStealthResult(p, Bulk_Log_Comparison_Tool.Enums.StealthAlgoritmns.OutlierFiltering).FirstOrDefault(x => x.Item1.Equals(_selectedPhase)).Item2));
+            }
+        }
+        return players;
+    }
+
+    private static double ParseDouble(string input)
+    {
+        return double.TryParse(input, out var val) ? val : double.NaN;
+    }
+
+    private void OnSort(string column)
+    {
+        if (_sortColumn == column)
+        {
+            _sortDescending = !_sortDescending;
+        }
+        else
+        {
+            _sortColumn = column;
+            _sortDescending = true;
+        }
+        StateHasChanged();
     }
 }

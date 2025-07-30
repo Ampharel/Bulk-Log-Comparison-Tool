@@ -4,6 +4,7 @@
 @using MudBlazor
 @using MudBlazor.Components.Chart.Models
 @using Bulk_Log_Comparison_Tool.Util;
+@using System.Linq
 @rendermode InteractiveServer
 
 <h3>Boons</h3>
@@ -122,7 +123,7 @@
     }
     else if(_chartDisplayMode == ChartDisplayMode.GraphPerPlayer)
     {
-        <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+        <MudTable Items="@GetSortedPlayers()"
         Hover="true"
         Dense="true"
         Breakpoint="Breakpoint.Sm"
@@ -182,7 +183,7 @@
                 <MudTh Class="sticky-col col-2">Specializations</MudTh>
                 @foreach (var log in GetFilteredLogs())
                 {
-                    <MudTh>@log.GetFileName()</MudTh>
+                    <MudTh @onclick="() => OnSort(log.GetFileName())" Style="cursor:pointer">@log.GetFileName()</MudTh>
                 }
                 <MudTh>Average</MudTh>
             </HeaderContent>
@@ -285,13 +286,16 @@
     private Dictionary<string, bool> _showGroupsDict = new();
 
     private Dictionary<string, string> _playerColours = new();
-    private string[] Colours = 
+    private string[] Colours =
     {
             Colors.Blue.Accent3, Colors.Teal.Accent3, Colors.Amber.Accent3, Colors.Orange.Accent3, Colors.Red.Accent3,
             Colors.DeepPurple.Accent3, Colors.Green.Accent3, Colors.LightBlue.Accent3, Colors.Teal.Lighten1, Colors.Amber.Lighten1,
             Colors.Orange.Lighten1, Colors.Red.Lighten1, Colors.DeepPurple.Lighten1, Colors.Green.Lighten1, Colors.LightBlue.Lighten1,
             Colors.Amber.Darken2, Colors.Orange.Darken2, Colors.Red.Darken2, Colors.DeepPurple.Darken2, Colors.Gray.Darken2
     };
+
+    private string? _sortColumn;
+    private bool _sortDescending;
 
     private TimeSpan _graphSpacing = TimeSpan.FromSeconds(30);
 
@@ -361,6 +365,36 @@
     private IParsedEvtcLog[] GetFilteredLogs()
     {
         return SpecFilter.FilterLogs(LogParser.BulkLog.Logs).ToArray();
+    }
+
+    private IEnumerable<string> GetSortedPlayers()
+    {
+        var players = LogParser.BulkLog.GetPlayers().AsEnumerable();
+        if (!string.IsNullOrEmpty(_sortColumn))
+        {
+            var log = LogParser.BulkLog.Logs.FirstOrDefault(l => l.GetFileName() == _sortColumn);
+            if (log != null)
+            {
+                players = _sortDescending
+                    ? players.OrderByDescending(p => log.GetBoon(p, _selectedBoon, _selectedPhase))
+                    : players.OrderBy(p => log.GetBoon(p, _selectedBoon, _selectedPhase));
+            }
+        }
+        return players;
+    }
+
+    private void OnSort(string column)
+    {
+        if (_sortColumn == column)
+        {
+            _sortDescending = !_sortDescending;
+        }
+        else
+        {
+            _sortColumn = column;
+            _sortDescending = true;
+        }
+        StateHasChanged();
     }
 
     private List<TimeSeriesChartSeries.TimeValue> CreateChartData(string Player, IParsedEvtcLog Log, int maxValue)
