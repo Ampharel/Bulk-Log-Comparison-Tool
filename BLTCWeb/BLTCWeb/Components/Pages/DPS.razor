@@ -3,6 +3,7 @@
 @using MudBlazor
 @using System.Globalization
 @using Bulk_Log_Comparison_Tool.DataClasses
+@using System.Linq
 @rendermode InteractiveServer
 
 @inject ServerParser LogParser
@@ -34,7 +35,7 @@
         <MudRadio Value="true" Color="Color.Primary">AllTargets</MudRadio>
     </MudRadioGroup>
 
-    <MudTable Items="@LogParser.BulkLog.GetPlayers()"
+    <MudTable Items="@GetSortedPlayers()"
     Hover="true"
     Dense="true"
     Breakpoint="Breakpoint.Sm"
@@ -45,7 +46,7 @@
             <MudTh Class="sticky-col col-2">Specializations</MudTh>
             @foreach (var log in GetFilteredLogs())
             {
-                <MudTh>@log.GetFileName()</MudTh>
+                <MudTh @onclick="() => OnSort(log.GetFileName())" Style="cursor:pointer">@log.GetFileName()</MudTh>
             }
             <MudTh>Average</MudTh>
 
@@ -102,6 +103,9 @@
     public EventCallback<bool> UpdateAllTargetsEvent;
     public EventCallback<string> UpdatePhaseEvent;
 
+    private string? _sortColumn;
+    private bool _sortDescending;
+
     private void UpdatePhase(string phase)
     {
         _selectedPhase = phase;
@@ -144,6 +148,36 @@
         UpdateAllTargetsEvent = EventCallback.Factory.Create<bool>(this, UpdateAllTargets);
         UpdatePhaseEvent = EventCallback.Factory.Create<string>(this, UpdatePhase);
         LogParser.NewDataEvent += OnNewData;
+    }
+
+    private IEnumerable<string> GetSortedPlayers()
+    {
+        var players = LogParser.BulkLog.GetPlayers().AsEnumerable();
+        if (!string.IsNullOrEmpty(_sortColumn))
+        {
+            var log = LogParser.BulkLog.Logs.FirstOrDefault(l => l.GetFileName() == _sortColumn);
+            if (log != null)
+            {
+                players = _sortDescending
+                    ? players.OrderByDescending(p => log.GetPlayerDps(p, _selectedPhase, _allTargets, _cumulative, _defiance))
+                    : players.OrderBy(p => log.GetPlayerDps(p, _selectedPhase, _allTargets, _cumulative, _defiance));
+            }
+        }
+        return players;
+    }
+
+    private void OnSort(string column)
+    {
+        if (_sortColumn == column)
+        {
+            _sortDescending = !_sortDescending;
+        }
+        else
+        {
+            _sortColumn = column;
+            _sortDescending = true;
+        }
+        StateHasChanged();
     }
 
 }
