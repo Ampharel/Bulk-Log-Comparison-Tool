@@ -1382,5 +1382,30 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             var support = playerAgent?.GetToAllySupportStats(_log, start, end);
             return support?.BoonStripCount ?? 0;
         }
+
+        public double GetTimeForBossHealth(string phase, double percent)
+        {
+            var Phase = GetPhaseFromName(phase);
+            var mainTarget = _log.FightData.GetMainTargets(_log).FirstOrDefault();
+            if (Phase.Item1 == null || mainTarget == null)
+            {
+                return -1;
+            }
+            var healthEvents = _log.CombatData.GetHealthUpdateEvents(mainTarget.AgentItem)
+                .Where(x => x.Time >= Phase.Item1.Start && x.Time <= Phase.Item1.End)
+                .OrderBy(x => x.Time)
+                .ToList();
+
+            for (int i = 1; i < healthEvents.Count; i++)
+            {
+                var healthEvent = healthEvents[i];
+                if(healthEvent.HealthPercent <= percent)
+                {
+                    return healthEvent.Time;
+                }
+            }
+            return -1;
+
+        }
     }
 }

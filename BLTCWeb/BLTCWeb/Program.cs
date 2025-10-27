@@ -19,6 +19,7 @@ namespace BLCTWeb
 
             // Add services to the container.
             builder.Services.AddMudServices();
+            builder.Services.AddControllers();
             builder.Services.AddRazorComponents(options =>
                 options.DetailedErrors = builder.Environment.IsDevelopment())
                 .AddInteractiveWebAssemblyComponents()
@@ -51,6 +52,7 @@ namespace BLCTWeb
 
             app.UseStaticFiles();
             app.UseAntiforgery();
+            app.MapControllers();
 
             app.MapRazorComponents<App>()
                 .AddInteractiveWebAssemblyRenderMode()

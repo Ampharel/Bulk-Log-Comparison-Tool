@@ -778,4 +778,23 @@ public class ParsedJsonLog : IParsedEvtcLog
         var supportPhase = supportPhases[phaseIndex];
         return supportPhase.BoonStrips;
     }
+
+    public double GetTimeForBossHealth(string phase, double percent)
+    {
+        var jsonPhase = _log.Phases.FirstOrDefault(p => string.Equals(p.Name, phase, StringComparison.OrdinalIgnoreCase));
+        if(jsonPhase == null) return -1;
+        var targetIndex = jsonPhase.Targets.FirstOrDefault();
+        var target = _log.Targets[targetIndex];
+        var healthTimeline = target.HealthPercents;
+        for(int i = 0; i < healthTimeline.Count; i++)
+        {
+            if(healthTimeline[i][1] <= percent)
+            {
+                return healthTimeline[i][0];
+            }
+        }
+
+        return -1;
+
+    }
 }
