@@ -67,11 +67,13 @@ h1:focus {
 
 .col-1 {
     left: 0;
+    width: 150px;
     min-width: 150px;
 }
 
 .col-2 {
     left: 150px; /* sum of all previous sticky widths */
+    width: 120px;
     min-width: 120px;
     box-shadow: 2px 0 4px rgba(0, 0, 0, 0.05); /* lighter shadow for second col */
 }
