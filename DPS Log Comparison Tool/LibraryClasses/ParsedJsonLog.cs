@@ -797,4 +797,9 @@ public class ParsedJsonLog : IParsedEvtcLog
         return -1;
 
     }
+
+    public string GetInstanceName()
+    {
+        return _log.FightName ?? "";
+    }
 }

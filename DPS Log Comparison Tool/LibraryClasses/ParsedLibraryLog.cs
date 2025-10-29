@@ -1407,5 +1407,10 @@ namespace Bulk_Log_Comparison_Tool.LibraryClasses
             return -1;
 
         }
+
+        public string GetInstanceName()
+        {
+            return _log.FightData.FightName;
+        }
     }
 }

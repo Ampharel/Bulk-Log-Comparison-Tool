@@ -1,0 +1,540 @@
+@page "/rolesetup"
+@using System.Net
+@using System.Net.Http.Json
+@using System.Security.Cryptography
+@using System.Text
+@using BLCTWeb.Models
+
+@inject IHttpClientFactory ClientFactory
+@inject NavigationManager Nav
+@inject IJSRuntime JS
+
+<h3>Role Setup</h3>
+
+<div class="card">
+  <div class="card-body">
+    <label for="pw">Admin password:</label>
+    <input id="pw" type="password" @bind="_password" @bind:event="oninput" />
+    <button class="btn btn-sm btn-primary" @onclick="SetPasswordHash" disabled="@_isVerifying">
+      @if (_isVerifying) { <span>Verifying…</span> } else { <span>Unlock</span> }
+    </button>
+    <button class="btn btn-sm btn-outline-secondary" style="margin-left:8px" @onclick="TestLog">Test log</button>
+    <button class="btn btn-sm btn-outline-secondary" style="margin-left:8px" @onclick="Ping">Ping</button>
+    <span style="margin-left:8px;color:@(_authReady ? "green" : "red")">@(_authReady ? "Ready" : "Locked")</span>
+
+    @if (!string.IsNullOrWhiteSpace(_initError))
+    {
+      <div class="mt-2" style="color:crimson">Init error: @_initError</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_authMessage))
+    {
+      <div class="mt-2" style="color:@(_authReady ? "green" : "crimson")">@_authMessage</div>
+    }
+  </div>
+</div>
+
+<br />
+
+<div class="card">
+  <div class="card-body">
+    <h4>Existing Ranks</h4>
+    <button class="btn btn-sm btn-secondary" disabled="@(!_authReady)" @onclick="LoadRanks">Refresh</button>
+
+    @if (_authReady)
+    {
+      <table class="table table-sm" style="margin-top:8px;">
+        <thead>
+          <tr>
+            <th>DiscordRoleId</th>
+            <th>Name</th>
+            <th>Phase</th>
+            <th>Boss HP %</th>
+            <th>Boss Buff</th>
+            <th>Min Stacks</th>
+            <th>Instance</th>
+            <th>Priority</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @foreach (var r in _ranks)
+          {
+            var isEditing = _editId == r.DiscordRoleId;
+            <tr>
+              <td>@r.DiscordRoleId</td>
+              <td>
+                @if (isEditing)
+                {
+                  <input value="@_edit.Name" @onchange="e => _edit.Name = e.Value?.ToString() ?? string.Empty" />
+                }
+                else { @r.Name }
+              </td>
+              <td>
+                @if (isEditing)
+                {
+                  <input value="@_edit.Phase" @onchange="e => _edit.Phase = e.Value?.ToString() ?? string.Empty" />
+                }
+                else { @r.Phase }
+              </td>
+              <td style="width:120px;">
+                @if (isEditing)
+                {
+                  <input type="number" min="0" max="100" step="0.1" value="@_edit.BossHealthPercent"
+                         @onchange="e => _edit.BossHealthPercent = ParseDouble(e.Value)" />
+                }
+                else { @r.BossHealthPercent }
+              </td>
+              <td style="width:220px;">
+                @if (isEditing)
+                {
+                  <input placeholder="Buff name (optional)" value="@_edit.BossBuffName"
+                         @onchange="e => _edit.BossBuffName = e.Value?.ToString() ?? string.Empty" />
+                }
+                else { @r.BossBuffName }
+              </td>
+              <td style="width:120px;">
+                @if (isEditing)
+                {
+                  <input type="number" min="0" max="100" step="1" value="@_edit.BossBuffStackThreshold"
+                         @onchange="e => _edit.BossBuffStackThreshold = ParseInt(e.Value)" />
+                }
+                else { @r.BossBuffStackThreshold }
+              </td>
+              <td>
+                @if (isEditing)
+                {
+                  <select value="@((int)_edit.InstanceType)"
+                          @onchange="e => _edit.InstanceType = (InstanceType)ParseInt(e.Value)">
+                    @foreach (var it in _instanceTypes)
+                    {
+                      <option value="@((int)it)">@it</option>
+                    }
+                  </select>
+                }
+                else { @r.InstanceType }
+              </td>
+              <td style="width:120px;">
+                @if (isEditing)
+                {
+                  <input type="number" min="-10000" max="10000" step="1" value="@_edit.Priority"
+                         @onchange="e => _edit.Priority = ParseInt(e.Value)" />
+                }
+                else { @r.Priority }
+              </td>
+              <td>
+                @if (isEditing)
+                {
+                  <button class="btn btn-sm btn-success" disabled="@(!_authReady)" @onclick="() => SaveEditAsync(r.DiscordRoleId)">Save</button>
+                  <button class="btn btn-sm btn-secondary" @onclick="CancelEdit">Cancel</button>
+                }
+                else
+                {
+                  <button class="btn btn-sm btn-primary" @onclick="() => BeginEdit(r)">Edit</button>
+                  <button class="btn btn-sm btn-danger" disabled="@(!_authReady)" @onclick="() => DeleteAsync(r.DiscordRoleId)">Delete</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+    else
+    {
+      <div class="text-muted" style="margin-top:8px;">Unlock to view ranks.</div>
+    }
+  </div>
+</div>
+
+<br />
+
+<div class="card">
+  <div class="card-body">
+    <h4>Create Rank</h4>
+
+    <div class="mb-2">
+      <label class="form-label">DiscordRoleId</label>
+      <input class="form-control" type="text" value="@_create.DiscordRoleId"
+             @onchange="e => _create.DiscordRoleId = ParseUlong(e.Value)" />
+    </div>
+
+    <div class="mb-2">
+      <label class="form-label">Name</label>
+      <input class="form-control" value="@_create.Name"
+             @onchange="e => _create.Name = e.Value?.ToString() ?? string.Empty" />
+    </div>
+
+    <div class="mb-2">
+      <label class="form-label">Phase</label>
+      <input class="form-control" value="@_create.Phase"
+             @onchange="e => _create.Phase = e.Value?.ToString() ?? string.Empty" />
+    </div>
+
+    <div class="mb-2">
+      <label class="form-label">Boss HP %</label>
+      <input class="form-control" type="number" min="0" max="100" step="0.1" value="@_create.BossHealthPercent"
+             @onchange="e => _create.BossHealthPercent = ParseDouble(e.Value)" />
+    </div>
+
+    <div class="mb-2">
+      <label class="form-label">Boss Buff (optional)</label>
+      <input class="form-control" placeholder="Buff name" value="@_create.BossBuffName"
+             @onchange="e => _create.BossBuffName = e.Value?.ToString() ?? string.Empty" />
+    </div>
+
+    <div class="mb-2">
+      <label class="form-label">Min Stacks</label>
+      <input class="form-control" type="number" min="0" max="100" step="1" value="@_create.BossBuffStackThreshold"
+             @onchange="e => _create.BossBuffStackThreshold = ParseInt(e.Value)" />
+    </div>
+
+    <div class="mb-2">
+      <label class="form-label">Instance</label>
+      <select class="form-select" value="@((int)_create.InstanceType)"
+              @onchange="e => _create.InstanceType = (InstanceType)ParseInt(e.Value)">
+        @foreach (var it in _instanceTypes)
+        {
+          <option value="@((int)it)">@it</option>
+        }
+      </select>
+    </div>
+
+    <div class="mb-3">
+      <label class="form-label">Priority</label>
+      <input class="form-control" type="number" min="-10000" max="10000" step="1" value="@_create.Priority"
+             @onchange="e => _create.Priority = ParseInt(e.Value)" />
+    </div>
+
+    <div class="mt-2">
+      <button class="btn btn-sm btn-success" disabled="@(!_authReady)" @onclick="CreateAsync">Create</button>
+    </div>
+  </div>
+</div>
+
+@code {
+  private HttpClient? _http;
+  private List<RankDto> _ranks = new();
+  private string _password = string.Empty;
+  private string _adminHash = string.Empty;
+  private bool _authReady = false;
+  private bool _isVerifying = false;
+  private string _authMessage = string.Empty;
+  private string _initError = string.Empty;
+
+  private readonly InstanceType[] _instanceTypes = Enum.GetValues<InstanceType>();
+
+  private CreateRankRequest _create = new()
+  {
+    Name = string.Empty,
+    Phase = string.Empty,
+    BossHealthPercent = 0,
+    InstanceType = InstanceType.Unknown,
+    BossBuffName = string.Empty,
+    BossBuffStackThreshold = 0,
+    Priority = 0
+  };
+
+  private ulong _editId = 0;
+  private UpdateRankRequest _edit = new()
+  {
+    Name = string.Empty,
+    Phase = string.Empty,
+    BossHealthPercent = 0,
+    InstanceType = InstanceType.Unknown,
+    BossBuffName = string.Empty,
+    BossBuffStackThreshold = 0,
+    Priority = 0
+  };
+
+  private string Api(string relative) => new Uri(new Uri(Nav.BaseUri), relative).ToString();
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender)
+    {
+      try
+      {
+        _http = ClientFactory.CreateClient("Self");
+        await Log("RoleSetup hydrated. HttpClient 'Self' acquired.");
+      }
+      catch (Exception ex)
+      {
+        _initError = $"{ex.GetType().Name}: {ex.Message}";
+        await Log($"CreateClient('Self') failed: {_initError}");
+        try
+        {
+          _http = new HttpClient { BaseAddress = new Uri(Nav.BaseUri, UriKind.Absolute) };
+          await Log($"Fallback HttpClient created. BaseAddress={_http.BaseAddress}");
+        }
+        catch (Exception ex2)
+        {
+          _initError += $" | Fallback HttpClient failed: {ex2.GetType().Name}: {ex2.Message}";
+          await Log($"Fallback HttpClient failed: {ex2.GetType().Name}: {ex2.Message}");
+        }
+      }
+      StateHasChanged();
+    }
+  }
+
+  private Task TestLog() => Log("Test button clicked");
+
+  private async Task Ping()
+  {
+    if (_http == null) { await Log("Ping skipped: HttpClient is null"); return; }
+    try
+    {
+      await Log("Ping clicked: GET api/rolecheck/auth/verify (no header)");
+      var resp = await _http.GetAsync(Api("api/rolecheck/auth/verify"));
+      await Log($"Ping response: {(int)resp.StatusCode} {resp.StatusCode}");
+      if (!resp.IsSuccessStatusCode)
+      {
+        var body = await resp.Content.ReadAsStringAsync();
+        await Log($"Ping body: {body}");
+      }
+    }
+    catch (Exception ex)
+    {
+      await Log($"Ping exception: {ex.GetType().Name}: {ex.Message}");
+    }
+  }
+
+  private async Task SetPasswordHash()
+  {
+    if (_http == null) { await Log("Unlock skipped: HttpClient is null"); return; }
+
+    _isVerifying = true;
+    _authMessage = string.Empty;
+    await Log("Unlock clicked");
+
+    _adminHash = ComputeSha256Hex(_password);
+    await Log($"Computed admin hash length: {_adminHash.Length}");
+
+    try
+    {
+      await Log("Sending GET api/rolecheck/auth/verify");
+      var req = new HttpRequestMessage(HttpMethod.Get, Api("api/rolecheck/auth/verify"));
+      req.Headers.TryAddWithoutValidation("X-Admin-Auth", _adminHash);
+
+      var resp = await _http.SendAsync(req);
+      await Log($"Verify response: {(int)resp.StatusCode} {resp.StatusCode}");
+
+      if (resp.IsSuccessStatusCode)
+      {
+        _authReady = true;
+        _authMessage = "Unlocked.";
+        await LoadRanks();
+      }
+      else
+      {
+        _authReady = false;
+        _ranks.Clear();
+        var body = await resp.Content.ReadAsStringAsync();
+        _authMessage = $"Unlock failed: {resp.StatusCode}" + (string.IsNullOrWhiteSpace(body) ? "" : $": {body}");
+      }
+    }
+    catch (Exception ex)
+    {
+      await Log($"Verify exception: {ex.GetType().Name}: {ex.Message}");
+      _authReady = false;
+      _ranks.Clear();
+      _authMessage = $"Verify request error: {ex.Message}";
+    }
+    finally
+    {
+      _isVerifying = false;
+      StateHasChanged();
+    }
+  }
+
+  private async Task LoadRanks()
+  {
+    if (_http == null) { await Log("Refresh skipped: HttpClient is null"); return; }
+
+    try
+    {
+      await Log("Refresh clicked");
+      var req = new HttpRequestMessage(HttpMethod.Get, Api("api/rolecheck/ranks"));
+      req.Headers.TryAddWithoutValidation("X-Admin-Auth", _adminHash);
+
+      await Log("Sending GET api/rolecheck/ranks");
+      var resp = await _http.SendAsync(req);
+      await Log($"Ranks response: {(int)resp.StatusCode} {resp.StatusCode}");
+
+      if (resp.IsSuccessStatusCode)
+      {
+        var result = await resp.Content.ReadFromJsonAsync<RankDto[]>() ?? Array.Empty<RankDto>();
+        _ranks = result.ToList();
+        await Log($"Ranks loaded: {_ranks.Count}");
+      }
+      else if (resp.StatusCode == HttpStatusCode.Unauthorized)
+      {
+        _authReady = false;
+        _ranks.Clear();
+        _authMessage = "Authorization failed. Unlock required.";
+        await Log("Ranks unauthorized; relocking UI");
+      }
+      StateHasChanged();
+    }
+    catch (Exception ex)
+    {
+      await Log($"Ranks exception: {ex.GetType().Name}: {ex.Message}");
+    }
+  }
+
+  private async Task CreateAsync()
+  {
+    if (!_authReady || _http == null) return;
+
+    var req = new HttpRequestMessage(HttpMethod.Post, Api("api/rolecheck/ranks"))
+    {
+      Content = JsonContent.Create(_create)
+    };
+    req.Headers.TryAddWithoutValidation("X-Admin-Auth", _adminHash);
+
+    var resp = await _http.SendAsync(req);
+    if (resp.IsSuccessStatusCode)
+    {
+      _create = new CreateRankRequest
+      {
+        Name = string.Empty,
+        Phase = string.Empty,
+        BossHealthPercent = 0,
+        InstanceType = InstanceType.Unknown,
+        BossBuffName = string.Empty,
+        BossBuffStackThreshold = 0,
+        Priority = 0
+      };
+      await LoadRanks();
+    }
+    else if (resp.StatusCode == HttpStatusCode.Unauthorized)
+    {
+      _authReady = false;
+      _ranks.Clear();
+      _authMessage = "Authorization expired. Please unlock again.";
+      StateHasChanged();
+    }
+  }
+
+  private async Task SaveEditAsync(ulong id)
+  {
+    if (!_authReady || _http == null) return;
+
+    var req = new HttpRequestMessage(HttpMethod.Put, Api($"api/rolecheck/ranks/{id}"))
+    {
+      Content = JsonContent.Create(_edit)
+    };
+    req.Headers.TryAddWithoutValidation("X-Admin-Auth", _adminHash);
+
+    var resp = await _http.SendAsync(req);
+    if (resp.IsSuccessStatusCode)
+    {
+      _editId = 0;
+      await LoadRanks();
+    }
+    else if (resp.StatusCode == HttpStatusCode.Unauthorized)
+    {
+      _authReady = false;
+      _ranks.Clear();
+      _authMessage = "Authorization expired. Please unlock again.";
+      StateHasChanged();
+    }
+  }
+
+  private async Task DeleteAsync(ulong id)
+  {
+    if (!_authReady || _http == null) return;
+
+    var req = new HttpRequestMessage(HttpMethod.Delete, Api($"api/rolecheck/ranks/{id}"));
+    req.Headers.TryAddWithoutValidation("X-Admin-Auth", _adminHash);
+
+    var resp = await _http.SendAsync(req);
+    if (resp.IsSuccessStatusCode)
+    {
+      await LoadRanks();
+    }
+    else if (resp.StatusCode == HttpStatusCode.Unauthorized)
+    {
+      _authReady = false;
+      _ranks.Clear();
+      _authMessage = "Authorization expired. Please unlock again.";
+      StateHasChanged();
+    }
+  }
+
+  private void BeginEdit(RankDto r)
+  {
+    _editId = r.DiscordRoleId;
+    _edit = new UpdateRankRequest
+    {
+      Name = r.Name,
+      Phase = r.Phase,
+      BossHealthPercent = r.BossHealthPercent,
+      InstanceType = r.InstanceType,
+      BossBuffName = r.BossBuffName,
+      BossBuffStackThreshold = r.BossBuffStackThreshold,
+      Priority = r.Priority
+    };
+  }
+
+  private void CancelEdit()
+  {
+    _editId = 0;
+  }
+
+  private static double ParseDouble(object? value) =>
+    double.TryParse(value?.ToString(), out var d) ? d : 0;
+
+  private static ulong ParseUlong(object? value) =>
+    ulong.TryParse(value?.ToString(), out var u) ? u : 0;
+
+  private static int ParseInt(object? value) =>
+    int.TryParse(value?.ToString(), out var i) ? i : 0;
+
+  private static string ComputeSha256Hex(string input)
+  {
+    var bytes = Encoding.UTF8.GetBytes(input);
+    var hash = SHA256.HashData(bytes);
+    var sb = new StringBuilder(hash.Length * 2);
+    foreach (var b in hash) sb.Append(b.ToString("x2"));
+    return sb.ToString();
+  }
+
+  private Task Log(string message) =>
+    JS.InvokeVoidAsync("console.log", $"[RoleSetup] {message}").AsTask();
+
+  // Add DTOs used by this page (client-side copies to match the API)
+  public sealed class RankDto
+  {
+    public ulong DiscordRoleId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Phase { get; set; } = string.Empty;
+    public double BossHealthPercent { get; set; }
+    public InstanceType InstanceType { get; set; }
+    // Optional UI fields; server may omit them
+    public string BossBuffName { get; set; } = string.Empty;
+    public int BossBuffStackThreshold { get; set; }
+    public int Priority { get; set; }
+  }
+
+  public sealed class CreateRankRequest
+  {
+    public string Name { get; set; } = string.Empty;
+    public ulong DiscordRoleId { get; set; }
+    public string Phase { get; set; } = string.Empty;
+    public double BossHealthPercent { get; set; }
+    public InstanceType InstanceType { get; set; } = InstanceType.Unknown;
+    public string BossBuffName { get; set; } = string.Empty;
+    public int BossBuffStackThreshold { get; set; }
+    public int Priority { get; set; }
+  }
+
+  public sealed class UpdateRankRequest
+  {
+    public string Name { get; set; } = string.Empty;
+    public string Phase { get; set; } = string.Empty;
+    public double BossHealthPercent { get; set; }
+    public InstanceType InstanceType { get; set; } = InstanceType.Unknown;
+    public string BossBuffName { get; set; } = string.Empty;
+    public int BossBuffStackThreshold { get; set; }
+    public int Priority { get; set; }
+  }
+}

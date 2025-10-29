@@ -5,11 +5,12 @@ namespace BLCTWeb.Models
     public enum InstanceType
     {
         Unknown = 0,
-        Raid = 1,
-        Strike = 2,
-        Fractal = 3,
-        OpenWorld = 4,
-        Golem = 5,
+        HTCM = 1,
+        ToFCM = 2,
+        DecimaCM = 3,
+        GreerCM = 4,
+        UraCM = 5,
+        UraLM = 6,
         Other = 99
     }
 
@@ -24,6 +25,13 @@ namespace BLCTWeb.Models
         // Required boss health percentage to reach within the phase (0..100)
         public double BossHealthPercent { get; set; }
 
+        // Optional: boss must reach at least this many stacks of the named buff during the phase
+        public string? BossBuffName { get; set; }
+        public int BossBuffStackThreshold { get; set; } = 0;
+
         public InstanceType InstanceType { get; set; } = InstanceType.Unknown;
+
+        // Higher value means higher rank when picking the best eligible rank
+        public int Priority { get; set; } = 0;
     }
 }

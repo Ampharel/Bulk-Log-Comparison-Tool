@@ -4,6 +4,9 @@ using BLCTWeb.Components;
 using Microsoft.AspNetCore.Components.Server;
 using MudBlazor.Services;
 using System.Globalization;
+using Microsoft.AspNetCore.Components.Web; // AntiforgeryMessageHandler
+using Microsoft.AspNetCore.Http;          // IHttpContextAccessor
+using Microsoft.AspNetCore.HttpOverrides; // ForwardedHeaders
 
 namespace BLCTWeb
 {
@@ -26,29 +29,33 @@ namespace BLCTWeb
                 .AddInteractiveServerComponents();
             builder.Services.AddScoped<ServerParser>();
             builder.Services.AddScoped<SpecFilterService>();
-#if DEBUG
-            builder.Services.Configure<CircuitOptions>(options =>
-            {
-                options.DetailedErrors = true;
-            });
-#endif
+
+            // Register HttpClient for server-rendered components
+            builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<AntiforgeryMessageHandler>();
+
+            // Do NOT set BaseAddress here (can be invalid behind proxies). Just attach antiforgery.
+            builder.Services.AddHttpClient("Self")
+                .AddHttpMessageHandler<AntiforgeryMessageHandler>();
+
+            // Allow injecting HttpClient directly
+            builder.Services.AddScoped(sp => sp.GetRequiredService<IHttpClientFactory>().CreateClient("Self"));
+
+            // Show detailed circuit errors to diagnose hydration failures
+            builder.Services.Configure<Microsoft.AspNetCore.Components.Server.CircuitOptions>(o => o.DetailedErrors = true);
 
             var app = builder.Build();
-            
 
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseWebAssemblyDebugging();
-            }
-            else
-            {
-                app.UseExceptionHandler("/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
+            if (app.Environment.IsDevelopment()) app.UseWebAssemblyDebugging();
+            else { app.UseExceptionHandler("/Error"); app.UseHsts(); }
 
             app.UseHttpsRedirection();
+
+            // Forwarded headers (helps Scheme/Host when behind Cloudflare/NGINX)
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedProto | ForwardedHeaders.XForwardedHost
+            });
 
             app.UseStaticFiles();
             app.UseAntiforgery();

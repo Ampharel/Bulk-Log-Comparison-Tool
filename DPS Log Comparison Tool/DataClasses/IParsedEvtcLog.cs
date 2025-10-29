@@ -12,6 +12,7 @@ namespace Bulk_Log_Comparison_Tool.DataClasses
         public double GetPlayerDps(string accountName, string phaseName = "", bool allTarget = false, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
         public double GetPlayerDps(string accountName, long time = 0, string phaseName = "",  bool allTarget = false, bool cumulative = false, bool defiance = false, DamageTyping damageType = DamageTyping.All);
         public string[] GetPhases(string[] filter, bool exclusion = true);
+        public string GetInstanceName();
         public void AddPhase(string name, long start, long duration);
         public string[] GetTargets(string phaseName = "");
         public double GetBoon(string target, string boonName, string phaseName = "", long time = 0, bool duration = false);
